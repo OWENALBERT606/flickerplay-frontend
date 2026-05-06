@@ -9,6 +9,41 @@ import { getSession } from "@/actions/auth";
 import { AuthGuard } from "@/components/auth-guard";
 import { MovieHero } from "../components/movie-hero";
 import { getWatchProgress } from "@/actions/watchHistory";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const movieData = await getMovieBySlug(slug);
+  const movie = movieData.data;
+
+  if (!movie) {
+    return { title: "Movie Not Found" };
+  }
+
+  return {
+    title: movie.title,
+    description: movie.description || `Watch ${movie.title} streaming on FlickerPlay. ${movie.genre.name} movie starring ${movie.cast?.join(", ") || movie.director}.`,
+    openGraph: {
+      title: movie.title,
+      description: movie.description || `Watch ${movie.title} on FlickerPlay`,
+      images: [
+        { url: movie.poster || movie.image, width: 800, height: 1200 },
+      ],
+      type: "video.movie",
+      video: {
+        url: movie.videoUrl,
+        duration: movie.lengthSeconds || undefined,
+        releaseDate: movie.createdAt,
+      },
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: movie.title,
+      description: movie.description || `Watch ${movie.title} on FlickerPlay`,
+      images: [movie.poster || movie.image],
+    },
+  };
+}
 
 export default async function MovieDetailPage({
   params,

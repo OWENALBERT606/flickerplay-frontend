@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  Home, Tv, Film, Flame, Eye, Clock, Star, Clapperboard, Languages, Globe,
+  Home, Tv, Film, Flame, Eye, Clock, Star, Clapperboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,28 +18,16 @@ const NAV_ITEMS = [
   { label: "New Releases", href: "/?type=new",          icon: Clapperboard, param: "new"          },
 ];
 
-const DUBBED_ITEMS = [
-  { label: "Translated (VJ)", href: "/?dubbed=yes", icon: Languages, dubbed: "yes" },
-  { label: "Original",        href: "/?dubbed=no",  icon: Globe,     dubbed: "no"  },
-];
-
 export function HomeSidebar() {
   const pathname     = usePathname();
   const searchParams = useSearchParams();
-  const currentType   = searchParams.get("type");
+  const currentType  = searchParams.get("type");
   const currentDubbed = searchParams.get("dubbed");
 
   const isTypeActive = (param: string | null) => {
     if (param === null) return pathname === "/" && !currentType && !currentDubbed;
     return currentType === param && !currentDubbed;
   };
-  const isDubbedActive = (dubbed: string) => currentDubbed === dubbed;
-
-  const allItems = [
-    ...NAV_ITEMS.map((i) => ({ ...i, dubbed: null as string | null })),
-    { label: "──", href: "#", icon: null as any, param: "__divider__", dubbed: null },
-    ...DUBBED_ITEMS.map((i) => ({ ...i, param: null as string | null })),
-  ];
 
   return (
     <>
@@ -61,22 +49,6 @@ export function HomeSidebar() {
               {label}
             </Link>
           ))}
-          <div className="w-px h-5 bg-border mx-1 shrink-0" />
-          {DUBBED_ITEMS.map(({ label, href, icon: Icon, dubbed }) => (
-            <Link
-              key={dubbed}
-              href={href}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap border transition-colors shrink-0",
-                isDubbedActive(dubbed)
-                  ? "bg-orange-500 border-orange-500 text-white"
-                  : "border-border text-muted-foreground hover:border-orange-400 hover:text-foreground",
-              )}
-            >
-              <Icon className="w-3.5 h-3.5 shrink-0" />
-              {label}
-            </Link>
-          ))}
         </div>
       </div>
 
@@ -90,27 +62,6 @@ export function HomeSidebar() {
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isTypeActive(param)
-                  ? "bg-orange-500 text-white"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary",
-              )}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              {label}
-            </Link>
-          ))}
-
-          <div className="my-3 border-t border-border" />
-          <p className="px-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-            Language
-          </p>
-
-          {DUBBED_ITEMS.map(({ label, href, icon: Icon, dubbed }) => (
-            <Link
-              key={dubbed}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                isDubbedActive(dubbed)
                   ? "bg-orange-500 text-white"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary",
               )}
