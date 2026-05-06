@@ -2,7 +2,7 @@
 
 import axios from "axios";
 
-const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "";
+const BASE_API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "https://moviechamp256-nodejs-api-production.up.railway.app/api/v1";
 
 const api = axios.create({
   baseURL: BASE_API_URL,
