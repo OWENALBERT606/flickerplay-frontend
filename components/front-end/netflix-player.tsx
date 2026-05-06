@@ -324,7 +324,7 @@ export function NetflixPlayer({
         ref={videoRef}
         className="w-full h-full object-contain"
         poster={poster}
-        preload="metadata"
+        preload="auto"
         playsInline
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
