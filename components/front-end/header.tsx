@@ -104,7 +104,7 @@ export function Header({ user }: { user?: any }) {
               Series
             </Link>
             <Link
-              href="/my-list"
+              href="/list"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               My List
@@ -249,7 +249,7 @@ export function Header({ user }: { user?: any }) {
                 Series
               </Link>
               <Link
-                href="/my-list"
+                href="/list"
                 className="text-muted-foreground hover:text-primary transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >

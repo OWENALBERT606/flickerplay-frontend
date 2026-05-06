@@ -198,7 +198,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     },
     {
       title: "My List",
-      href: "/my-list",
+      href: "/list",
       icon: Heart,
     },
     {

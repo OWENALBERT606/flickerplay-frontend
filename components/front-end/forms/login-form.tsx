@@ -367,7 +367,7 @@ export function LoginForm() {
       if (result.success) {
         // Show success toast
         toast.success("Login successful!", {
-          description: "Welcome back to MovieChamp256"
+          description: "Welcome back to Flickerplay"
         })
         
         // Login successful - redirect based on role

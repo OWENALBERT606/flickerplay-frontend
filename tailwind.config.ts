@@ -16,6 +16,16 @@ const config: Config = {
         lg: "var(--radius)",
         xl: "calc(var(--radius) + 4px)",
       },
+      keyframes: {
+        "ping-once": {
+          "0%":   { transform: "scale(1)",   opacity: "1" },
+          "50%":  { transform: "scale(1.4)", opacity: "0.7" },
+          "100%": { transform: "scale(1)",   opacity: "0" },
+        },
+      },
+      animation: {
+        "ping-once": "ping-once 0.7s ease-out forwards",
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",

@@ -7,7 +7,7 @@ const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "
 
 const api = axios.create({
   baseURL: BASE_API_URL,
-  timeout: 12000,
+  timeout: 30000,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -38,6 +38,7 @@ export interface Movie {
   cast: string[];
   trailerUrl: string;
   videoUrl: string;
+  subtitles?: { label: string; src: string; lang: string }[];
   isComingSoon: boolean;
   isTrending: boolean;
   createdAt: string;

@@ -18,9 +18,9 @@ interface GeneralSettingsProps {
 export function GeneralSettings({ settings: initialSettings }: GeneralSettingsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState({
-    siteName: initialSettings?.siteName || "MovieChamp256",
+    siteName: initialSettings?.siteName || "Flickerplay",
     siteDescription: initialSettings?.siteDescription || "Your ultimate movie streaming platform",
-    supportEmail: initialSettings?.supportEmail || "support@moviechamp256.com",
+    supportEmail: initialSettings?.supportEmail || "support@flickerplay.com",
     supportPhone: initialSettings?.supportPhone || "+256 700 000 000",
     maintenanceMode: initialSettings?.maintenanceMode || false,
     allowRegistration: initialSettings?.allowRegistration ?? true,
@@ -62,7 +62,7 @@ export function GeneralSettings({ settings: initialSettings }: GeneralSettingsPr
               id="siteName"
               value={settings.siteName}
               onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-              placeholder="MovieChamp256"
+              placeholder="Flickerplay"
             />
           </div>
 
@@ -86,7 +86,7 @@ export function GeneralSettings({ settings: initialSettings }: GeneralSettingsPr
               type="email"
               value={settings.supportEmail}
               onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
-              placeholder="support@moviechamp256.com"
+              placeholder="support@flickerplay.com"
             />
           </div>
 

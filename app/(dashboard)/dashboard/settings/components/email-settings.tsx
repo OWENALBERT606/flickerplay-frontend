@@ -19,8 +19,8 @@ export function EmailSettings({ settings: initialSettings }: EmailSettingsProps)
     smtpPort: initialSettings?.smtpPort || "587",
     smtpUser: initialSettings?.smtpUser || "",
     smtpPassword: initialSettings?.smtpPassword || "",
-    fromEmail: initialSettings?.fromEmail || "noreply@moviechamp256.com",
-    fromName: initialSettings?.fromName || "MovieChamp256",
+    fromEmail: initialSettings?.fromEmail || "noreply@flickerplay.com",
+    fromName: initialSettings?.fromName || "Flickerplay",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,7 +100,7 @@ export function EmailSettings({ settings: initialSettings }: EmailSettingsProps)
               type="email"
               value={settings.fromEmail}
               onChange={(e) => setSettings({ ...settings, fromEmail: e.target.value })}
-              placeholder="noreply@moviechamp256.com"
+              placeholder="noreply@flickerplay.com"
             />
           </div>
 
@@ -111,7 +111,7 @@ export function EmailSettings({ settings: initialSettings }: EmailSettingsProps)
               id="fromName"
               value={settings.fromName}
               onChange={(e) => setSettings({ ...settings, fromName: e.target.value })}
-              placeholder="MovieChamp256"
+              placeholder="Flickerplay"
             />
           </div>
 

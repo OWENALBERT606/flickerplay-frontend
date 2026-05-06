@@ -416,7 +416,7 @@ export default function AppSidebar({user}:{user:any}) {
                   <Film className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">MovieChamp256</span>
+                  <span className="font-semibold">Flickerplay</span>
                   <span className="text-xs text-muted-foreground">Admin Panel</span>
                 </div>
               </Link>

@@ -375,7 +375,7 @@
 //       {/* Welcome Text */}
 //       <div className="mb-4 justify-center text-center items-center">
 //         <h2 className="text-3xl font-bold text-foreground mb-2">Create Account</h2>
-//         <p className="text-muted-foreground">Join MovieChamp256 and start streaming today</p>
+//         <p className="text-muted-foreground">Join Flickerplay and start streaming today</p>
 //       </div>
 
 //       {/* Form */}
@@ -562,6 +562,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, Lock, User, Loader2, Phone } from "lucide-react"
 import { createUser } from "@/actions/auth"
 import { toast } from "sonner"
+import Image from "next/image"
 
 export function RegisterForm() {
   const router = useRouter()
@@ -658,9 +659,10 @@ export function RegisterForm() {
   return (
     <div className="w-full max-w-md">
       {/* Welcome Text */}
-      <div className="mb-4 justify-center text-center items-center">
+      <div className="mb-4 flex flex-col justify-center text-center items-center">
+        <Image src="/logo/unnamed (3).jpg" alt="FlickerPlay" width={160} height={40} className="h-10 w-40 object-contain mb-4" />
         <h2 className="text-3xl font-bold text-foreground mb-2">Create Account</h2>
-        <p className="text-muted-foreground">Join MovieChamp256 and start streaming today</p>
+        <p className="text-muted-foreground">Join FlickerPlay and start streaming today</p>
       </div>
 
       {/* Form */}

@@ -7,7 +7,8 @@ import { MovieTrailer } from "../components/movie-trailer";
 import { RelatedMovies } from "../components/related-movies";
 import { getSession } from "@/actions/auth";
 import { AuthGuard } from "@/components/auth-guard";
-import { MoviePlayer } from "../components/movie-player";
+import { MovieHero } from "../components/movie-hero";
+import { getWatchProgress } from "@/actions/watchHistory";
 
 export default async function MovieDetailPage({
   params,
@@ -35,23 +36,22 @@ export default async function MovieDetailPage({
   // Increment view count (fire and forget)
   incrementMovieViews(movie.id).catch(console.error);
 
-  // Fetch related movies (same genre)
-  const relatedMoviesData = await listMovies({
-    genreId: movie.genreId,
-    limit: 6,
-  });
+  // Fetch related movies + watch progress in parallel
+  const [relatedMoviesData, progressData] = await Promise.all([
+    listMovies({ genreId: movie.genreId, limit: 6 }),
+    user?.id ? getWatchProgress(user.id, movie.id, "movie") : Promise.resolve(null),
+  ]);
 
-  const relatedMovies = (relatedMoviesData.data || []).filter(
-    (m) => m.id !== movie.id
-  );
+  const relatedMovies = (relatedMoviesData.data || []).filter((m) => m.id !== movie.id);
+  const initialProgress = progressData?.data?.progressPercent ?? 0;
 
   return (
-    <div className="min-h-screen md:py-24 bg-black text-white">
-      {/* Hero Video Player Section */}
-      <MoviePlayer movie={movie} userId={user?.id || ""} />
+    <div className="min-h-screen bg-black text-white">
+      {/* Netflix-style hero with autoplay trailer */}
+      <MovieHero movie={movie} userId={user?.id} initialProgress={initialProgress} />
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 md:px-8 lg:px-16 md:mt-32 relative z-10">
+      <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 relative z-10">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-8">

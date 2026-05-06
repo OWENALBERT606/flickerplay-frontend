@@ -12,7 +12,7 @@ export default function ForgotPasswordPage() {
           {/* Logo */}
           
   <div className="mb-4 flex flex-col w-full justify-center text-center items-center">
-              <Image src="/logo-movie- champ.jpg"  alt="moviechamp256" width={50} height={50}/>
+              <Image src="/logo-flickerplay.jpg"  alt="flickerplay" width={50} height={50}/>
        <h2 className="text-3xl font-bold text-foreground mb-2">Reset Password</h2>
             <p className="text-muted-foreground">
               Enter your email address and we'll send you a link to reset your password

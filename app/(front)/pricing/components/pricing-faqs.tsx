@@ -25,7 +25,7 @@ const FAQS = [
   },
   {
     question: "Can I download movies and watch offline?",
-    answer: "Yes! All plans include unlimited downloads. You can download movies and series to watch offline on the MovieChamp256 mobile app. Downloads are available for the duration of your subscription.",
+    answer: "Yes! All plans include unlimited downloads. You can download movies and series to watch offline on the Flickerplay mobile app. Downloads are available for the duration of your subscription.",
   },
   {
     question: "How many devices can I watch on simultaneously?",
@@ -116,7 +116,7 @@ export function PricingFAQ() {
           Still have questions?
         </p>
         <Link
-          href="mailto:support@moviechamp256.com"
+          href="mailto:support@flickerplay.com"
           className="text-orange-500 hover:text-orange-600 font-semibold"
         >
           Contact our support team →

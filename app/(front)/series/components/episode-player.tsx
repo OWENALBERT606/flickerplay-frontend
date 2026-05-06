@@ -1,396 +1,147 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import { useRouter } from "next/navigation";
-// import Link from "next/link";
-// import { Button } from "@/components/ui/button";
-// import {
-//   ArrowLeft,
-//   SkipBack,
-//   SkipForward,
-//   Settings,
-//   Maximize,
-//   Volume2,
-// } from "lucide-react";
-// import { incrementEpisodeViews } from "@/actions/series";
-
-// interface EpisodePlayerProps {
-//   episode: any;
-//   series: any;
-//   season: any;
-// }
-
-// export function EpisodePlayer({ episode, series, season }: EpisodePlayerProps) {
-//   const router = useRouter();
-//   const [hasTrackedView, setHasTrackedView] = useState(false);
-
-//   // Track view after 30 seconds
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       if (!hasTrackedView) {
-//         incrementEpisodeViews(episode.id).catch(console.error);
-//         setHasTrackedView(true);
-//       }
-//     }, 30000);
-
-//     return () => clearTimeout(timer);
-//   }, [episode.id, hasTrackedView]);
-
-//   const handlePreviousEpisode = () => {
-//     if (episode.episodeNumber > 1) {
-//       router.push(
-//         `/series/${series.slug}/watch?season=${season.seasonNumber}&episode=${
-//           episode.episodeNumber - 1
-//         }`
-//       );
-//     } else if (season.seasonNumber > 1) {
-//       // Go to last episode of previous season
-//       const prevSeason = series.seasons?.find(
-//         (s: any) => s.seasonNumber === season.seasonNumber - 1
-//       );
-//       if (prevSeason) {
-//         router.push(
-//           `/series/${series.slug}/watch?season=${prevSeason.seasonNumber}&episode=${prevSeason.totalEpisodes}`
-//         );
-//       }
-//     }
-//   };
-
-//   const handleNextEpisode = () => {
-//     if (episode.episodeNumber < season.totalEpisodes) {
-//       router.push(
-//         `/series/${series.slug}/watch?season=${season.seasonNumber}&episode=${
-//           episode.episodeNumber + 1
-//         }`
-//       );
-//     } else {
-//       // Go to first episode of next season
-//       const nextSeason = series.seasons?.find(
-//         (s: any) => s.seasonNumber === season.seasonNumber + 1
-//       );
-//       if (nextSeason) {
-//         router.push(
-//           `/series/${series.slug}/watch?season=${nextSeason.seasonNumber}&episode=1`
-//         );
-//       }
-//     }
-//   };
-
-//   const hasPrevious =
-//     episode.episodeNumber > 1 || season.seasonNumber > 1;
-//   const hasNext =
-//     episode.episodeNumber < season.totalEpisodes ||
-//     season.seasonNumber < series.totalSeasons;
-
-//   return (
-//     <div className="relative bg-black">
-//       {/* Back Button */}
-//       <div className="absolute top-4 left-4 z-50">
-//         <Link href={`/series/${series.slug}`}>
-//           <Button
-//             variant="ghost"
-//             size="sm"
-//             className="bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
-//           >
-//             <ArrowLeft className="w-4 h-4 mr-2" />
-//             Back
-//           </Button>
-//         </Link>
-//       </div>
-
-//       {/* Video Player */}
-//       <div className="relative aspect-video w-full bg-black">
-//         <video
-//           src={episode.videoUrl}
-//           controls
-//           autoPlay
-//           className="w-full h-full"
-//           poster={episode.poster || season.poster || series.poster}
-//           controlsList="nodownload"
-//         >
-//           Your browser does not support the video tag.
-//         </video>
-//       </div>
-
-//       {/* Episode Controls */}
-//       <div className="bg-gradient-to-t from-black to-transparent absolute bottom-0 left-0 right-0 p-6">
-//         <div className="container mx-auto">
-//           <div className="flex items-center justify-between text-white">
-//             <div className="flex items-center gap-4">
-//               <Button
-//                 variant="ghost"
-//                 size="sm"
-//                 onClick={handlePreviousEpisode}
-//                 disabled={!hasPrevious}
-//                 className="hover:bg-white/20"
-//               >
-//                 <SkipBack className="w-5 h-5" />
-//               </Button>
-
-//               <Button
-//                 variant="ghost"
-//                 size="sm"
-//                 onClick={handleNextEpisode}
-//                 disabled={!hasNext}
-//                 className="hover:bg-white/20"
-//               >
-//                 <SkipForward className="w-5 h-5" />
-//               </Button>
-//             </div>
-
-//             <div className="flex items-center gap-2">
-//               <span className="text-sm">
-//                 S{season.seasonNumber}:E{episode.episodeNumber}
-//               </span>
-//               <span className="text-sm text-white/70">•</span>
-//               <span className="text-sm">{episode.title}</span>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
-
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  SkipBack,
-  SkipForward,
-  Download,
-  Maximize,
-} from "lucide-react";
-import { incrementEpisodeViews } from "@/actions/series";
 import { toast } from "sonner";
+import { incrementEpisodeViews } from "@/actions/series";
+import { NetflixPlayer, type NextItem } from "@/components/front-end/netflix-player";
+import { Button } from "@/components/ui/button";
+import { SkipBack, SkipForward } from "lucide-react";
 
 interface EpisodePlayerProps {
   episode: any;
   series: any;
   season: any;
+  userId?: string;
+  initialProgress?: number;
 }
 
-export function EpisodePlayer({ episode, series, season }: EpisodePlayerProps) {
+export function EpisodePlayer({
+  episode,
+  series,
+  season,
+  userId,
+  initialProgress = 0,
+}: EpisodePlayerProps) {
   const router = useRouter();
   const [hasTrackedView, setHasTrackedView] = useState(false);
 
-  // Track view after 30 seconds
+  /* ── View tracking after 30 s ── */
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const t = setTimeout(() => {
       if (!hasTrackedView) {
         incrementEpisodeViews(episode.id).catch(console.error);
         setHasTrackedView(true);
       }
-    }, 30000);
-
-    return () => clearTimeout(timer);
+    }, 30_000);
+    return () => clearTimeout(t);
   }, [episode.id, hasTrackedView]);
 
-  const handlePreviousEpisode = () => {
-    if (episode.episodeNumber > 1) {
-      router.push(
-        `/series/${series.slug}/watch?season=${season.seasonNumber}&episode=${
-          episode.episodeNumber - 1
-        }`
-      );
-    } else if (season.seasonNumber > 1) {
-      // Go to last episode of previous season
-      const prevSeason = series.seasons?.find(
-        (s: any) => s.seasonNumber === season.seasonNumber - 1
-      );
-      if (prevSeason) {
-        router.push(
-          `/series/${series.slug}/watch?season=${prevSeason.seasonNumber}&episode=${prevSeason.totalEpisodes}`
-        );
-      }
-    }
-  };
-
-  const handleNextEpisode = () => {
-    if (episode.episodeNumber < season.totalEpisodes) {
-      router.push(
-        `/series/${series.slug}/watch?season=${season.seasonNumber}&episode=${
-          episode.episodeNumber + 1
-        }`
-      );
-    } else {
-      // Go to first episode of next season
-      const nextSeason = series.seasons?.find(
-        (s: any) => s.seasonNumber === season.seasonNumber + 1
-      );
-      if (nextSeason) {
-        router.push(
-          `/series/${series.slug}/watch?season=${nextSeason.seasonNumber}&episode=1`
-        );
-      }
-    }
-  };
-
-  const handleDownload = () => {
-    // Check if downloadUrl exists
-    const downloadSource = episode.downloadUrl || episode.videoUrl;
-    
-    if (!downloadSource) {
-      toast.error("Download link not available");
-      return;
-    }
-
-    // Create filename
-    const filename = `${series.title.replace(/[^a-z0-9]/gi, '_')}_S${season.seasonNumber.toString().padStart(2, '0')}E${episode.episodeNumber.toString().padStart(2, '0')}.mp4`;
-
-    // Create a temporary anchor element to trigger download
-    const link = document.createElement("a");
-    link.href = downloadSource;
-    link.download = filename;
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast.success("Download started", {
-      description: `${series.title} - S${season.seasonNumber}E${episode.episodeNumber}`,
-    });
-  };
-
+  /* ── Navigation helpers ── */
   const hasPrevious = episode.episodeNumber > 1 || season.seasonNumber > 1;
   const hasNext =
     episode.episodeNumber < season.totalEpisodes ||
     season.seasonNumber < series.totalSeasons;
 
+  const prevHref = (() => {
+    if (episode.episodeNumber > 1)
+      return `/series/${series.slug}/watch?season=${season.seasonNumber}&episode=${episode.episodeNumber - 1}`;
+    const prev = series.seasons?.find((s: any) => s.seasonNumber === season.seasonNumber - 1);
+    if (prev) return `/series/${series.slug}/watch?season=${prev.seasonNumber}&episode=${prev.totalEpisodes}`;
+    return null;
+  })();
+
+  const nextHref = (() => {
+    if (episode.episodeNumber < season.totalEpisodes)
+      return `/series/${series.slug}/watch?season=${season.seasonNumber}&episode=${episode.episodeNumber + 1}`;
+    const next = series.seasons?.find((s: any) => s.seasonNumber === season.seasonNumber + 1);
+    if (next) return `/series/${series.slug}/watch?season=${next.seasonNumber}&episode=1`;
+    return null;
+  })();
+
+  const nextItem: NextItem | undefined = nextHref
+    ? {
+        label: `S${season.seasonNumber} E${episode.episodeNumber + 1 <= season.totalEpisodes
+          ? episode.episodeNumber + 1
+          : 1} · Next Episode`,
+        href: nextHref,
+      }
+    : undefined;
+
+  const handleDownload = () => {
+    const src = episode.downloadUrl || episode.videoUrl;
+    if (!src) { toast.error("Download not available"); return; }
+    const filename = `${series.title.replace(/[^a-z0-9]/gi, "_")}_S${String(season.seasonNumber).padStart(2, "0")}E${String(episode.episodeNumber).padStart(2, "0")}.mp4`;
+    const a = document.createElement("a");
+    a.href = src; a.download = filename; a.target = "_blank";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast.success("Download started");
+  };
+
   return (
-    <div className="relative bg-black min-h-screen">
-      {/* Top Controls Bar */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/80 to-transparent">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Back Button */}
-            <Link href={`/series/${series.slug}`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Series
-              </Button>
-            </Link>
+    <div className="bg-black min-h-screen">
+      {/* ── Player ── */}
+      <NetflixPlayer
+        src={episode.videoUrl}
+        poster={episode.poster || season.poster || series.poster}
+        title={series.title}
+        subtitle={`Season ${season.seasonNumber} · Episode ${episode.episodeNumber}${episode.title ? ` · ${episode.title}` : ""}`}
+        backHref={`/series/${series.slug}`}
+        userId={userId}
+        itemId={episode.id}
+        itemType="episode"
+        initialProgress={initialProgress}
+        nextItem={nextItem}
+        onEnded={() => nextHref && router.push(nextHref)}
+        autoPlay
+      />
 
-            {/* Episode Info */}
-            <div className="hidden md:flex items-center gap-2 text-white">
-              <span className="font-semibold">{series.title}</span>
-              <span className="text-white/70">•</span>
-              <span className="text-sm">
-                Season {season.seasonNumber} Episode {episode.episodeNumber}
-              </span>
-            </div>
+      {/* ── Below-player info & nav ── */}
+      <div className="px-4 md:px-8 lg:px-12 py-6 bg-black">
+        <div className="max-w-5xl mx-auto">
+          {/* Episode title */}
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-1">{episode.title}</h2>
+          <p className="text-white/50 text-sm mb-4">
+            Season {season.seasonNumber} · Episode {episode.episodeNumber}
+            {episode.length && ` · ${episode.length}`}
+          </p>
+          {episode.description && (
+            <p className="text-white/70 text-sm leading-relaxed mb-6 max-w-3xl line-clamp-3">
+              {episode.description}
+            </p>
+          )}
 
-            {/* Download Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDownload}
-              className="bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Video Player */}
-      <div className="relative aspect-video w-full bg-black">
-        <video
-          src={episode.videoUrl}
-          controls
-          autoPlay
-          className="w-full h-full"
-          poster={episode.poster || season.poster || series.poster}
-          controlsList="nodownload"
-        >
-          Your browser does not support the video tag.
-        </video>
-      </div>
-
-      {/* Bottom Episode Controls */}
-      <div className="bg-gradient-to-t from-black via-black/90 to-transparent px-4 md:px-8 lg:px-12 py-6">
-        <div className="container mx-auto">
-          {/* Episode Title & Description */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-white mb-2">
-              {episode.title}
-            </h2>
-            {episode.description && (
-              <p className="text-sm text-white/70 line-clamp-3 max-w-4xl">
-                {episode.description}
-              </p>
-            )}
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* Previous Episode */}
+          {/* Nav + download */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {hasPrevious && prevHref && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handlePreviousEpisode}
-                disabled={!hasPrevious}
-                className="bg-white/10 hover:bg-white/20 border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => router.push(prevHref)}
+                className="bg-white/10 hover:bg-white/20 border-white/20 text-white"
               >
                 <SkipBack className="w-4 h-4 mr-2" />
                 Previous
               </Button>
-
-              {/* Next Episode */}
+            )}
+            {hasNext && nextHref && (
               <Button
-                variant="outline"
                 size="sm"
-                onClick={handleNextEpisode}
-                disabled={!hasNext}
-                className="bg-orange-500 hover:bg-orange-600 border-orange-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => router.push(nextHref)}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
               >
-                Next
+                Next Episode
                 <SkipForward className="w-4 h-4 ml-2" />
               </Button>
-            </div>
-
-            {/* Episode Counter */}
-            <div className="hidden md:flex items-center gap-4 text-white text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-white/70">Season:</span>
-                <span className="font-semibold">{season.seasonNumber}</span>
-              </div>
-              <span className="text-white/30">|</span>
-              <div className="flex items-center gap-2">
-                <span className="text-white/70">Episode:</span>
-                <span className="font-semibold">
-                  {episode.episodeNumber} of {season.totalEpisodes}
-                </span>
-              </div>
-              {episode.length && (
-                <>
-                  <span className="text-white/30">|</span>
-                  <span className="text-white/70">{episode.length}</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile Episode Counter */}
-          <div className="md:hidden mt-4 flex items-center justify-between text-white text-sm">
-            <span>
-              S{season.seasonNumber}:E{episode.episodeNumber} of {season.totalEpisodes}
-            </span>
-            {episode.length && <span className="text-white/70">{episode.length}</span>}
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              className="bg-white/10 hover:bg-white/20 border-white/20 text-white ml-auto"
+            >
+              Download
+            </Button>
           </div>
         </div>
       </div>

@@ -156,7 +156,7 @@ export function MovieDetails({ movie, userId }: MovieDetailsProps) {
       try {
         await navigator.share({
           title: movie.title,
-          text: `Check out ${movie.title} on MovieChamp256`,
+          text: `Check out ${movie.title} on Flickerplay`,
           url: shareUrl,
         });
         toast.success("Shared successfully");
