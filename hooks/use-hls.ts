@@ -56,17 +56,20 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
   const [nativeHls, setNativeHls] = useState(false);
   const [currentSubtitle, setCurrentSubtitle] = useState(-1);
 
-  // Handle subtitle tracks
+  // Stable ref for subtitles so array identity changes don't retrigger effects
+  const subtitlesRef = useRef(subtitles);
+  useEffect(() => { subtitlesRef.current = subtitles; }, [subtitles]);
+
+  // Handle subtitle tracks — only re-run when src changes, use ref for subtitles
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || subtitles.length === 0) return;
+    const subs = subtitlesRef.current;
+    if (!video || subs.length === 0) return;
 
-    // Remove existing tracks
     const existingTracks = video.querySelectorAll("track");
     existingTracks.forEach((track) => track.remove());
 
-    // Add new subtitle tracks
-    subtitles.forEach((sub, index) => {
+    subs.forEach((sub, index) => {
       const track = document.createElement("track");
       track.kind = "captions";
       track.label = sub.label;
@@ -78,7 +81,7 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
       }
       video.appendChild(track);
     });
-  }, [src, subtitles]);
+  }, [src]); // only src — subtitles accessed via ref
 
   // Subtitle switching handler
   const setSubtitle = (index: number) => {
@@ -171,7 +174,7 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
         hlsRef.current = null;
       }
     };
-  }, [src, subtitles]);
+  }, [src]); // only src — subtitles accessed via ref
 
   const setLevel = (index: number) => {
     if (hlsRef.current) {
