@@ -175,15 +175,6 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
 
   return (
     <div className="relative w-full h-[70vh] min-h-[500px] overflow-hidden bg-black mt-14">
-      {/* Hidden video preloader — starts buffering the movie while user reads the page */}
-      {movie.videoUrl && (
-        <video
-          src={movie.videoUrl}
-          preload="auto"
-          className="hidden"
-          aria-hidden="true"
-        />
-      )}
       {/* ── Background: trailer video or poster ── */}
       {movie.trailerUrl ? (
         <>

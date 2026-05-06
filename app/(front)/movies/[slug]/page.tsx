@@ -77,10 +77,6 @@ export default async function MovieDetailPage({
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Preload hint — tells browser to start fetching video immediately */}
-      {movie.videoUrl && (
-        <link rel="preload" as="video" href={movie.videoUrl} />
-      )}
       {/* Netflix-style hero with autoplay trailer */}
       <MovieHero movie={movie} userId={user?.id} initialProgress={initialProgress} />
 
