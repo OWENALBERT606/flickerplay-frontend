@@ -3,6 +3,8 @@ import { listSeries, getTrendingSeries, getComingSoonSeries } from "@/actions/se
 import { listGenres } from "@/actions/genres";
 import { listVJs } from "@/actions/vjs";
 import { listReleaseYears } from "@/actions/releaseYear";
+
+export const dynamic = "force-dynamic";
 import { getSession } from "@/actions/auth";
 import { SeriesGrid } from "./components/series-grid";
 import { SeriesSidebar } from "./components/series-sidebar";

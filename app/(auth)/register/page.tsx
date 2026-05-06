@@ -2,6 +2,8 @@ import { RegisterForm } from "@/components/front-end/forms/register-form"
 import { RegisterHeroCarousel } from "@/components/front-end/register-hero"
 import { listMovies } from "@/actions/movies"
 
+export const dynamic = "force-dynamic";
+
 export default async function RegisterPage() {
   // Fetch movies for the carousel
   const moviesData = await listMovies({ limit: 10, isTrending: true }).catch(() => ({ data: [] }))

@@ -3,6 +3,8 @@ import { listMovies } from "@/actions/movies";
 import { listGenres } from "@/actions/genres";
 import { listVJs } from "@/actions/vjs";
 import { listReleaseYears } from "@/actions/releaseYear";
+
+export const dynamic = "force-dynamic";
 import { getSession } from "@/actions/auth";
 import { MovieGrid } from "./components/movies-grid";
 import { MoviesSidebar } from "./components/movies-sidebar";

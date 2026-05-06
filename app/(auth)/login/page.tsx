@@ -4,6 +4,8 @@ import Image from "next/image"
 import { RegisterHeroCarousel } from "@/components/front-end/register-hero"
 import { listMovies } from "@/actions/movies"
 
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
   // Fetch movies for the carousel — use trailerPoster or poster as the slide image
   const moviesData = await listMovies({ limit: 10, isTrending: true }).catch(() => ({ data: [] }))

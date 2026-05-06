@@ -1,6 +1,8 @@
 import { getSession } from "@/actions/auth";
 import { getDashboardStats } from "@/actions/dashboard";
 import { redirect } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { StatsCards } from "./components/stats-cards";
 import { RevenueChart } from "./components/revenue-chart";
 import { UserGrowthChart } from "./components/user-growth-chart";

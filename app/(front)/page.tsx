@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getSession } from "@/actions/auth";
 import {
   getComingSoonMovies,
