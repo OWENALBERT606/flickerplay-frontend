@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -33,15 +33,19 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function HeroCarousel({ items, userId }: HeroCarouselProps) {
-  // Shuffle once on mount — filter out items with no usable image first
-  const shuffled = useMemo(
-    () => shuffle(items.filter((item) => !!(item.trailerPoster || item.poster))),
-    [] // eslint-disable-line react-hooks/exhaustive-deps
-  );
+  const filtered = items.filter((item) => !!(item.trailerPoster || item.poster));
 
+  // Start with unshuffled on server — shuffle after mount to avoid hydration mismatch
+  const [shuffled, setShuffled] = useState<HeroItem[]>(filtered);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Shuffle once on client after hydration
+  useEffect(() => {
+    setShuffled(shuffle(filtered));
+    setCurrentIndex(0);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goTo = (index: number) => {
     if (isTransitioning) return;
