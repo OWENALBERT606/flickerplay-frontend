@@ -30,11 +30,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         { url: movie.poster || movie.image, width: 800, height: 1200 },
       ],
       type: "video.movie",
-      video: {
-        url: movie.videoUrl,
-        duration: movie.lengthSeconds || undefined,
-        releaseDate: movie.createdAt,
-      },
     },
     twitter: {
       card: "summary_large_image",
