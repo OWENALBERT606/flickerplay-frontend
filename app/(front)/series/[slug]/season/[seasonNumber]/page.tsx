@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Play, Calendar, Clock, Eye } from "lucide-react";
 import { getSeriesBySlug } from "@/actions/series";
+import { TrailerPlayer } from "@/components/front-end/trailer-player";
 
 export default async function SeasonDetailPage({
   params,
@@ -115,16 +116,12 @@ export default async function SeasonDetailPage({
       {season.trailerUrl && (
         <div className="container mx-auto px-4 md:px-12 lg:px-24 py-8 border-t border-border">
           <h2 className="text-2xl font-bold mb-6">Season Trailer</h2>
-          <div className="relative aspect-video w-full max-w-4xl rounded-lg overflow-hidden bg-black">
-            <video
-              src={season.trailerUrl}
-              controls
-              className="w-full h-full"
-              poster={season.poster || undefined}
-            >
-              Your browser does not support the video tag.
-            </video>
-          </div>
+          <TrailerPlayer
+            url={season.trailerUrl}
+            title={`${series.title} Season ${season.seasonNumber} Trailer`}
+            poster={season.poster || undefined}
+            className="max-w-4xl"
+          />
         </div>
       )}
     </div>

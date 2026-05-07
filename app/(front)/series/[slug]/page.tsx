@@ -5,18 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-  Star, 
-  Eye, 
-  Calendar, 
-  Play, 
-  Plus, 
-  Share2,
-  ChevronRight 
+  Star, Eye, Calendar, Play, Plus, Share2, ChevronRight 
 } from "lucide-react";
 import { getSeriesBySlug, incrementSeriesViews } from "@/actions/series";
 import { SeriesSection } from "../components/series-section";
 import { getSession } from "@/actions/auth";
 import { AuthGuard } from "@/components/auth-guard";
+import { TrailerPlayer } from "@/components/front-end/trailer-player";
 
 export default async function SeriesDetailPage({ 
   params 
@@ -198,16 +193,11 @@ export default async function SeriesDetailPage({
             {series.trailerUrl && (
               <div>
                 <h2 className="text-2xl font-bold mb-6">Trailer</h2>
-                <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black">
-                  <video
-                    src={series.trailerUrl}
-                    controls
-                    className="w-full h-full"
-                    poster={series.trailerPoster}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
+                <TrailerPlayer
+                  url={series.trailerUrl}
+                  title={`${series.title} Trailer`}
+                  poster={series.trailerPoster || series.poster}
+                />
               </div>
             )}
 

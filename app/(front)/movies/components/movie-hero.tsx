@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import type { Movie } from "@/actions/movies";
 import { AddToListButton } from "./add-to-list-button";
+import { TrailerPlayer, getYouTubeId } from "@/components/front-end/trailer-player";
 import { MoviePlayer } from "./movie-player";
 
 /* ── Reddit SVG (not in lucide) ─────────────────────────────────── */
@@ -100,15 +101,16 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
   const videoRef = useRef<HTMLVideoElement>(null);
   const shareRef = useRef<HTMLDivElement>(null);
 
-  // Auto-play trailer muted on mount
+  const youtubeId = movie.trailerUrl ? getYouTubeId(movie.trailerUrl) : null;
+  const isYouTubeTrailer = !!youtubeId;
+
+  // Auto-play background trailer — only for direct video files, not YouTube
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !movie.trailerUrl) return;
+    if (!video || !movie.trailerUrl || isYouTubeTrailer) return;
 
     const tryPlay = () => {
-      video.play().catch(() => {
-        // Autoplay blocked — stay on poster
-      });
+      video.play().catch(() => {});
     };
 
     video.addEventListener("canplay", () => {
@@ -116,10 +118,8 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
       tryPlay();
     });
 
-    return () => {
-      video.pause();
-    };
-  }, [movie.trailerUrl]);
+    return () => { video.pause(); };
+  }, [movie.trailerUrl, isYouTubeTrailer]);
 
   // Close share panel on outside click
   useEffect(() => {
@@ -176,18 +176,13 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
   return (
     <div className="relative w-full h-[70vh] min-h-[500px] overflow-hidden bg-black mt-14">
       {/* ── Background: trailer video or poster ── */}
-      {movie.trailerUrl ? (
+      {movie.trailerUrl && !isYouTubeTrailer ? (
         <>
-          {/* Poster shown until video is ready */}
+          {/* Poster shown until direct video is ready */}
           {!trailerReady && poster && (
-            <Image
-              src={poster}
-              alt={movie.title}
-              fill
-              className="object-cover"
-              priority
-            />
+            <Image src={poster} alt={movie.title} fill className="object-cover" priority />
           )}
+          {/* Direct video file — autoplays muted in background */}
           <video
             ref={videoRef}
             src={movie.trailerUrl}
@@ -200,6 +195,7 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
           />
         </>
       ) : poster ? (
+        /* YouTube trailer or no trailer — show poster as background */
         <Image src={poster} alt={movie.title} fill className="object-cover" priority />
       ) : null}
 
@@ -207,8 +203,8 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
 
-      {/* ── Mute toggle (top-right, Netflix-style) ── */}
-      {movie.trailerUrl && trailerReady && (
+      {/* ── Mute toggle (top-right, Netflix-style) — only for direct video trailers ── */}
+      {movie.trailerUrl && !isYouTubeTrailer && trailerReady && (
         <button
           onClick={toggleMute}
           className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full border border-white/40 bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"

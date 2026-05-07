@@ -7,6 +7,7 @@ import Image from "next/image"
 import { useState } from "react"
 import Link from "next/link"
 import { documentariesData } from "@/lib/documentary-data"
+import { TrailerPlayer } from "@/components/front-end/trailer-player"
 
 export default async function DocumentaryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -119,12 +120,17 @@ export default async function DocumentaryDetailPage({ params }: { params: Promis
                 <div className="sticky top-24">
                   <h2 className="text-xl font-semibold text-foreground mb-4">Trailer</h2>
                   <div className="relative aspect-video rounded-lg overflow-hidden mb-6">
-                    <video
-                      src={documentary.trailerUrl}
-                      poster={documentary.trailerPoster}
-                      controls
-                      className="w-full h-full"
-                    />
+                    {documentary.trailerUrl ? (
+                      <TrailerPlayer
+                        url={documentary.trailerUrl}
+                        title={`${documentary.title} Trailer`}
+                        poster={documentary.trailerPoster}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center rounded-lg">
+                        <p className="text-muted-foreground text-sm">No trailer available</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
