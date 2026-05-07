@@ -18,12 +18,14 @@ export default async function NewSeasonPage({
     notFound();
   }
 
+  const series = seriesData.data;
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <Button variant="ghost" asChild className="mb-4">
         <Link href={`/dashboard/series/${id}`}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to {seriesData.data.title}
+          Back to {series.title}
         </Link>
       </Button>
 
@@ -31,11 +33,16 @@ export default async function NewSeasonPage({
         <CardHeader>
           <CardTitle>Add Season</CardTitle>
           <CardDescription>
-            Add a new season to {seriesData.data.title}
+            Add a new season to {series.title}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SeasonForm seriesId={id} />
+          <SeasonForm
+            seriesId={id}
+            seriesTitle={series.title}
+            seriesPoster={series.poster}
+            seriesTrailerPoster={series.trailerPoster}
+          />
         </CardContent>
       </Card>
     </div>

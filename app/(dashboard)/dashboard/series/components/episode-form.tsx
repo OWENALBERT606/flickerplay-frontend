@@ -2,99 +2,140 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { createEpisode, updateEpisode, type Episode } from "@/actions/series";
 import { Dropzone, FileWithMetadata } from "@/components/ui/dropzone";
+import { VideoDropzone } from "@/components/ui/video-dropzone";
+import { enrichEpisodeMetadata, type TmdbEpisodeFullMeta } from "@/actions/metadata";
 
 interface EpisodeFormProps {
   seriesId: string;
   seasonId: string;
   episode?: Episode;
+  /** Season number — needed for TMDB lookup */
+  seasonNumber?: number;
+  /** Series fallback poster */
+  seriesPoster?: string;
 }
 
-export function EpisodeForm({ seriesId, seasonId, episode }: EpisodeFormProps) {
+export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber, seriesPoster }: EpisodeFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     episodeNumber: episode?.episodeNumber?.toString() || "",
-    title: episode?.title || "",
-    description: episode?.description || "",
-    videoUrl: episode?.videoUrl || "",
-    poster: episode?.poster || "",
-    length: episode?.length || "",
+    title:         episode?.title         || "",
+    description:   episode?.description   || "",
+    videoUrl:      episode?.videoUrl      || "",
+    poster:        episode?.poster        || "",
+    length:        episode?.length        || "",
     lengthSeconds: episode?.lengthSeconds?.toString() || "",
-    size: episode?.size || "",
-    releaseDate: episode?.releaseDate 
-      ? new Date(episode.releaseDate).toISOString().split('T')[0] 
+    size:          episode?.size          || "",
+    releaseDate:   episode?.releaseDate
+      ? new Date(episode.releaseDate).toISOString().split("T")[0]
       : "",
   });
 
-  // Dropzone state
+  /* TMDB enrichment */
+  const [tmdbSeriesId, setTmdbSeriesId] = useState("");
+  const [enriching, setEnriching]       = useState(false);
+  const [metaFilled, setMetaFilled]     = useState(false);
+  const [stillOptions, setStillOptions] = useState<string[]>([]);
+  const [selectedStillIdx, setSelectedStillIdx] = useState(0);
+  const [director, setDirector]         = useState<string | null>(null);
+
+  /* Dropzone */
   const [posterFiles, setPosterFiles] = useState<FileWithMetadata[]>([]);
-  const [videoFiles, setVideoFiles] = useState<FileWithMetadata[]>([]);
 
   const isEditing = !!episode;
 
-  // Update form data when files are uploaded
-  useEffect(() => {
-    if (posterFiles[0]?.publicUrl) {
-      setFormData((prev) => ({ ...prev, poster: posterFiles[0].publicUrl! }));
-    }
-  }, [posterFiles]);
+  useEffect(() => { if (posterFiles[0]?.publicUrl) setFormData(p => ({ ...p, poster: posterFiles[0].publicUrl! })); }, [posterFiles]);
 
-  useEffect(() => {
-    if (videoFiles[0]?.publicUrl) {
-      setFormData((prev) => ({ ...prev, videoUrl: videoFiles[0].publicUrl! }));
-    }
-  }, [videoFiles]);
+  /* ── Fetch TMDB episode metadata ── */
+  const handleEnrich = async () => {
+    const epNum = parseInt(formData.episodeNumber);
+    const sNum  = seasonNumber || 1;
+    const tId   = parseInt(tmdbSeriesId);
 
+    if (!tmdbSeriesId || isNaN(tId)) { toast.error("Enter a valid TMDB Series ID"); return; }
+    if (!formData.episodeNumber || isNaN(epNum)) { toast.error("Enter the episode number first"); return; }
+
+    setEnriching(true);
+    toast.loading("Fetching episode metadata from TMDB…", { id: "ep-enrich" });
+
+    try {
+      const data: TmdbEpisodeFullMeta | null = await enrichEpisodeMetadata(tId, sNum, epNum);
+      if (!data) throw new Error("Episode not found on TMDB");
+
+      /* Fall back to series poster if no episode still */
+      const poster = data.poster || seriesPoster || "";
+
+      setFormData(prev => ({
+        ...prev,
+        title:         data.title         || prev.title,
+        description:   data.description   || prev.description,
+        poster,
+        length:        data.length        || prev.length,
+        lengthSeconds: data.lengthSeconds?.toString() || prev.lengthSeconds,
+        releaseDate:   data.releaseDate   || prev.releaseDate,
+      }));
+
+      if (data.stillOptions.length) {
+        setStillOptions(data.stillOptions);
+        setSelectedStillIdx(0);
+      }
+      if (data.director) setDirector(data.director);
+      setMetaFilled(true);
+
+      toast.success(`Episode ${epNum} auto-filled!`, { id: "ep-enrich" });
+    } catch (e: any) {
+      toast.error(e.message || "Failed to fetch episode metadata", { id: "ep-enrich" });
+    } finally {
+      setEnriching(false);
+    }
+  };
+
+  /* ── Submit ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.episodeNumber || !formData.title || !formData.videoUrl) {
-      toast.error("Episode number, title, and video URL are required");
+      toast.error("Episode number, title, and video are required");
       return;
     }
 
     setIsLoading(true);
-
     try {
       const payload = {
         episodeNumber: parseInt(formData.episodeNumber),
-        title: formData.title,
-        description: formData.description || undefined,
-        videoUrl: formData.videoUrl,
-        poster: formData.poster || undefined,
-        length: formData.length || undefined,
+        title:         formData.title,
+        description:   formData.description || undefined,
+        videoUrl:      formData.videoUrl,
+        poster:        formData.poster      || undefined,
+        length:        formData.length      || undefined,
         lengthSeconds: formData.lengthSeconds ? parseInt(formData.lengthSeconds) : undefined,
-        size: formData.size || undefined,
-        releaseDate: formData.releaseDate || undefined,
+        size:          formData.size        || undefined,
+        releaseDate:   formData.releaseDate || undefined,
       };
 
-      let result;
-
-      if (isEditing) {
-        result = await updateEpisode(episode.id, payload);
-      } else {
-        result = await createEpisode(seasonId, payload);
-      }
+      const result = isEditing
+        ? await updateEpisode(episode.id, payload)
+        : await createEpisode(seasonId, payload);
 
       if (result.success) {
-        toast.success(
-          isEditing ? "Episode updated successfully!" : "Episode created successfully!"
-        );
+        toast.success(isEditing ? "Episode updated!" : "Episode created!");
         router.push(`/dashboard/series/${seriesId}/seasons/${seasonId}`);
         router.refresh();
       } else {
         toast.error(result.error || "Something went wrong");
       }
-    } catch (error) {
-      console.error("Form error:", error);
+    } catch (err) {
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -103,150 +144,171 @@ export function EpisodeForm({ seriesId, seasonId, episode }: EpisodeFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+
+      {/* ── TMDB Auto-fill panel ── */}
+      {!isEditing && (
+        <Card className="border-orange-500/20 bg-orange-500/5">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-4 h-4 text-orange-500" />
+              <p className="text-sm font-semibold text-orange-600">Auto-fill from TMDB</p>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Enter the TMDB Series ID and episode number to auto-fill title, description,
+              thumbnail, duration, and air date. Missing thumbnails fall back to the series poster.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                placeholder="TMDB Series ID (e.g. 1396)"
+                value={tmdbSeriesId}
+                onChange={e => setTmdbSeriesId(e.target.value)}
+                disabled={enriching}
+                className="text-sm flex-1"
+              />
+              <Button
+                type="button"
+                onClick={handleEnrich}
+                disabled={enriching || !tmdbSeriesId || !formData.episodeNumber}
+                className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
+              >
+                {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch"}
+              </Button>
+            </div>
+            {metaFilled && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-green-600">
+                <CheckCircle2 className="w-3 h-3" />
+                Episode auto-filled from TMDB
+                {director && <span className="text-muted-foreground">· Director: {director}</span>}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Episode Number / Release Date ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Episode Number */}
         <div className="space-y-2">
-          <Label htmlFor="episodeNumber">
-            Episode Number <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="episodeNumber"
-            type="number"
-            min="1"
-            placeholder="e.g., 1"
+          <Label>Episode Number <span className="text-destructive">*</span></Label>
+          <Input type="number" min="1" placeholder="e.g., 1"
             value={formData.episodeNumber}
-            onChange={(e) => setFormData({ ...formData, episodeNumber: e.target.value })}
-            required
-            disabled={isLoading}
-          />
+            onChange={e => setFormData(p => ({ ...p, episodeNumber: e.target.value }))}
+            required disabled={isLoading} />
         </div>
-
-        {/* Release Date */}
         <div className="space-y-2">
-          <Label htmlFor="releaseDate">Release Date</Label>
-          <Input
-            id="releaseDate"
-            type="date"
+          <Label>
+            Release Date
+            {metaFilled && formData.releaseDate && <Badge variant="secondary" className="ml-2 text-xs">✓ Auto</Badge>}
+          </Label>
+          <Input type="date"
             value={formData.releaseDate}
-            onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
-            disabled={isLoading}
-          />
+            onChange={e => setFormData(p => ({ ...p, releaseDate: e.target.value }))}
+            disabled={isLoading} />
         </div>
       </div>
 
-      {/* Title */}
-      <div className="space-y-2">
-        <Label htmlFor="title">
-          Episode Title <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="title"
-          type="text"
-          placeholder="e.g., Pilot"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      {/* Description */}
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          placeholder="Episode description..."
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          disabled={isLoading}
-          rows={4}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Length */}
-        <div className="space-y-2">
-          <Label htmlFor="length">Duration</Label>
-          <Input
-            id="length"
-            type="text"
-            placeholder="e.g., 58m"
-            value={formData.length}
-            onChange={(e) => setFormData({ ...formData, length: e.target.value })}
-            disabled={isLoading}
-          />
-        </div>
-
-        {/* Size */}
-        <div className="space-y-2">
-          <Label htmlFor="size">File Size</Label>
-          <Input
-            id="size"
-            type="text"
-            placeholder="e.g., 1.2 GB"
-            value={formData.size}
-            onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-            disabled={isLoading}
-          />
-        </div>
-      </div>
-
-      {/* Poster Upload */}
-      <div className="space-y-2">
-        <Label>Episode Thumbnail</Label>
-        <Dropzone
-          provider="cloudflare-r2"
-          variant="compact"
-          maxFiles={1}
-          maxSize={1024 * 1024 * 5}
-          accept={{ "image/*": [".png", ".jpg", ".jpeg", ".webp"] }}
-          onFilesChange={setPosterFiles}
-          disabled={isLoading}
-        />
-        <p className="text-xs text-muted-foreground">
-          Episode thumbnail image (max 5MB)
-        </p>
-      </div>
-
-      {/* Video Upload */}
+      {/* ── Title ── */}
       <div className="space-y-2">
         <Label>
-          Episode Video <span className="text-destructive">*</span>
+          Episode Title <span className="text-destructive">*</span>
+          {metaFilled && formData.title && <Badge variant="secondary" className="ml-2 text-xs">✓ Auto</Badge>}
         </Label>
-        <Dropzone
-          provider="cloudflare-r2"
-          variant="compact"
-          maxFiles={1}
-          maxSize={1024 * 1024 * 1024 * 5}
-          accept={{ "video/*": [".mp4", ".mov", ".avi", ".mkv"] }}
-          onFilesChange={setVideoFiles}
+        <Input placeholder="e.g., Pilot"
+          value={formData.title}
+          onChange={e => setFormData(p => ({ ...p, title: e.target.value }))}
+          required disabled={isLoading} />
+      </div>
+
+      {/* ── Description ── */}
+      <div className="space-y-2">
+        <Label>
+          Description
+          {metaFilled && formData.description && <Badge variant="secondary" className="ml-2 text-xs">✓ Auto</Badge>}
+        </Label>
+        <Textarea placeholder="Episode description…" rows={3}
+          value={formData.description}
+          onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
+          disabled={isLoading} />
+      </div>
+
+      {/* ── Duration ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>
+            Duration
+            {metaFilled && formData.length && <Badge variant="secondary" className="ml-2 text-xs">✓ Auto</Badge>}
+          </Label>
+          <Input placeholder="e.g., 58m"
+            value={formData.length}
+            onChange={e => setFormData(p => ({ ...p, length: e.target.value }))}
+            disabled={isLoading} />
+        </div>
+        <div className="space-y-2">
+          <Label>File Size</Label>
+          <Input placeholder="e.g., 1.2 GB"
+            value={formData.size}
+            onChange={e => setFormData(p => ({ ...p, size: e.target.value }))}
+            disabled={isLoading} />
+        </div>
+      </div>
+
+      {/* ── Still image picker from TMDB ── */}
+      {stillOptions.length > 0 && (
+        <div className="space-y-2">
+          <Label>Choose Episode Thumbnail from TMDB</Label>
+          <div className="flex gap-2 flex-wrap">
+            {stillOptions.map((url, i) => (
+              <button key={i} type="button"
+                onClick={() => { setSelectedStillIdx(i); setFormData(p => ({ ...p, poster: url })); }}
+                className={`relative w-28 h-16 rounded overflow-hidden border-2 transition-all ${selectedStillIdx === i ? "border-orange-500 scale-105" : "border-border hover:border-orange-300"}`}
+              >
+                <Image src={url} alt={`Still ${i + 1}`} fill className="object-cover" />
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">Click to select. Upload below to override.</p>
+        </div>
+      )}
+
+      {/* Current poster preview */}
+      {formData.poster && !posterFiles.length && (
+        <div className="space-y-1">
+          <Label>Current Thumbnail</Label>
+          <div className="relative w-32 h-20 rounded overflow-hidden border border-border">
+            <Image src={formData.poster} alt="thumbnail" fill className="object-cover" />
+          </div>
+          {metaFilled && !stillOptions.length && (
+            <p className="text-xs text-muted-foreground">Using series poster as fallback thumbnail</p>
+          )}
+        </div>
+      )}
+
+      {/* ── Poster Upload ── */}
+      <div className="space-y-2">
+        <Label>Episode Thumbnail (Optional — upload to override)</Label>
+        <Dropzone provider="cloudflare-r2" variant="compact" maxFiles={1} maxSize={1024*1024*5}
+          accept={{ "image/*": [".png",".jpg",".jpeg",".webp"] }} onFilesChange={setPosterFiles} disabled={isLoading} />
+      </div>
+
+      {/* ── Video Upload — compressed to 1080p ── */}
+      <div className="space-y-2">
+        <Label>Episode Video <span className="text-destructive">*</span></Label>
+        <VideoDropzone
+          onFilesChange={(files) => {
+            if (files[0]?.publicUrl) setFormData(p => ({ ...p, videoUrl: files[0].publicUrl! }));
+          }}
           disabled={isLoading}
         />
         <p className="text-xs text-muted-foreground">
-          Full episode video (max 5GB)
+          Compressed to 1080p in your browser before uploading.
         </p>
       </div>
 
-      {/* Actions */}
+      {/* ── Actions ── */}
       <div className="flex items-center gap-4 pt-4">
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEditing ? "Updating..." : "Creating..."}
-            </>
-          ) : (
-            <>{isEditing ? "Update Episode" : "Create Episode"}</>
-          )}
+          {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{isEditing ? "Updating…" : "Creating…"}</> : <>{isEditing ? "Update Episode" : "Create Episode"}</>}
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
+        <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>Cancel</Button>
       </div>
     </form>
   );

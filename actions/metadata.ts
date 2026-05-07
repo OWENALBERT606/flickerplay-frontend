@@ -100,3 +100,57 @@ export async function enrichSeriesMetadata(tmdbId: number): Promise<EnrichedSeri
     return null;
   }
 }
+
+/* ── Season metadata ── */
+export interface TmdbEpisodeMeta {
+  episodeNumber: number;
+  title: string;
+  description: string | null;
+  poster: string | null;
+  length: string | null;
+  lengthSeconds: number | null;
+  releaseDate: string | null;
+}
+
+export interface TmdbSeasonMeta {
+  seasonNumber: number;
+  title: string | null;
+  description: string | null;
+  poster: string | null;
+  releaseYear: number | null;
+  posterOptions: string[];
+  episodes: TmdbEpisodeMeta[];
+}
+
+export async function enrichSeasonMetadata(
+  tmdbSeriesId: number,
+  seasonNumber: number
+): Promise<TmdbSeasonMeta | null> {
+  try {
+    const res = await api.get(`/metadata/season/${tmdbSeriesId}/${seasonNumber}`);
+    return res.data?.data || null;
+  } catch (e: any) {
+    console.error("enrichSeasonMetadata error:", e?.message);
+    return null;
+  }
+}
+
+export interface TmdbEpisodeFullMeta extends TmdbEpisodeMeta {
+  stillOptions: string[];
+  director: string | null;
+  writers: string[];
+}
+
+export async function enrichEpisodeMetadata(
+  tmdbSeriesId: number,
+  seasonNumber: number,
+  episodeNumber: number
+): Promise<TmdbEpisodeFullMeta | null> {
+  try {
+    const res = await api.get(`/metadata/episode/${tmdbSeriesId}/${seasonNumber}/${episodeNumber}`);
+    return res.data?.data || null;
+  } catch (e: any) {
+    console.error("enrichEpisodeMetadata error:", e?.message);
+    return null;
+  }
+}
