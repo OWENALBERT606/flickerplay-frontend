@@ -22,6 +22,7 @@ import { listVJs } from "@/actions/vjs";
 import { listGenres } from "@/actions/genres";
 import { listReleaseYears } from "@/actions/releaseYear";
 import { Dropzone, FileWithMetadata } from "@/components/ui/dropzone";
+import { VideoDropzone } from "@/components/ui/video-dropzone";
 import { MetadataTitleSearch } from "@/components/dashboard/metadata-title-search";
 import {
   searchMovieMetadata,
@@ -70,7 +71,6 @@ export function MovieForm({ movie }: MovieFormProps) {
   const [posterFiles, setPosterFiles]             = useState<FileWithMetadata[]>([]);
   const [trailerPosterFiles, setTrailerPosterFiles] = useState<FileWithMetadata[]>([]);
   const [trailerFiles, setTrailerFiles]           = useState<FileWithMetadata[]>([]);
-  const [videoFiles, setVideoFiles]               = useState<FileWithMetadata[]>([]);
 
   /* Select options */
   const [vjs, setVjs]       = useState<any[]>([]);
@@ -91,12 +91,10 @@ export function MovieForm({ movie }: MovieFormProps) {
     loadOptions();
   }, []);
 
-  /* Sync uploaded files → formData */
   useEffect(() => { if (imageFiles[0]?.publicUrl)         setFormData(p => ({ ...p, image:         imageFiles[0].publicUrl! })); }, [imageFiles]);
   useEffect(() => { if (posterFiles[0]?.publicUrl)        setFormData(p => ({ ...p, poster:        posterFiles[0].publicUrl! })); }, [posterFiles]);
   useEffect(() => { if (trailerPosterFiles[0]?.publicUrl) setFormData(p => ({ ...p, trailerPoster: trailerPosterFiles[0].publicUrl! })); }, [trailerPosterFiles]);
   useEffect(() => { if (trailerFiles[0]?.publicUrl)       setFormData(p => ({ ...p, trailerUrl:    trailerFiles[0].publicUrl! })); }, [trailerFiles]);
-  useEffect(() => { if (videoFiles[0]?.publicUrl)         setFormData(p => ({ ...p, videoUrl:      videoFiles[0].publicUrl! })); }, [videoFiles]);
 
   /* ── Auto-fill from metadata ── */
   const handleMetadataSelect = async (tmdbId: number) => {
@@ -373,12 +371,18 @@ export function MovieForm({ movie }: MovieFormProps) {
         <p className="text-xs text-muted-foreground">Upload trailer video (max 100MB) — overrides URL above</p>
       </div>
 
-      {/* ── Full Movie Video ── */}
+      {/* ── Full Movie Video — compressed to 1080p before upload ── */}
       <div className="space-y-2">
         <Label>Full Movie Video <span className="text-destructive">*</span></Label>
-        <Dropzone provider="cloudflare-r2" variant="compact" maxFiles={1} maxSize={1024*1024*1024*5}
-          accept={{ "video/*": [".mp4",".mov",".avi",".mkv"] }} onFilesChange={setVideoFiles} disabled={isLoading} />
-        <p className="text-xs text-muted-foreground">Full movie video (max 5GB) — required</p>
+        <VideoDropzone
+          onFilesChange={(files) => {
+            if (files[0]?.publicUrl) setFormData(p => ({ ...p, videoUrl: files[0].publicUrl! }));
+          }}
+          disabled={isLoading}
+        />
+        <p className="text-xs text-muted-foreground">
+          Video is automatically compressed to 1080p in your browser before uploading — only the URL is stored.
+        </p>
       </div>
 
       {/* ── Checkboxes ── */}

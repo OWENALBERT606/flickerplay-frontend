@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { revalidatePath } from "next/cache";
+import { deleteR2Files } from "@/lib/r2-delete";
 
 const BASE_API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "https://moviechamp256-nodejs-api-production.up.railway.app/api/v1";
 
@@ -197,12 +198,25 @@ export async function updateMovie(id: string, input: MovieUpdateInput) {
   }
 }
 
-/** DELETE /movies/:id */
+/** DELETE /movies/:id — also deletes associated R2 files */
 export async function deleteMovie(id: string) {
   try {
-    console.log("Deleting movie:", id);
+    // Fetch movie first to get file URLs before deleting from DB
+    const movieRes = await api.get(`/movies/${id}`);
+    const movie = movieRes.data?.data;
 
+    // Delete from database
     await api.delete(`/movies/${id}`);
+
+    // Delete associated R2 files (fire and forget — don't block on this)
+    if (movie) {
+      deleteR2Files([
+        movie.videoUrl,
+        movie.image,
+        movie.poster,
+        movie.trailerPoster,
+      ]).catch(console.error);
+    }
 
     revalidatePath("/dashboard/movies");
     revalidatePath("/movies");
