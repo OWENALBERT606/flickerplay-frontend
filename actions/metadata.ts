@@ -1,7 +1,6 @@
 "use server";
 
 import axios from "axios";
-import { cookies } from "next/headers";
 
 const BASE_API_URL =
   process.env.API_URL ||
@@ -13,12 +12,6 @@ const api = axios.create({
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });
-
-async function getAuthHeader() {
-  const jar = await cookies();
-  const token = jar.get("accessToken")?.value;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 /* ── Types ── */
 export interface MetadataCandidate {
@@ -69,11 +62,7 @@ export interface EnrichedSeries extends Omit<EnrichedMovie, "length" | "lengthSe
 /* ── Search ── */
 export async function searchMovieMetadata(title: string): Promise<MetadataCandidate[]> {
   try {
-    const headers = await getAuthHeader();
-    const res = await api.get("/metadata/search/movie", {
-      params: { title },
-      headers,
-    });
+    const res = await api.get("/metadata/search/movie", { params: { title } });
     return res.data?.data || [];
   } catch (e: any) {
     console.error("searchMovieMetadata error:", e?.message);
@@ -83,11 +72,7 @@ export async function searchMovieMetadata(title: string): Promise<MetadataCandid
 
 export async function searchSeriesMetadata(title: string): Promise<MetadataCandidate[]> {
   try {
-    const headers = await getAuthHeader();
-    const res = await api.get("/metadata/search/series", {
-      params: { title },
-      headers,
-    });
+    const res = await api.get("/metadata/search/series", { params: { title } });
     return res.data?.data || [];
   } catch (e: any) {
     console.error("searchSeriesMetadata error:", e?.message);
@@ -98,8 +83,7 @@ export async function searchSeriesMetadata(title: string): Promise<MetadataCandi
 /* ── Enrich ── */
 export async function enrichMovieMetadata(tmdbId: number): Promise<EnrichedMovie | null> {
   try {
-    const headers = await getAuthHeader();
-    const res = await api.get(`/metadata/enrich/movie/${tmdbId}`, { headers });
+    const res = await api.get(`/metadata/enrich/movie/${tmdbId}`);
     return res.data?.data || null;
   } catch (e: any) {
     console.error("enrichMovieMetadata error:", e?.message);
@@ -109,8 +93,7 @@ export async function enrichMovieMetadata(tmdbId: number): Promise<EnrichedMovie
 
 export async function enrichSeriesMetadata(tmdbId: number): Promise<EnrichedSeries | null> {
   try {
-    const headers = await getAuthHeader();
-    const res = await api.get(`/metadata/enrich/series/${tmdbId}`, { headers });
+    const res = await api.get(`/metadata/enrich/series/${tmdbId}`);
     return res.data?.data || null;
   } catch (e: any) {
     console.error("enrichSeriesMetadata error:", e?.message);
