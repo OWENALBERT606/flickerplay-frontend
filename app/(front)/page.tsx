@@ -2,21 +2,20 @@ export const dynamic = "force-dynamic";
 
 import { getSession } from "@/actions/auth";
 import {
-  getComingSoonMovies,
   getTrendingMovies,
   listMovies,
 } from "@/actions/movies";
 import {
-  getComingSoonSeries,
   getTrendingSeries,
   listSeries,
 } from "@/actions/series";
-import { ComingSoon } from "@/components/front-end/coming-soon";
 import { ContinueWatching } from "@/components/front-end/continue-watching";
 import { HeroCarousel } from "@/components/front-end/hero-couresel";
 import { MovieSection } from "@/components/front-end/movie-section";
 import { SeriesSection } from "@/components/series-component";
 import { HomeSidebar } from "@/components/front-end/home-sidebar";
+import { ExternalComingSoon } from "@/components/front-end/external-coming-soon";
+import { getUpcomingMoviesFromTmdb, getUpcomingSeriesFromTmdb } from "@/actions/metadata";
 import { Suspense } from "react";
 
 export default async function HomePage({
@@ -138,18 +137,18 @@ export default async function HomePage({
     );
   }
 
-  // ── coming-soon filter ─────────────────────────────────────────────
+  // ── coming-soon filter — external APIs only ───────────────────────
   if (type === "coming-soon") {
-    const [comingSoonMoviesData, comingSoonSeriesData] = await Promise.all([
-      getComingSoonMovies(24),
-      getComingSoonSeries(24),
+    const [upcomingMoviesData, upcomingSeriesData] = await Promise.allSettled([
+      getUpcomingMoviesFromTmdb(40),
+      getUpcomingSeriesFromTmdb(40),
     ]);
+    const upcomingMovies = upcomingMoviesData.status === "fulfilled" ? upcomingMoviesData.value || [] : [];
+    const upcomingSeries = upcomingSeriesData.status === "fulfilled" ? upcomingSeriesData.value || [] : [];
+
     return (
       <PageShell type={type} userId={userId}>
-        <ComingSoon
-          movies={comingSoonMoviesData.data || []}
-          series={comingSoonSeriesData.data || []}
-        />
+        <ExternalComingSoon movies={upcomingMovies} series={upcomingSeries} />
       </PageShell>
     );
   }
@@ -228,33 +227,31 @@ export default async function HomePage({
    * ------------------------------------------------------------------ */
   const [
     trendingMoviesData,
-    comingSoonMoviesData,
     allMoviesData,
     trendingSeriesData,
-    comingSoonSeriesData,
     allSeriesData,
-  ] = await Promise.all([
-    getTrendingMovies(6),          // ← exactly 6 for one row
-    getComingSoonMovies(12),
-    listMovies({ limit: 36 }),     // ← 36 for new releases
-    getTrendingSeries(6),          // ← exactly 6 for one row
-    getComingSoonSeries(12),
-    listSeries({ limit: 36 }),     // ← 36 for new releases
+    upcomingMoviesData,
+    upcomingSeriesData,
+  ] = await Promise.allSettled([
+    getTrendingMovies(6),
+    listMovies({ limit: 36 }),
+    getTrendingSeries(6),
+    listSeries({ limit: 36 }),
+    getUpcomingMoviesFromTmdb(20),
+    getUpcomingSeriesFromTmdb(20),
   ]);
 
-  const trendingMovies = trendingMoviesData.data || [];
-  const comingSoonMovies = comingSoonMoviesData.data || [];
-  const allMovies = allMoviesData.data || [];
-  const trendingSeries = trendingSeriesData.data || [];
-  const comingSoonSeries = comingSoonSeriesData.data || [];
-  const allSeries = allSeriesData.data || [];
+  const trendingMovies = trendingMoviesData.status === "fulfilled" ? trendingMoviesData.value.data || [] : [];
+  const allMovies      = allMoviesData.status      === "fulfilled" ? allMoviesData.value.data      || [] : [];
+  const trendingSeries = trendingSeriesData.status === "fulfilled" ? trendingSeriesData.value.data || [] : [];
+  const allSeries      = allSeriesData.status      === "fulfilled" ? allSeriesData.value.data      || [] : [];
+  const upcomingMovies = upcomingMoviesData.status === "fulfilled" ? upcomingMoviesData.value       || [] : [];
+  const upcomingSeries = upcomingSeriesData.status === "fulfilled" ? upcomingSeriesData.value       || [] : [];
 
-  const comingSoonMovieIds = new Set(comingSoonMovies.map((m) => m.id));
-  const comingSoonSeriesIds = new Set(comingSoonSeries.map((s) => s.id));
-  const availableMovies = allMovies.filter((m) => !comingSoonMovieIds.has(m.id));
-  const availableSeries = allSeries.filter((s) => !comingSoonSeriesIds.has(s.id));
-  const availableTrendingMovies = trendingMovies.filter((m) => !comingSoonMovieIds.has(m.id)).slice(0, 6);
-  const availableTrendingSeries = trendingSeries.filter((s) => !comingSoonSeriesIds.has(s.id)).slice(0, 6);
+  const availableMovies  = allMovies;
+  const availableSeries  = allSeries;
+  const availableTrendingMovies = trendingMovies.slice(0, 6);
+  const availableTrendingSeries = trendingSeries.slice(0, 6);
 
   const newMovies = [...availableMovies]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -290,9 +287,8 @@ export default async function HomePage({
             {newSeries.length > 0 && (
               <SeriesSection userId={userId} title="🆕 New TV Series" series={newSeries} />
             )}
-            {(comingSoonMovies.length > 0 || comingSoonSeries.length > 0) && (
-              <ComingSoon movies={comingSoonMovies} series={comingSoonSeries} />
-            )}
+            {/* Coming Soon — from TMDB/OMDB/YouTube only, not internal DB */}
+            <ExternalComingSoon movies={upcomingMovies} series={upcomingSeries} />
           </div>
         </div>
       </main>

@@ -154,3 +154,36 @@ export async function enrichEpisodeMetadata(
     return null;
   }
 }
+
+/* ── Upcoming from TMDB (external coming soon) ── */
+export interface TmdbUpcomingItem {
+  tmdbId:      number;
+  title:       string;
+  overview:    string;
+  poster:      string | null;
+  backdrop:    string | null;
+  releaseDate: string | null;
+  releaseYear: string | null;
+  rating:      number;
+  source:      "tmdb";
+}
+
+export async function getUpcomingMoviesFromTmdb(limit = 20): Promise<TmdbUpcomingItem[]> {
+  try {
+    const res = await api.get("/metadata/upcoming/movies", { params: { limit } });
+    return res.data?.data || [];
+  } catch (e: any) {
+    console.error("getUpcomingMoviesFromTmdb error:", e?.message);
+    return [];
+  }
+}
+
+export async function getUpcomingSeriesFromTmdb(limit = 20): Promise<TmdbUpcomingItem[]> {
+  try {
+    const res = await api.get("/metadata/upcoming/series", { params: { limit } });
+    return res.data?.data || [];
+  } catch (e: any) {
+    console.error("getUpcomingSeriesFromTmdb error:", e?.message);
+    return [];
+  }
+}
