@@ -110,12 +110,6 @@ export function Header({ user }: { user?: any }) {
             >
               My List
             </Link>
-            <Link
-              href="/pricing"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Pricing
-            </Link>
           </nav>
 
           {/* Right Side */}
@@ -259,14 +253,6 @@ export function Header({ user }: { user?: any }) {
               >
                 My List
               </Link>
-              <Link
-                href="/pricing"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Pricing
-              </Link>
-
               {/* ✅ Mobile Profile/Dashboard Link */}
               {user && (
                 <Link
