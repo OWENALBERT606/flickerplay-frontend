@@ -22,6 +22,7 @@ import { MetadataTitleSearch } from "@/components/dashboard/metadata-title-searc
 import {
   searchSeriesMetadata,
   enrichSeriesMetadata,
+  importSeriesFromTmdb,
   type EnrichedSeries,
 } from "@/actions/metadata";
 import Image from "next/image";
@@ -154,15 +155,40 @@ export function SeriesForm({ series }: SeriesFormProps) {
         : await createSeries(payload);
 
       if (result.success) {
-        toast.success(isEditing ? "Series updated!" : "Series created!");
-        // ── Key the tmdbId by the series DB id so season form can find it ──
         const seriesDbId = result.data?.id;
         const pendingTmdbId = localStorage.getItem("pending_series_tmdb_id");
+
         if (seriesDbId && pendingTmdbId) {
           localStorage.setItem(`series_tmdb_${seriesDbId}`, pendingTmdbId);
+          localStorage.setItem(`series_tmdb_name_${seriesDbId}`, formData.title);
           localStorage.removeItem("pending_series_tmdb_id");
         }
-        router.push("/dashboard/series");
+
+        if (!isEditing && seriesDbId && pendingTmdbId) {
+          // ── Auto-import all seasons + episodes from TMDB ──
+          toast.loading("Importing all seasons & episodes from TMDB…", { id: "tmdb-import" });
+          try {
+            const importResult = await importSeriesFromTmdb(
+              seriesDbId,
+              parseInt(pendingTmdbId),
+              formData.poster
+            );
+            if (importResult.success) {
+              toast.success(
+                `Series created! Imported ${importResult.seasonsCreated} seasons and ${importResult.episodesCreated} episodes. Now just upload the videos.`,
+                { id: "tmdb-import", duration: 6000 }
+              );
+            } else {
+              toast.warning(`Series created but import had issues: ${importResult.error}`, { id: "tmdb-import" });
+            }
+          } catch {
+            toast.warning("Series created but auto-import failed. Add seasons manually.", { id: "tmdb-import" });
+          }
+        } else {
+          toast.success(isEditing ? "Series updated!" : "Series created!");
+        }
+
+        router.push(`/dashboard/series${seriesDbId && !isEditing ? `/${seriesDbId}` : ""}`);
         router.refresh();
       } else {
         toast.error(result.error || "Something went wrong");

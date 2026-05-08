@@ -109,6 +109,26 @@ export interface Episode {
   };
 }
 
+export interface EpisodeInput {
+  episodeNumber: number;
+  title: string;
+  description?: string;
+  videoUrl?: string;
+  poster?: string;
+  length?: string;
+  lengthSeconds?: number;
+  releaseDate?: string;
+}
+
+export interface SeasonInput {
+  seasonNumber: number;
+  title?: string;
+  description?: string;
+  poster?: string;
+  releaseYear?: number;
+  episodes?: EpisodeInput[];
+}
+
 export interface SeriesCreateInput {
   title: string;
   poster: string;
@@ -123,6 +143,7 @@ export interface SeriesCreateInput {
   trailerUrl?: string;
   isComingSoon?: boolean;
   isTrending?: boolean;
+  seasons?: SeasonInput[];
 }
 
 export interface SeriesUpdateInput {
@@ -501,5 +522,24 @@ export async function incrementEpisodeViews(id: string) {
   } catch (e: any) {
     console.error("incrementEpisodeViews error:", e?.response?.data || e?.message);
     return { success: false, error: msg(e, "Failed to increment view count") };
+  }
+}
+
+/** POST /series/:id/seasons - Add seasons to existing series */
+export async function addSeasonsToSeries(seriesId: string, seasons: SeasonInput[]) {
+  try {
+    console.log("Adding seasons to series:", seriesId, seasons);
+    
+    const res = await api.post(`/series/${seriesId}/seasons`, { seasons });
+    
+    // Revalidate relevant paths
+    revalidatePath("/dashboard/series");
+    revalidatePath(`/dashboard/series/${seriesId}`);
+    revalidatePath(`/series/${seriesId}`);
+    
+    return { success: true, data: res.data?.data as Series };
+  } catch (e: any) {
+    console.error("addSeasonsToSeries error:", e?.response?.data || e?.message);
+    return { success: false, error: msg(e, "Failed to add seasons") };
   }
 }

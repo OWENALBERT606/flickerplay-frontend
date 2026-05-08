@@ -187,3 +187,21 @@ export async function getUpcomingSeriesFromTmdb(limit = 20): Promise<TmdbUpcomin
     return [];
   }
 }
+
+/* ── Bulk import all seasons + episodes from TMDB into DB ── */
+export async function importSeriesFromTmdb(
+  seriesDbId: string,
+  tmdbSeriesId: number,
+  seriesPoster: string
+): Promise<{ success: boolean; seasonsCreated?: number; episodesCreated?: number; error?: string }> {
+  try {
+    const res = await api.post(`/metadata/import-series/${seriesDbId}`, {
+      tmdbSeriesId,
+      seriesPoster,
+    });
+    return { success: true, ...res.data?.data };
+  } catch (e: any) {
+    console.error("importSeriesFromTmdb error:", e?.message);
+    return { success: false, error: e?.message || "Import failed" };
+  }
+}
