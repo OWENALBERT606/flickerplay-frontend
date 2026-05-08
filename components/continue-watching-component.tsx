@@ -57,8 +57,8 @@ export function ContinueWatchingContent({ items: initialItems, userId }: Continu
     <section>
       <h2 className="text-base font-bold mb-3 text-foreground">Continue Watching</h2>
 
-      {/* 4 compact landscape cards in one row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* 4 compact landscape cards — always one row */}
+      <div className="grid grid-cols-4 gap-3">
         {items.slice(0, 4).map(item => {
           const details = getItemDetails(item);
           if (!details) return null;
