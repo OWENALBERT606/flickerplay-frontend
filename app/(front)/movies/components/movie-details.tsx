@@ -129,23 +129,15 @@ export function MovieDetails({ movie, userId }: MovieDetailsProps) {
   const viewsCount = Number(movie.viewsCount || 0);
 
   const handleDownload = () => {
-    if (!movie.videoUrl) {
+    const url = movie.videoUrl;
+    if (!url) {
       toast.error("Download link not available");
       return;
     }
-
-    // Create a temporary anchor element to trigger download
-    const link = document.createElement("a");
-    link.href = movie.videoUrl;
-    link.download = `${movie.title}.mp4`; // Set the filename
-    link.target = "_blank"; // Open in new tab if download fails
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast.success("Download started", {
-      description: `${movie.title} is being downloaded`,
-    });
+    const ext = url.split("?")[0].split(".").pop() || "mp4";
+    const filename = `${movie.title}.${ext}`;
+    window.location.href = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+    toast.success("Download starting…", { description: movie.title });
   };
 
   const handleShare = async () => {

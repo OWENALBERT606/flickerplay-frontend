@@ -86,7 +86,7 @@ export function NetflixPlayer({
 }: NetflixPlayerProps) {
   /* ── state ── */
   const [playing, setPlaying]           = useState(false);
-  const [muted, setMuted]               = useState(false);
+  const [muted, setMuted]               = useState(autoPlay); // start muted so browser allows autoplay
   const [volume, setVolume]             = useState(1);
   const [currentTime, setCurrentTime]   = useState(0);
   const [duration, setDuration]         = useState(0);
@@ -179,7 +179,11 @@ export function NetflixPlayer({
     if (initialProgress > 0 && initialProgress < 95) {
       v.currentTime = (initialProgress / 100) * v.duration;
     }
-    if (autoPlay) v.play().catch(() => {});
+    if (autoPlay) {
+      v.muted = true; // must be muted for browsers to allow autoplay
+      setMuted(true);
+      v.play().catch(() => {});
+    }
   };
 
   const handleTimeUpdate = () => {
@@ -340,6 +344,20 @@ export function NetflixPlayer({
       {buffering && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <Loader2 className="w-14 h-14 text-white animate-spin opacity-80" />
+        </div>
+      )}
+
+      {/* ── Unmute nudge — shown when video autoplayed muted ── */}
+      {muted && playing && (
+        <div className="absolute bottom-20 left-4 z-50">
+          <button
+            onClick={toggleMute}
+            className="flex items-center gap-2 bg-black/80 backdrop-blur-sm border border-white/20
+              text-white text-sm px-4 py-2 rounded-full hover:bg-black transition-colors"
+          >
+            <VolumeX className="w-4 h-4" />
+            <span>Tap to unmute</span>
+          </button>
         </div>
       )}
 

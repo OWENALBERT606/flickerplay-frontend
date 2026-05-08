@@ -166,14 +166,9 @@ export function MovieGrid({ movies, userId }: MovieGridProps) {
     e.stopPropagation();
     const url = movie.videoUrl;
     if (!url) return;
-    // Create a hidden anchor and click it — triggers direct download
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${movie.title}.mkv`;
-    a.target = "_blank";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const ext = url.split("?")[0].split(".").pop() || "mp4";
+    const filename = `${movie.title}.${ext}`;
+    window.location.href = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
   };
 
   return (

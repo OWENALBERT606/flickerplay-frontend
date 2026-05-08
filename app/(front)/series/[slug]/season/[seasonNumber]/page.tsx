@@ -77,7 +77,7 @@ export default async function SeasonDetailPage({
               )}
 
               <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-                <span>{season.totalEpisodes} Episodes</span>
+                <span>{(season.episodes || []).filter((e: any) => e.videoUrl).length} Episodes</span>
                 <span>•</span>
                 <span>VJ {series.vj.name}</span>
               </div>
@@ -90,26 +90,29 @@ export default async function SeasonDetailPage({
       <div className="container mx-auto px-4 md:px-12 lg:px-24 py-8">
         <h2 className="text-2xl font-bold mb-6">Episodes</h2>
 
-        {season.episodes && season.episodes.length > 0 ? (
-          <div className="space-y-4">
-            {season.episodes.map((episode) => (
-              <EpisodeCard
-                key={episode.id}
-                episode={episode}
-                seriesSlug={slug}
-                seasonNumber={season.seasonNumber}
-              />
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">
-                No episodes available yet.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {(() => {
+          const availableEpisodes = (season.episodes || []).filter((e: any) => e.videoUrl);
+          return availableEpisodes.length > 0 ? (
+            <div className="space-y-4">
+              {availableEpisodes.map((episode: any) => (
+                <EpisodeCard
+                  key={episode.id}
+                  episode={episode}
+                  seriesSlug={slug}
+                  seasonNumber={season.seasonNumber}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <p className="text-muted-foreground">
+                  No episodes available yet.
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })()}
       </div>
 
       {/* Season Trailer */}
