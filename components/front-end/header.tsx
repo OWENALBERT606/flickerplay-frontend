@@ -76,11 +76,11 @@ export function Header({ user }: { user?: any }) {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/logo/unnamed (3).jpg"
-              alt="Logo"
+              src="/logo-flickerplay.png"
+              alt="FlickerPlay"
               width={80}
               height={20}
-              className="h-10 w-40"
+              className="h-10 w-40 object-contain"
             />
             <div className="text-2xl  font-bold text-primary hidden">
               FlickerPlay

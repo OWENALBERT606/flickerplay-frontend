@@ -17,7 +17,7 @@ export function AppearanceSettings({ settings: initialSettings }: AppearanceSett
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState({
     primaryColor: initialSettings?.primaryColor || "#f97316",
-    logo: initialSettings?.logo || "/logo-movie- champ.jpg",
+    logo: initialSettings?.logo || "/logo-flickerplay.png",
     favicon: initialSettings?.favicon || "/favicon.ico",
   });
 

@@ -20,14 +20,8 @@ export default async function SeriesDetailPage({
 }) {
   const { slug } = await params;
   const seriesData = await getSeriesBySlug(slug);
-   const session = await getSession();
-     const isAuthenticated = !!session;
-  
-    if (!isAuthenticated) {
-      return <AuthGuard isAuthenticated={false} />;
-    }
-      
-        const user = session?.user;
+  const session = await getSession();
+  const user = session?.user;
     
 
   if (!seriesData.success || !seriesData.data) {

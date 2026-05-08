@@ -1,13 +1,11 @@
 
 import { getMovieBySlug, listMovies, incrementMovieViews } from "@/actions/movies";
-
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { MovieDetails } from "../components/movie-details";
 import { MovieTrailer } from "../components/movie-trailer";
 import { RelatedMovies } from "../components/related-movies";
 import { getSession } from "@/actions/auth";
-import { AuthGuard } from "@/components/auth-guard";
-import { MovieHero } from "../components/movie-hero";
+import { MoviePlayer } from "../components/movie-player";
 import { getWatchProgress } from "@/actions/watchHistory";
 import type { Metadata } from "next";
 
@@ -47,13 +45,7 @@ export default async function MovieDetailPage({
 }) {
   const { slug } = await params;
   const session = await getSession();
-   const isAuthenticated = !!session;
-
-  if (!isAuthenticated) {
-    return <AuthGuard isAuthenticated={false} />;
-  }
-    
-      const user = session?.user;
+  const user = session?.user;
   
   // Fetch movie by slug
   const movieData = await getMovieBySlug(slug);
@@ -77,8 +69,8 @@ export default async function MovieDetailPage({
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Netflix-style hero with autoplay trailer */}
-      <MovieHero movie={movie} userId={user?.id} initialProgress={initialProgress} />
+      {/* Goes straight to player — no preview step */}
+      <MoviePlayer movie={movie} userId={user?.id} initialProgress={initialProgress} />
 
       {/* Main Content */}
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 relative z-10">

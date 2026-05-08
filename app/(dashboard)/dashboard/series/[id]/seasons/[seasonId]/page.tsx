@@ -144,12 +144,22 @@ export default async function SeasonDetailPage({
                             </div>
                           )}
                           <div>
-                            <div className="font-medium">
+                            <div className="font-medium flex items-center gap-2">
                               Episode {episode.episodeNumber}: {episode.title}
+                              {!episode.videoUrl && (
+                                <Badge variant="outline" className="text-orange-500 border-orange-500">
+                                  No video
+                                </Badge>
+                              )}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {episode.length && <span>{episode.length}</span>}
-                              {episode.viewsCount && (
+                              {!episode.videoUrl && (
+                                <span className="ml-2 text-orange-500">
+                                  No video uploaded yet
+                                </span>
+                              )}
+                              {episode.viewsCount && episode.videoUrl && (
                                 <span className="ml-2">
                                   {Number(episode.viewsCount).toLocaleString()} views
                                 </span>

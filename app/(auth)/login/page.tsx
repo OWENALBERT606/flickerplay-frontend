@@ -27,11 +27,11 @@ export default async function LoginPage() {
         <div className="w-full max-w-md">
           <div className="mb-4 flex flex-col w-full justify-center text-center items-center">
             <Image
-              src="/logo/unnamed (3).jpg"
+              src="/logo-flickerplay.png"
               alt="FlickerPlay"
               width={160}
               height={40}
-              className="h-10 w-40 object-contain mb-4"
+              className="h-14 w-56 object-contain mb-4"
             />
             <h2 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h2>
             <p className="text-muted-foreground">Sign in to continue your cinematic journey</p>

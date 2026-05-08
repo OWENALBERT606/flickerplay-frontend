@@ -133,11 +133,18 @@ export default async function EpisodeDetailPage({
                 )}
               </div>
 
-              {episode.videoUrl && (
+              {episode.videoUrl ? (
                 <div>
                   <div className="text-sm font-medium mb-2">Video URL</div>
                   <Badge variant="outline" className="font-mono text-xs">
                     {episode.videoUrl.substring(0, 60)}...
+                  </Badge>
+                </div>
+              ) : (
+                <div>
+                  <div className="text-sm font-medium mb-2">Video URL</div>
+                  <Badge variant="outline" className="text-orange-500 border-orange-500">
+                    No video uploaded yet
                   </Badge>
                 </div>
               )}

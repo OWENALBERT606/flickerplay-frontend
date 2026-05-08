@@ -20,12 +20,12 @@ export function Footer() {
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <Image
-                           src="/logo/unnamed (3).jpg"
-                           alt="Logo"
-                           width={80}
-                           height={20}
-                           className="h-10 w-40"
-                         />
+                            src="/logo-flickerplay.png"
+                            alt="FlickerPlay"
+                            width={80}
+                            height={20}
+                            className="h-10 w-40 object-contain"
+                          />
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Every frame, your way. Your ultimate destination for unlimited movies, series, and entertainment. Stream in HD and enjoy ad-free content anywhere.
