@@ -46,6 +46,7 @@ export default async function NewEpisodePage({
             seasonId={seasonId}
             seasonNumber={season.seasonNumber}
             seriesPoster={series?.poster || series?.trailerPoster}
+            seriesTitle={series?.title}
           />
         </CardContent>
       </Card>
