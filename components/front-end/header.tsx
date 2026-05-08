@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { logoutUser } from "@/actions/auth";
 import { GlobalSearch } from "../globalsearch";
+import { InstallButton } from "@/components/pwa/install-button";
 
 export function Header({ user }: { user?: any }) {
   const [isLoggingOut, startTransition] = useTransition();
@@ -118,7 +119,10 @@ export function Header({ user }: { user?: any }) {
           </nav>
 
           {/* Right Side */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            {/* PWA Install Button — only shown when browser fires beforeinstallprompt */}
+            <InstallButton />
+
             {/* ✅ Global Search */}
             <div className="hidden md:block">
               <GlobalSearch />
