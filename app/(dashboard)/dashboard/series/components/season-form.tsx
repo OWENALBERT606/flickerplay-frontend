@@ -31,7 +31,7 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
     seasonNumber:  season?.seasonNumber?.toString() || "",
     title:         season?.title         || "",
     description:   season?.description   || "",
-    poster:        season?.poster        || "",
+    poster:        season?.poster        || seriesPoster || "",
     trailerUrl:    season?.trailerUrl    || "",
     releaseYear:   season?.releaseYear?.toString() || "",
   });
@@ -269,7 +269,7 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
             <Image src={formData.poster} alt="poster" fill className="object-cover" />
           </div>
           <p className="text-xs text-muted-foreground">
-            {metaFilled && !posterOptions.length ? "Using series poster as fallback" : ""}
+            Using series poster — upload below to use a different image for this season.
           </p>
         </div>
       )}

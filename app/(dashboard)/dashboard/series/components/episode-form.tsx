@@ -34,7 +34,7 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber, seriesP
     title:         episode?.title         || "",
     description:   episode?.description   || "",
     videoUrl:      episode?.videoUrl      || "",
-    poster:        episode?.poster        || "",
+    poster:        episode?.poster        || seriesPoster || "",
     length:        episode?.length        || "",
     lengthSeconds: episode?.lengthSeconds?.toString() || "",
     size:          episode?.size          || "",
@@ -276,9 +276,9 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber, seriesP
           <div className="relative w-32 h-20 rounded overflow-hidden border border-border">
             <Image src={formData.poster} alt="thumbnail" fill className="object-cover" />
           </div>
-          {metaFilled && !stillOptions.length && (
-            <p className="text-xs text-muted-foreground">Using series poster as fallback thumbnail</p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            Using series poster — upload below to use a different image for this episode.
+          </p>
         </div>
       )}
 
