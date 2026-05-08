@@ -166,6 +166,7 @@ export interface TmdbUpcomingItem {
   releaseYear: string | null;
   rating:      number;
   source:      "tmdb";
+  mediaType:   "movie" | "series";
 }
 
 export async function getUpcomingMoviesFromTmdb(limit = 20): Promise<TmdbUpcomingItem[]> {

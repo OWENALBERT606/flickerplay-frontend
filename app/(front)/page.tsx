@@ -4,10 +4,12 @@ import { getSession } from "@/actions/auth";
 import {
   getTrendingMovies,
   listMovies,
+  getComingSoonMovies,
 } from "@/actions/movies";
 import {
   getTrendingSeries,
   listSeries,
+  getComingSoonSeries,
 } from "@/actions/series";
 import { ContinueWatching } from "@/components/front-end/continue-watching";
 import { HeroCarousel } from "@/components/front-end/hero-couresel";

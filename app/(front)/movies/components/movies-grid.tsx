@@ -164,7 +164,7 @@ export function MovieGrid({ movies, userId }: MovieGridProps) {
   const handleDownload = (movie: Movie, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const url = movie.videoUrl || movie.downloadUrl;
+    const url = movie.videoUrl;
     if (!url) return;
     // Create a hidden anchor and click it — triggers direct download
     const a = document.createElement("a");
@@ -259,7 +259,7 @@ export function MovieGrid({ movies, userId }: MovieGridProps) {
               />
 
               {/* Direct download */}
-              {(movie.videoUrl || movie.downloadUrl) && (
+              {movie.videoUrl && (
                 <Button
                   className="h-9 w-9 rounded-full bg-gray-800/80 hover:bg-gray-700 p-0 flex items-center justify-center border-0 backdrop-blur-sm"
                   title="Download"
@@ -276,7 +276,7 @@ export function MovieGrid({ movies, userId }: MovieGridProps) {
   )
 }
 
-export function MovieGrid({ movies,userId }: MovieGridProps) {
+export function MovieGridAlt({ movies, userId }: MovieGridProps) {
   if (movies.length === 0) {
     return (
       <div className="text-center py-12">

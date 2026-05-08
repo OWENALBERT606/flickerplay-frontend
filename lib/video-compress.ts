@@ -78,7 +78,7 @@ export async function compressVideo(
   onProgress?.({ ratio: 0.96, message: "Finalising…" });
 
   const data = await ffmpeg.readFile(outputName);
-  const blob = new Blob([data], { type: "video/mp4" });
+  const blob = new Blob([data as unknown as BlobPart], { type: "video/mp4" });
 
   await ffmpeg.deleteFile(inputName);
   await ffmpeg.deleteFile(outputName);
