@@ -1,6 +1,7 @@
 import { Instagram, ArrowRight, Heart } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { FooterInstallBanner } from "@/components/pwa/footer-install-banner"
 
 export function Footer() {
   return (
@@ -145,6 +146,9 @@ export function Footer() {
             </div>
           </div>
         </div>
+
+        {/* ── Get the App — full width section above bottom bar ── */}
+        <FooterInstallBanner />
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-orange-500/20">
