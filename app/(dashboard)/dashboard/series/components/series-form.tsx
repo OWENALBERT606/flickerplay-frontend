@@ -55,6 +55,7 @@ export function SeriesForm({ series }: SeriesFormProps) {
   const [posterOptions, setPosterOptions] = useState<string[]>([]);
   const [selectedPosterIdx, setSelectedPosterIdx] = useState(0);
   const [metaSource, setMetaSource]       = useState<string | null>(null);
+  const [pendingTmdbId, setPendingTmdbId] = useState<number | null>(null); // track tmdbId in state
 
   /* Dropzone state */
   const [posterFiles, setPosterFiles]               = useState<FileWithMetadata[]>([]);
@@ -116,9 +117,9 @@ export function SeriesForm({ series }: SeriesFormProps) {
     setMetaSource(data._meta?.ratingSource || null);
     setMetaFilled(true);
 
-    // ── Save tmdbId so season/episode forms can auto-read it ──
+    // ── Save tmdbId in state AND localStorage ──
     if (data._meta?.tmdbId) {
-      // Store temporarily — will be keyed by series DB id after save
+      setPendingTmdbId(data._meta.tmdbId);
       localStorage.setItem("pending_series_tmdb_id", String(data._meta.tmdbId));
     }
   };
@@ -156,40 +157,48 @@ export function SeriesForm({ series }: SeriesFormProps) {
 
       if (result.success) {
         const seriesDbId = result.data?.id;
-        const pendingTmdbId = localStorage.getItem("pending_series_tmdb_id");
+        // Use state-based tmdbId (more reliable than localStorage)
+        const tmdbId = pendingTmdbId || (localStorage.getItem("pending_series_tmdb_id") ? parseInt(localStorage.getItem("pending_series_tmdb_id")!) : null);
 
-        if (seriesDbId && pendingTmdbId) {
-          localStorage.setItem(`series_tmdb_${seriesDbId}`, pendingTmdbId);
+        if (seriesDbId && tmdbId) {
+          localStorage.setItem(`series_tmdb_${seriesDbId}`, String(tmdbId));
           localStorage.setItem(`series_tmdb_name_${seriesDbId}`, formData.title);
           localStorage.removeItem("pending_series_tmdb_id");
         }
 
-        if (!isEditing && seriesDbId && pendingTmdbId) {
+        if (!isEditing && seriesDbId && tmdbId) {
           // ── Auto-import all seasons + episodes from TMDB ──
           toast.loading("Importing all seasons & episodes from TMDB…", { id: "tmdb-import" });
           try {
             const importResult = await importSeriesFromTmdb(
               seriesDbId,
-              parseInt(pendingTmdbId),
+              tmdbId,
               formData.poster
             );
             if (importResult.success) {
               toast.success(
-                `Series created! Imported ${importResult.seasonsCreated} seasons and ${importResult.episodesCreated} episodes. Now just upload the videos.`,
-                { id: "tmdb-import", duration: 6000 }
+                `✅ Imported ${importResult.seasonsCreated} seasons and ${importResult.episodesCreated} episodes. Now just upload the videos for each episode.`,
+                { id: "tmdb-import", duration: 8000 }
               );
             } else {
               toast.warning(`Series created but import had issues: ${importResult.error}`, { id: "tmdb-import" });
             }
-          } catch {
-            toast.warning("Series created but auto-import failed. Add seasons manually.", { id: "tmdb-import" });
+          } catch (importErr: any) {
+            console.error("Import error:", importErr);
+            toast.warning("Series created but auto-import failed. You can add seasons manually.", { id: "tmdb-import" });
           }
+          // Navigate to series detail page after import
+          router.push(`/dashboard/series/${seriesDbId}`);
+          router.refresh();
         } else {
-          toast.success(isEditing ? "Series updated!" : "Series created!");
+          if (!isEditing && !tmdbId) {
+            toast.warning("Series created but no TMDB ID found — seasons not auto-imported. Use the TMDB search to find the series first.");
+          } else {
+            toast.success(isEditing ? "Series updated!" : "Series created!");
+          }
+          router.push(isEditing ? "/dashboard/series" : `/dashboard/series${seriesDbId ? `/${seriesDbId}` : ""}`);
+          router.refresh();
         }
-
-        router.push(`/dashboard/series${seriesDbId && !isEditing ? `/${seriesDbId}` : ""}`);
-        router.refresh();
       } else {
         toast.error(result.error || "Something went wrong");
       }
