@@ -7,6 +7,7 @@ import { ArrowLeft, Edit, Plus, Eye, Star } from "lucide-react";
 import { getSeries } from "@/actions/series";
 import Image from "next/image";
 import { DeleteSeriesButton } from "../components/delete-series-button";
+import { TmdbImportPanel } from "../components/tmdb-import-panel";
 
 export default async function SeriesDetailPage({ 
   params 
@@ -158,6 +159,13 @@ export default async function SeriesDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* ── TMDB Import Panel ── */}
+          <TmdbImportPanel
+            seriesId={id}
+            seriesTitle={series.title}
+            seriesPoster={series.poster}
+          />
 
           {/* Seasons */}
           <Card>
