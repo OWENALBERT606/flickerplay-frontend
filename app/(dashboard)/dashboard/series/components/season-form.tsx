@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Sparkles, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+import { Loader2, Sparkles, ChevronDown, ChevronUp, CheckCircle2, Search, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { createSeason, updateSeason, type Season } from "@/actions/series";
 import { Dropzone, FileWithMetadata } from "@/components/ui/dropzone";
-import { enrichSeasonMetadata, type TmdbSeasonMeta, type TmdbEpisodeMeta } from "@/actions/metadata";
+import { enrichSeasonMetadata, searchSeriesMetadata, type TmdbSeasonMeta, type TmdbEpisodeMeta, type MetadataCandidate } from "@/actions/metadata";
 
 interface SeasonFormProps {
   seriesId: string;
   season?: Season;
-  /** Series fallback poster — used when no season/episode-specific image is available */
   seriesPoster?: string;
   seriesTrailerPoster?: string;
   seriesTitle?: string;
@@ -37,19 +36,75 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
   });
 
   /* TMDB enrichment */
-  const [tmdbSeriesId, setTmdbSeriesId]   = useState("");
-  const [enriching, setEnriching]         = useState(false);
-  const [metaFilled, setMetaFilled]       = useState(false);
-  const [posterOptions, setPosterOptions] = useState<string[]>([]);
+  const [tmdbSeriesId, setTmdbSeriesId]     = useState("");
+  const [tmdbSeriesName, setTmdbSeriesName] = useState<string | null>(null);
+  const [verifying, setVerifying]           = useState(false);
+  const [enriching, setEnriching]           = useState(false);
+  const [metaFilled, setMetaFilled]         = useState(false);
+  const [posterOptions, setPosterOptions]   = useState<string[]>([]);
   const [selectedPosterIdx, setSelectedPosterIdx] = useState(0);
-  const [episodesMeta, setEpisodesMeta]   = useState<TmdbEpisodeMeta[]>([]);
-  const [showEpisodes, setShowEpisodes]   = useState(false);
+  const [episodesMeta, setEpisodesMeta]     = useState<TmdbEpisodeMeta[]>([]);
+  const [showEpisodes, setShowEpisodes]     = useState(false);
+  const [showSearch, setShowSearch]         = useState(false);
+  const [searchResults, setSearchResults]   = useState<MetadataCandidate[]>([]);
+  const [searching, setSearching]           = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  /* Auto-read tmdbId from localStorage on mount */
+  /* Auto-read tmdbId from localStorage and verify it */
   useEffect(() => {
     const stored = localStorage.getItem(`series_tmdb_${seriesId}`);
-    if (stored) setTmdbSeriesId(stored);
+    if (stored) {
+      setTmdbSeriesId(stored);
+      verifyTmdbId(stored);
+    }
   }, [seriesId]);
+
+  /* Verify a TMDB ID by fetching the series name */
+  const verifyTmdbId = async (id: string) => {
+    if (!id || isNaN(parseInt(id))) return;
+    setVerifying(true);
+    try {
+      const res = await fetch(
+        `https://moviechamp256-nodejs-api-production.up.railway.app/api/v1/metadata/enrich/series/${id}`
+      );
+      const data = await res.json();
+      if (data?.data?.title) {
+        setTmdbSeriesName(data.data.title);
+      } else {
+        setTmdbSeriesName(null);
+      }
+    } catch {
+      setTmdbSeriesName(null);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  /* Search TMDB for the correct series */
+  const handleSearch = async () => {
+    if (!seriesTitle) return;
+    setSearching(true);
+    setShowSearch(true);
+    try {
+      const results = await searchSeriesMetadata(seriesTitle);
+      setSearchResults(results);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  /* Select a series from search results */
+  const selectSeries = (candidate: MetadataCandidate) => {
+    const id = String(candidate.tmdbId);
+    setTmdbSeriesId(id);
+    setTmdbSeriesName(candidate.title);
+    localStorage.setItem(`series_tmdb_${seriesId}`, id);
+    setShowSearch(false);
+    setMetaFilled(false);
+    toast.success(`Selected: ${candidate.title} (ID: ${id})`);
+  };
 
   /* Dropzone */
   const [posterFiles, setPosterFiles]   = useState<FileWithMetadata[]>([]);
@@ -157,73 +212,112 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
       {/* ── TMDB Auto-fill panel ── */}
       {!isEditing && (
         <Card className="border-orange-500/20 bg-orange-500/5">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-2 mb-3">
+          <CardContent className="pt-4 pb-4 space-y-3">
+            <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-orange-500" />
               <p className="text-sm font-semibold text-orange-600">Auto-fill from TMDB</p>
-              {tmdbSeriesId && (
-                <span className="ml-auto text-xs text-green-600 flex items-center gap-1">
+            </div>
+
+            {/* ── TMDB Series ID row with verification ── */}
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="TMDB Series ID (e.g. 274776)"
+                  value={tmdbSeriesId}
+                  onChange={e => {
+                    setTmdbSeriesId(e.target.value);
+                    setTmdbSeriesName(null);
+                    setMetaFilled(false);
+                  }}
+                  onBlur={() => tmdbSeriesId && verifyTmdbId(tmdbSeriesId)}
+                  disabled={enriching}
+                  className="text-sm font-mono"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSearch}
+                  disabled={searching}
+                  className="shrink-0 gap-1"
+                  title={`Search TMDB for "${seriesTitle}"`}
+                >
+                  {searching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                  Find
+                </Button>
+              </div>
+
+              {/* Verification status */}
+              {verifying && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Verifying…
+                </p>
+              )}
+              {!verifying && tmdbSeriesName && (
+                <p className="text-xs text-green-600 flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
-                  TMDB ID: {tmdbSeriesId}
-                </span>
+                  Matched: <strong>{tmdbSeriesName}</strong>
+                  {seriesTitle && tmdbSeriesName.toLowerCase() !== seriesTitle.toLowerCase() && (
+                    <span className="text-yellow-500 ml-1 flex items-center gap-0.5">
+                      <AlertCircle className="w-3 h-3" /> Name mismatch — verify this is correct
+                    </span>
+                  )}
+                </p>
+              )}
+              {!verifying && tmdbSeriesId && !tmdbSeriesName && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> Could not verify — check the ID or use Find
+                </p>
               )}
             </div>
 
-            {!tmdbSeriesId ? (
-              <>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Enter the TMDB Series ID and season number, then click Fetch to auto-fill.
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="TMDB Series ID (e.g. 1396 for Breaking Bad)"
-                    value={tmdbSeriesId}
-                    onChange={e => setTmdbSeriesId(e.target.value)}
-                    disabled={enriching}
-                    className="text-sm"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleEnrich}
-                    disabled={enriching || !tmdbSeriesId || !formData.seasonNumber}
-                    className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
-                  >
-                    {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch"}
-                  </Button>
+            {/* ── Search results dropdown ── */}
+            {showSearch && (
+              <div className="border border-border rounded-lg overflow-hidden bg-background shadow-lg">
+                <div className="px-3 py-2 border-b border-border bg-muted/30 flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {searching ? "Searching…" : `${searchResults.length} results for "${seriesTitle}"`}
+                  </p>
+                  <button onClick={() => setShowSearch(false)} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
                 </div>
-              </>
-            ) : (
-              <>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Enter the season number and click Fetch — TMDB ID is already saved from the series.
-                </p>
-                <div className="flex gap-2 items-center">
-                  <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border text-sm text-muted-foreground">
-                    <span>Series ID: <strong className="text-foreground">{tmdbSeriesId}</strong></span>
-                    <button
-                      type="button"
-                      onClick={() => setTmdbSeriesId("")}
-                      className="ml-auto text-xs text-muted-foreground hover:text-foreground underline"
-                    >
-                      Change
-                    </button>
-                  </div>
-                  <Button
+                {searchResults.map(c => (
+                  <button
+                    key={c.tmdbId}
                     type="button"
-                    onClick={handleEnrich}
-                    disabled={enriching || !formData.seasonNumber}
-                    className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
+                    onClick={() => selectSeries(c)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border last:border-0"
                   >
-                    {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch Season"}
-                  </Button>
-                </div>
-              </>
+                    <div className="w-8 h-12 rounded overflow-hidden bg-muted shrink-0">
+                      {c.poster && <Image src={c.poster} alt={c.title} width={32} height={48} className="object-cover w-full h-full" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium line-clamp-1">{c.title}</p>
+                      <p className="text-xs text-muted-foreground">ID: {c.tmdbId} {c.year && `· ${c.year}`}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
             )}
 
+            {/* ── Fetch button ── */}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                onClick={handleEnrich}
+                disabled={enriching || !tmdbSeriesId || !formData.seasonNumber}
+                className="bg-orange-500 hover:bg-orange-600 text-white flex-1"
+              >
+                {enriching
+                  ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Fetching…</>
+                  : `Fetch Season ${formData.seasonNumber || "?"} Data`
+                }
+              </Button>
+            </div>
+
             {metaFilled && (
-              <div className="flex items-center gap-2 mt-2 text-xs text-green-600">
+              <div className="flex items-center gap-2 text-xs text-green-600">
                 <CheckCircle2 className="w-3 h-3" />
-                Season + {episodesMeta.length} episodes auto-filled
+                Season + {episodesMeta.length} episodes auto-filled from TMDB
               </div>
             )}
           </CardContent>
