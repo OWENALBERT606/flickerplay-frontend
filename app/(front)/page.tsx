@@ -234,12 +234,12 @@ export default async function HomePage({
     comingSoonSeriesData,
     allSeriesData,
   ] = await Promise.all([
-    getTrendingMovies(12),
+    getTrendingMovies(6),          // ← exactly 6 for one row
     getComingSoonMovies(12),
-    listMovies({ limit: 12 }),
-    getTrendingSeries(12),
+    listMovies({ limit: 36 }),     // ← 36 for new releases
+    getTrendingSeries(6),          // ← exactly 6 for one row
     getComingSoonSeries(12),
-    listSeries({ limit: 12 }),
+    listSeries({ limit: 36 }),     // ← 36 for new releases
   ]);
 
   const trendingMovies = trendingMoviesData.data || [];
@@ -253,13 +253,15 @@ export default async function HomePage({
   const comingSoonSeriesIds = new Set(comingSoonSeries.map((s) => s.id));
   const availableMovies = allMovies.filter((m) => !comingSoonMovieIds.has(m.id));
   const availableSeries = allSeries.filter((s) => !comingSoonSeriesIds.has(s.id));
-  const availableTrendingMovies = trendingMovies.filter((m) => !comingSoonMovieIds.has(m.id));
-  const availableTrendingSeries = trendingSeries.filter((s) => !comingSoonSeriesIds.has(s.id));
+  const availableTrendingMovies = trendingMovies.filter((m) => !comingSoonMovieIds.has(m.id)).slice(0, 6);
+  const availableTrendingSeries = trendingSeries.filter((s) => !comingSoonSeriesIds.has(s.id)).slice(0, 6);
 
   const newMovies = [...availableMovies]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 36);
   const newSeries = [...availableSeries]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 36);
 
   const heroItems = [...availableMovies, ...availableSeries];
 

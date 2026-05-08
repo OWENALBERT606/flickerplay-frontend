@@ -31,14 +31,14 @@ interface ContinueWatchingProps {
 
 export async function ContinueWatching({ userId }: ContinueWatchingProps) {
   if (!userId) {
-    return null; // Don't show if user not logged in
+    return null;
   }
 
-  const result = await getContinueWatching(userId, 6);
+  const result = await getContinueWatching(userId, 4); // last 4 only
   const continueWatching = result.data || [];
 
   if (continueWatching.length === 0) {
-    return null; // Don't show section if no items
+    return null;
   }
 
   return <ContinueWatchingContent items={continueWatching} userId={userId} />;
