@@ -114,20 +114,20 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
       const data: TmdbSeasonMeta | null = await enrichSeasonMetadata(tmdbSeriesId, sNum);
       if (!data) throw new Error(`Season ${sNum} not found on TMDB for "${confirmedTitle}"`);
 
-      const seasonPoster = data.poster || seriesPoster || "";
+      const seasonPoster = seriesPoster || "";  // always use series poster
       setFormData(prev => ({
         ...prev,
         title:       data.title       || prev.title,
         description: data.description || prev.description,
-        poster:      seasonPoster,
-        releaseYear: data.releaseYear?.toString() || prev.releaseYear,
+        poster:      seasonPoster,               // always series poster
+        releaseYear: prev.releaseYear,           // keep series year, don't overwrite
       }));
 
       if (data.posterOptions.length) { setPosterOptions(data.posterOptions); setSelectedPosterIdx(0); }
 
       const enrichedEpisodes = data.episodes.map(ep => ({
         ...ep,
-        poster: ep.poster || seasonPoster || seriesPoster || null,
+        poster: seriesPoster || null,  // always series poster for episodes too
       }));
       setEpisodesMeta(enrichedEpisodes);
       setMetaFilled(true);
@@ -286,8 +286,9 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
 
       {/* ── Release Year ── */}
       <div className="space-y-2">
-        <Label>Release Year {metaFilled && formData.releaseYear && <Badge variant="secondary" className="ml-2 text-xs">✓ Auto</Badge>}</Label>
+        <Label>Release Year</Label>
         <Input type="number" min="1900" max="2100" placeholder="e.g., 2024" value={formData.releaseYear} onChange={e => setFormData(p => ({ ...p, releaseYear: e.target.value }))} disabled={isLoading} />
+        <p className="text-xs text-muted-foreground">Uses the series release year by default</p>
       </div>
 
       {/* ── Description ── */}
@@ -295,23 +296,6 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
         <Label>Description {metaFilled && formData.description && <Badge variant="secondary" className="ml-2 text-xs">✓ Auto</Badge>}</Label>
         <Textarea placeholder="Season description…" rows={3} value={formData.description} onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} disabled={isLoading} />
       </div>
-
-      {/* ── Poster picker ── */}
-      {posterOptions.length > 0 && (
-        <div className="space-y-2">
-          <Label>Choose Season Poster from TMDB</Label>
-          <div className="flex gap-2 flex-wrap">
-            {posterOptions.map((url, i) => (
-              <button key={i} type="button"
-                onClick={() => { setSelectedPosterIdx(i); setFormData(p => ({ ...p, poster: url })); }}
-                className={`relative w-16 h-24 rounded overflow-hidden border-2 transition-all ${selectedPosterIdx === i ? "border-orange-500 scale-105" : "border-border hover:border-orange-300"}`}
-              >
-                <Image src={url} alt={`Poster ${i + 1}`} fill className="object-cover" />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Current poster preview */}
       {formData.poster && !posterFiles.length && (

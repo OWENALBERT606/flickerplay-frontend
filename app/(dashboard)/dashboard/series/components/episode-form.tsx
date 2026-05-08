@@ -112,18 +112,18 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber = 1, ser
       const data: TmdbEpisodeFullMeta | null = await enrichEpisodeMetadata(tmdbSeriesId, seasonNumber, epNum);
       if (!data) throw new Error(`Episode not found on TMDB`);
 
-      const poster = data.poster || seriesPoster || "";
+      const poster = seriesPoster || "";  // always use series poster
       setFormData(prev => ({
         ...prev,
         title:         data.title         || prev.title,
         description:   data.description   || prev.description,
-        poster,
+        poster,                                  // series poster always
         length:        data.length        || prev.length,
         lengthSeconds: data.lengthSeconds?.toString() || prev.lengthSeconds,
-        releaseDate:   data.releaseDate   || prev.releaseDate,
+        releaseDate:   prev.releaseDate,         // keep existing, don't overwrite with TMDB air date
       }));
 
-      if (data.stillOptions.length) { setStillOptions(data.stillOptions); setSelectedStillIdx(0); }
+      // Don't show TMDB stills — use series poster
       if (data.director) setDirector(data.director);
       setMetaFilled(true);
       toast.success(`Episode ${epNum} auto-filled!`, { id: "ep-enrich" });
@@ -281,28 +281,14 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber = 1, ser
         </div>
       </div>
 
-      {/* ── Still picker ── */}
-      {stillOptions.length > 0 && (
-        <div className="space-y-2">
-          <Label>Choose Episode Thumbnail from TMDB</Label>
-          <div className="flex gap-2 flex-wrap">
-            {stillOptions.map((url, i) => (
-              <button key={i} type="button" onClick={() => { setSelectedStillIdx(i); setFormData(p => ({ ...p, poster: url })); }} className={`relative w-28 h-16 rounded overflow-hidden border-2 transition-all ${selectedStillIdx === i ? "border-orange-500 scale-105" : "border-border hover:border-orange-300"}`}>
-                <Image src={url} alt={`Still ${i + 1}`} fill className="object-cover" />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Current poster */}
+      {/* Current poster — always series poster */}
       {formData.poster && !posterFiles.length && (
         <div className="space-y-1">
-          <Label>Current Thumbnail</Label>
+          <Label>Current Thumbnail (Series Poster)</Label>
           <div className="relative w-32 h-20 rounded overflow-hidden border border-border">
             <Image src={formData.poster} alt="thumbnail" fill className="object-cover" />
           </div>
-          <p className="text-xs text-muted-foreground">Upload below to override</p>
+          <p className="text-xs text-muted-foreground">Upload below to use a different image for this episode</p>
         </div>
       )}
 
