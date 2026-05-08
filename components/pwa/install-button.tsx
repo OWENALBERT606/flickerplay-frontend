@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Download, X, Monitor, Chrome, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -10,13 +9,16 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallButton() {
+  const [mounted, setMounted]             = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled]     = useState(false);
   const [showGuide, setShowGuide]         = useState(false);
   const guideRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Already running as installed PWA
+    setMounted(true);
+
+    // Already running as installed PWA — hide the button
     if (window.matchMedia("(display-mode: standalone)").matches) {
       setIsInstalled(true);
       return;
@@ -50,74 +52,75 @@ export function InstallButton() {
 
   const handleClick = async () => {
     if (installPrompt) {
-      // Native install prompt available — trigger it directly
       await installPrompt.prompt();
       const { outcome } = await installPrompt.userChoice;
       if (outcome === "accepted") setInstallPrompt(null);
     } else {
-      // No prompt yet — show manual install guide
       setShowGuide(s => !s);
     }
   };
 
-  // Don't show if already installed as PWA
+  // Don't render until client-side hydration is complete
+  if (!mounted) return null;
+  // Hide if already installed as PWA
   if (isInstalled) return null;
 
   return (
     <div className="relative" ref={guideRef}>
-      <Button
+      {/* Always-visible orange button */}
+      <button
         onClick={handleClick}
-        size="sm"
-        className="bg-orange-500 hover:bg-orange-600 text-white gap-1.5 font-semibold px-3 h-8 text-xs"
+        className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold px-3 h-8 rounded-lg transition-colors shrink-0 cursor-pointer"
         title="Install FlickerPlay as a desktop app"
       >
         <Download className="w-3.5 h-3.5 shrink-0" />
         <span>Download App</span>
-      </Button>
+      </button>
 
-      {/* Manual install guide — shown when browser hasn't fired beforeinstallprompt */}
-      {showGuide && !installPrompt && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-background border border-border rounded-xl shadow-2xl p-4">
+      {/* Install guide dropdown */}
+      {showGuide && (
+        <div className="absolute right-0 top-full mt-2 z-[100] w-72 bg-background border border-border rounded-xl shadow-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Monitor className="w-4 h-4 text-orange-500" />
               <p className="text-sm font-semibold">Install FlickerPlay</p>
             </div>
-            <button onClick={() => setShowGuide(false)} className="text-muted-foreground hover:text-foreground">
+            <button
+              onClick={() => setShowGuide(false)}
+              className="text-muted-foreground hover:text-foreground p-1"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <p className="text-xs text-muted-foreground mb-3">
-            Install FlickerPlay as a desktop app for the best experience — no browser chrome, faster launch.
+          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+            Install FlickerPlay as a desktop app for the best experience — no browser chrome, faster launch, works offline.
           </p>
 
-          <div className="space-y-2.5">
-            {/* Chrome */}
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+          <div className="space-y-2">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50 border border-border">
               <Chrome className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs font-semibold">Google Chrome</p>
+                <p className="text-xs font-semibold mb-0.5">Google Chrome</p>
                 <p className="text-xs text-muted-foreground">
-                  Click the <strong>⋮</strong> menu → <strong>Save and share</strong> → <strong>Install page as app</strong>
+                  Click <strong>⋮</strong> → <strong>Save and share</strong> → <strong>Install page as app</strong>
                 </p>
               </div>
             </div>
 
-            {/* Edge */}
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50 border border-border">
               <Globe className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs font-semibold">Microsoft Edge</p>
+                <p className="text-xs font-semibold mb-0.5">Microsoft Edge</p>
                 <p className="text-xs text-muted-foreground">
-                  Click the <strong>⋯</strong> menu → <strong>Apps</strong> → <strong>Install this site as an app</strong>
+                  Click <strong>⋯</strong> → <strong>Apps</strong> → <strong>Install this site as an app</strong>
                 </p>
               </div>
             </div>
           </div>
 
           <p className="text-[10px] text-muted-foreground mt-3 text-center">
-            Or look for the install icon <strong>⊕</strong> in your browser's address bar
+            Or look for the <strong>⊕</strong> install icon in your browser's address bar
           </p>
         </div>
       )}
