@@ -51,6 +51,12 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber, seriesP
   const [selectedStillIdx, setSelectedStillIdx] = useState(0);
   const [director, setDirector]         = useState<string | null>(null);
 
+  /* Auto-read tmdbId from localStorage */
+  useEffect(() => {
+    const stored = localStorage.getItem(`series_tmdb_${seriesId}`);
+    if (stored) setTmdbSeriesId(stored);
+  }, [seriesId]);
+
   /* Dropzone */
   const [posterFiles, setPosterFiles] = useState<FileWithMetadata[]>([]);
 
@@ -152,28 +158,65 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber, seriesP
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-orange-500" />
               <p className="text-sm font-semibold text-orange-600">Auto-fill from TMDB</p>
+              {tmdbSeriesId && (
+                <span className="ml-auto text-xs text-green-600 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  TMDB ID: {tmdbSeriesId}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Enter the TMDB Series ID and episode number to auto-fill title, description,
-              thumbnail, duration, and air date. Missing thumbnails fall back to the series poster.
-            </p>
-            <div className="flex gap-2">
-              <Input
-                placeholder="TMDB Series ID (e.g. 1396)"
-                value={tmdbSeriesId}
-                onChange={e => setTmdbSeriesId(e.target.value)}
-                disabled={enriching}
-                className="text-sm flex-1"
-              />
-              <Button
-                type="button"
-                onClick={handleEnrich}
-                disabled={enriching || !tmdbSeriesId || !formData.episodeNumber}
-                className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
-              >
-                {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch"}
-              </Button>
-            </div>
+
+            {!tmdbSeriesId ? (
+              <>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Enter the TMDB Series ID and episode number to auto-fill metadata.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="TMDB Series ID (e.g. 1396)"
+                    value={tmdbSeriesId}
+                    onChange={e => setTmdbSeriesId(e.target.value)}
+                    disabled={enriching}
+                    className="text-sm flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleEnrich}
+                    disabled={enriching || !tmdbSeriesId || !formData.episodeNumber}
+                    className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
+                  >
+                    {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch"}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Enter the episode number and click Fetch — TMDB ID is already saved.
+                </p>
+                <div className="flex gap-2 items-center">
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border text-sm text-muted-foreground">
+                    <span>Series ID: <strong className="text-foreground">{tmdbSeriesId}</strong></span>
+                    <button
+                      type="button"
+                      onClick={() => setTmdbSeriesId("")}
+                      className="ml-auto text-xs text-muted-foreground hover:text-foreground underline"
+                    >
+                      Change
+                    </button>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleEnrich}
+                    disabled={enriching || !formData.episodeNumber}
+                    className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
+                  >
+                    {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch Episode"}
+                  </Button>
+                </div>
+              </>
+            )}
+
             {metaFilled && (
               <div className="flex items-center gap-2 mt-2 text-xs text-green-600">
                 <CheckCircle2 className="w-3 h-3" />

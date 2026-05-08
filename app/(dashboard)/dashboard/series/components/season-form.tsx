@@ -45,6 +45,12 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
   const [episodesMeta, setEpisodesMeta]   = useState<TmdbEpisodeMeta[]>([]);
   const [showEpisodes, setShowEpisodes]   = useState(false);
 
+  /* Auto-read tmdbId from localStorage on mount */
+  useEffect(() => {
+    const stored = localStorage.getItem(`series_tmdb_${seriesId}`);
+    if (stored) setTmdbSeriesId(stored);
+  }, [seriesId]);
+
   /* Dropzone */
   const [posterFiles, setPosterFiles]   = useState<FileWithMetadata[]>([]);
   const [trailerFiles, setTrailerFiles] = useState<FileWithMetadata[]>([]);
@@ -155,31 +161,65 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-orange-500" />
               <p className="text-sm font-semibold text-orange-600">Auto-fill from TMDB</p>
+              {tmdbSeriesId && (
+                <span className="ml-auto text-xs text-green-600 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  TMDB ID: {tmdbSeriesId}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Enter the TMDB Series ID and season number, then click Fetch to auto-fill season details,
-              episode titles, descriptions, thumbnails, and durations.
-              Missing images fall back to the series poster.
-            </p>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  placeholder="TMDB Series ID (e.g. 1396 for Breaking Bad)"
-                  value={tmdbSeriesId}
-                  onChange={e => setTmdbSeriesId(e.target.value)}
-                  disabled={enriching}
-                  className="text-sm"
-                />
-              </div>
-              <Button
-                type="button"
-                onClick={handleEnrich}
-                disabled={enriching || !tmdbSeriesId || !formData.seasonNumber}
-                className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
-              >
-                {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch"}
-              </Button>
-            </div>
+
+            {!tmdbSeriesId ? (
+              <>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Enter the TMDB Series ID and season number, then click Fetch to auto-fill.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="TMDB Series ID (e.g. 1396 for Breaking Bad)"
+                    value={tmdbSeriesId}
+                    onChange={e => setTmdbSeriesId(e.target.value)}
+                    disabled={enriching}
+                    className="text-sm"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleEnrich}
+                    disabled={enriching || !tmdbSeriesId || !formData.seasonNumber}
+                    className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
+                  >
+                    {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch"}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Enter the season number and click Fetch — TMDB ID is already saved from the series.
+                </p>
+                <div className="flex gap-2 items-center">
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border text-sm text-muted-foreground">
+                    <span>Series ID: <strong className="text-foreground">{tmdbSeriesId}</strong></span>
+                    <button
+                      type="button"
+                      onClick={() => setTmdbSeriesId("")}
+                      className="ml-auto text-xs text-muted-foreground hover:text-foreground underline"
+                    >
+                      Change
+                    </button>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleEnrich}
+                    disabled={enriching || !formData.seasonNumber}
+                    className="bg-orange-500 hover:bg-orange-600 text-white shrink-0"
+                  >
+                    {enriching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch Season"}
+                  </Button>
+                </div>
+              </>
+            )}
+
             {metaFilled && (
               <div className="flex items-center gap-2 mt-2 text-xs text-green-600">
                 <CheckCircle2 className="w-3 h-3" />
@@ -196,9 +236,20 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
         <Input
           type="number" min="1" placeholder="e.g., 1"
           value={formData.seasonNumber}
-          onChange={e => setFormData(p => ({ ...p, seasonNumber: e.target.value }))}
+          onChange={e => {
+            setFormData(p => ({ ...p, seasonNumber: e.target.value }));
+            // Auto-fetch if TMDB ID is already known and a valid number is entered
+            const num = parseInt(e.target.value);
+            if (tmdbSeriesId && !isNaN(num) && num > 0 && !metaFilled) {
+              // Small debounce — fetch after user stops typing
+              setTimeout(() => handleEnrich(), 300);
+            }
+          }}
           required disabled={isLoading}
         />
+        {tmdbSeriesId && !metaFilled && formData.seasonNumber && (
+          <p className="text-xs text-orange-500">Click "Fetch Season" to auto-fill metadata</p>
+        )}
       </div>
 
       {/* ── Title ── */}

@@ -114,6 +114,12 @@ export function SeriesForm({ series }: SeriesFormProps) {
     }
     setMetaSource(data._meta?.ratingSource || null);
     setMetaFilled(true);
+
+    // ── Save tmdbId so season/episode forms can auto-read it ──
+    if (data._meta?.tmdbId) {
+      // Store temporarily — will be keyed by series DB id after save
+      localStorage.setItem("pending_series_tmdb_id", String(data._meta.tmdbId));
+    }
   };
 
   /* ── Submit ── */
@@ -149,6 +155,13 @@ export function SeriesForm({ series }: SeriesFormProps) {
 
       if (result.success) {
         toast.success(isEditing ? "Series updated!" : "Series created!");
+        // ── Key the tmdbId by the series DB id so season form can find it ──
+        const seriesDbId = result.data?.id;
+        const pendingTmdbId = localStorage.getItem("pending_series_tmdb_id");
+        if (seriesDbId && pendingTmdbId) {
+          localStorage.setItem(`series_tmdb_${seriesDbId}`, pendingTmdbId);
+          localStorage.removeItem("pending_series_tmdb_id");
+        }
         router.push("/dashboard/series");
         router.refresh();
       } else {
