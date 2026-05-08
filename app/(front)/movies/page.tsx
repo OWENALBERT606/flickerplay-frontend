@@ -6,9 +6,9 @@ import { listReleaseYears } from "@/actions/releaseYear";
 
 export const dynamic = "force-dynamic";
 import { getSession } from "@/actions/auth";
-import { MovieGrid } from "./components/movies-grid";
 import { MoviesSidebar } from "./components/movies-sidebar";
 import { FilterDrawer } from "@/components/front-end/filter-drawer";
+import { InfiniteMovieGrid } from "./components/infinite-movie-grid";
 import { Film } from "lucide-react";
 export default async function MoviesPage({
   searchParams,
@@ -128,17 +128,14 @@ export default async function MoviesPage({
               </div>
             </div>
 
-            {/* Grid */}
-            <MovieGrid userId={userId} movies={movies} />
-
-            {/* Pagination */}
-            {pagination && pagination.totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={pagination.totalPages}
-                params={params}
-              />
-            )}
+            {/* Infinite scroll grid */}
+            <InfiniteMovieGrid
+              initialMovies={movies}
+              initialPage={currentPage}
+              totalPages={pagination?.totalPages ?? 1}
+              userId={userId}
+              searchParams={params}
+            />
           </div>
         </div>
       </main>
@@ -146,54 +143,4 @@ export default async function MoviesPage({
   );
 }
 
-/* ── Simple pagination ─────────────────────────────────────────── */
-function Pagination({
-  currentPage,
-  totalPages,
-  params,
-}: {
-  currentPage: number;
-  totalPages: number;
-  params: Record<string, string | undefined>;
-}) {
-  const buildHref = (page: number) => {
-    const p = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => { if (v && k !== "page") p.set(k, v); });
-    p.set("page", String(page));
-    return `/movies?${p.toString()}`;
-  };
-
-  const pages = Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-    if (totalPages <= 7) return i + 1;
-    if (currentPage <= 4) return i + 1;
-    if (currentPage >= totalPages - 3) return totalPages - 6 + i;
-    return currentPage - 3 + i;
-  });
-
-  return (
-    <div className="flex items-center justify-center gap-2 mt-10">
-      {currentPage > 1 && (
-        <a href={buildHref(currentPage - 1)}
-          className="px-3 py-1.5 rounded-lg bg-secondary text-sm hover:bg-secondary/80 transition-colors">
-          ← Prev
-        </a>
-      )}
-      {pages.map((p) => (
-        <a key={p} href={buildHref(p)}
-          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-            p === currentPage
-              ? "bg-orange-500 text-white font-semibold"
-              : "bg-secondary hover:bg-secondary/80"
-          }`}>
-          {p}
-        </a>
-      ))}
-      {currentPage < totalPages && (
-        <a href={buildHref(currentPage + 1)}
-          className="px-3 py-1.5 rounded-lg bg-secondary text-sm hover:bg-secondary/80 transition-colors">
-          Next →
-        </a>
-      )}
-    </div>
-  );
-}
+/* ── Remove old Pagination component — replaced by infinite scroll ── */
