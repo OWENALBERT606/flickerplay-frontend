@@ -42,6 +42,7 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
   });
 
   /* ── TMDB state ── */
+  const [mounted, setMounted]               = useState(false);
   const [tmdbSeriesId, setTmdbSeriesId]     = useState<number | null>(null);
   const [confirmedTitle, setConfirmedTitle] = useState<string | null>(null);
   const [candidates, setCandidates]         = useState<MetadataCandidate[]>([]);
@@ -64,6 +65,7 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
 
   /* ── Auto-search TMDB on mount using series title ── */
   useEffect(() => {
+    setMounted(true);
     if (!seriesTitle || isEditing) return;
 
     // Check localStorage first
@@ -169,8 +171,8 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
 
-      {/* ── TMDB Auto-fill panel ── */}
-      {!isEditing && (
+      {/* ── TMDB Auto-fill panel — only after hydration ── */}
+      {!isEditing && mounted && (
         <Card className="border-orange-500/20 bg-orange-500/5">
           <CardContent className="pt-4 pb-4 space-y-3">
             <div className="flex items-center gap-2">
