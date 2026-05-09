@@ -78,9 +78,9 @@ export function Header({ user }: { user?: any }) {
             <Image
               src="/logo-flickerplay.png"
               alt="FlickerPlay"
-              width={220}
-              height={60}
-              className="h-20 w-64 object-contain"
+              width={160}
+              height={100}
+              className="h-10 w-32 object-contain"
             />
             <div className="text-2xl  font-bold text-primary hidden">
               FlickerPlay
