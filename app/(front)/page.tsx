@@ -2,15 +2,13 @@ export const dynamic = "force-dynamic";
 
 import { getSession } from "@/actions/auth";
 import {
-  getTrendingMovies,
-  listMovies,
-  getComingSoonMovies,
-} from "@/actions/movies";
-import {
-  getTrendingSeries,
-  listSeries,
-  getComingSoonSeries,
-} from "@/actions/series";
+  getCachedTrendingMovies,
+  getCachedListMovies,
+  getCachedComingSoonMovies,
+  getCachedTrendingSeries,
+  getCachedListSeries,
+  getCachedComingSoonSeries,
+} from "@/lib/cache";
 import { ContinueWatching } from "@/components/front-end/continue-watching";
 import { HeroCarousel } from "@/components/front-end/hero-couresel";
 import { MovieSection } from "@/components/front-end/movie-section";
@@ -37,10 +35,10 @@ export default async function HomePage({
   if (dubbed === "yes" || dubbed === "no") {
     const [allMoviesData, allSeriesData, comingSoonMoviesData, comingSoonSeriesData] =
       await Promise.all([
-        listMovies({ limit: 50 }),
-        listSeries({ limit: 50 }),
-        getComingSoonMovies(50),
-        getComingSoonSeries(50),
+        getCachedListMovies({ limit: 50 }),
+        getCachedListSeries({ limit: 50 }),
+        getCachedComingSoonMovies(50),
+        getCachedComingSoonSeries(50),
       ]);
 
     const comingSoonMovieIds = new Set((comingSoonMoviesData.data || []).map((m) => m.id));
@@ -87,8 +85,8 @@ export default async function HomePage({
   // ── movies filter ──────────────────────────────────────────────────
   if (type === "movies") {
     const [allMoviesData, comingSoonMoviesData] = await Promise.all([
-      listMovies({ limit: 50 }),
-      getComingSoonMovies(50),
+      getCachedListMovies({ limit: 50 }),
+      getCachedComingSoonMovies(50),
     ]);
     const allMovies = allMoviesData.data || [];
     const comingSoonIds = new Set((comingSoonMoviesData.data || []).map((m) => m.id));
@@ -104,8 +102,8 @@ export default async function HomePage({
   // ── series filter ──────────────────────────────────────────────────
   if (type === "series") {
     const [allSeriesData, comingSoonSeriesData] = await Promise.all([
-      listSeries({ limit: 50 }),
-      getComingSoonSeries(50),
+      getCachedListSeries({ limit: 50 }),
+      getCachedComingSoonSeries(50),
     ]);
     const allSeries = allSeriesData.data || [];
     const comingSoonIds = new Set((comingSoonSeriesData.data || []).map((s) => s.id));
@@ -121,8 +119,8 @@ export default async function HomePage({
   // ── trending filter ────────────────────────────────────────────────
   if (type === "trending") {
     const [trendingMoviesData, trendingSeriesData] = await Promise.all([
-      getTrendingMovies(24),
-      getTrendingSeries(24),
+      getCachedTrendingMovies(24),
+      getCachedTrendingSeries(24),
     ]);
     const trendingMovies = trendingMoviesData.data || [];
     const trendingSeries = trendingSeriesData.data || [];
@@ -158,8 +156,8 @@ export default async function HomePage({
   // ── most-watched filter ────────────────────────────────────────────
   if (type === "most-watched") {
     const [allMoviesData, allSeriesData] = await Promise.all([
-      listMovies({ limit: 24 }),
-      listSeries({ limit: 24 }),
+      getCachedListMovies({ limit: 24 }),
+      getCachedListSeries({ limit: 24 }),
     ]);
     const mostWatchedMovies = (allMoviesData.data || [])
       .sort((a, b) => Number(b.viewsCount) - Number(a.viewsCount));
@@ -181,8 +179,8 @@ export default async function HomePage({
   // ── top-rated filter ───────────────────────────────────────────────
   if (type === "top-rated") {
     const [allMoviesData, allSeriesData] = await Promise.all([
-      listMovies({ limit: 24 }),
-      listSeries({ limit: 24 }),
+      getCachedListMovies({ limit: 24 }),
+      getCachedListSeries({ limit: 24 }),
     ]);
     const topRatedMovies = (allMoviesData.data || [])
       .sort((a, b) => b.rating - a.rating);
@@ -204,8 +202,8 @@ export default async function HomePage({
   // ── new releases filter ────────────────────────────────────────────
   if (type === "new") {
     const [allMoviesData, allSeriesData] = await Promise.all([
-      listMovies({ limit: 24 }),
-      listSeries({ limit: 24 }),
+      getCachedListMovies({ limit: 24 }),
+      getCachedListSeries({ limit: 24 }),
     ]);
     const newMovies = (allMoviesData.data || [])
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -235,10 +233,10 @@ export default async function HomePage({
     upcomingMoviesData,
     upcomingSeriesData,
   ] = await Promise.allSettled([
-    getTrendingMovies(6),
-    listMovies({ limit: 36 }),
-    getTrendingSeries(6),
-    listSeries({ limit: 36 }),
+    getCachedTrendingMovies(6),
+    getCachedListMovies({ limit: 36 }),
+    getCachedTrendingSeries(6),
+    getCachedListSeries({ limit: 36 }),
     getUpcomingMoviesFromTmdb(20),
     getUpcomingSeriesFromTmdb(20),
   ]);

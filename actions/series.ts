@@ -1,7 +1,7 @@
 "use server";
 
 import axios from "axios";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { deleteR2Files } from "@/lib/r2-delete";
 
 /** Axios client to your backend API */
@@ -242,9 +242,9 @@ export async function createSeries(input: SeriesCreateInput) {
     
     const res = await api.post("/series", input);
     
-    // Revalidate relevant paths
     revalidatePath("/dashboard/series");
-    
+    revalidateTag("series");
+
     return { success: true, data: res.data?.data as Series };
   } catch (e: any) {
     console.error("createSeries error:", e?.response?.data || e?.message);
@@ -259,11 +259,11 @@ export async function updateSeries(id: string, input: SeriesUpdateInput) {
     
     const res = await api.put(`/series/${id}`, input);
     
-    // Revalidate relevant paths
     revalidatePath("/dashboard/series");
     revalidatePath(`/dashboard/series/${id}`);
     revalidatePath("/series");
-    
+    revalidateTag("series");
+
     return { success: true, data: res.data?.data as Series };
   } catch (e: any) {
     console.error("updateSeries error:", e?.response?.data || e?.message);
@@ -304,6 +304,7 @@ export async function deleteSeries(id: string) {
 
     revalidatePath("/dashboard/series");
     revalidatePath("/series");
+    revalidateTag("series");
 
     return { success: true, message: "Series deleted successfully" };
   } catch (e: any) {
@@ -372,10 +373,10 @@ export async function createSeason(seriesId: string, input: SeasonCreateInput) {
     
     const res = await api.post(`/series/${seriesId}/seasons`, input);
     
-    // Revalidate relevant paths
     revalidatePath("/dashboard/series");
     revalidatePath(`/dashboard/series/${seriesId}`);
-    
+    revalidateTag("series");
+
     return { success: true, data: res.data?.data as Season };
   } catch (e: any) {
     console.error("createSeason error:", e?.response?.data || e?.message);
@@ -390,9 +391,9 @@ export async function updateSeason(id: string, input: SeasonUpdateInput) {
     
     const res = await api.put(`/seasons/${id}`, input);
     
-    // Revalidate relevant paths
     revalidatePath("/dashboard/series");
-    
+    revalidateTag("series");
+
     return { success: true, data: res.data?.data as Season };
   } catch (e: any) {
     console.error("updateSeason error:", e?.response?.data || e?.message);
@@ -422,6 +423,7 @@ export async function deleteSeason(id: string) {
     ]);
 
     revalidatePath("/dashboard/series");
+    revalidateTag("series");
 
     return { success: true, message: "Season deleted successfully" };
   } catch (e: any) {
@@ -507,9 +509,9 @@ export async function createEpisode(seasonId: string, input: EpisodeCreateInput)
     
     const res = await api.post(`/seasons/${seasonId}/episodes`, input);
     
-    // Revalidate relevant paths
     revalidatePath("/dashboard/series");
-    
+    revalidateTag("series");
+
     return { success: true, data: res.data?.data as Episode };
   } catch (e: any) {
     console.error("createEpisode error:", e?.response?.data || e?.message);
@@ -524,9 +526,9 @@ export async function updateEpisode(id: string, input: EpisodeUpdateInput) {
     
     const res = await api.put(`/episodes/${id}`, input);
     
-    // Revalidate relevant paths
     revalidatePath("/dashboard/series");
-    
+    revalidateTag("series");
+
     return { success: true, data: res.data?.data as Episode };
   } catch (e: any) {
     console.error("updateEpisode error:", e?.response?.data || e?.message);
@@ -550,6 +552,7 @@ export async function deleteEpisode(id: string) {
     }
 
     revalidatePath("/dashboard/series");
+    revalidateTag("series");
 
     return { success: true, message: "Episode deleted successfully" };
   } catch (e: any) {
@@ -576,11 +579,11 @@ export async function addSeasonsToSeries(seriesId: string, seasons: SeasonInput[
     
     const res = await api.post(`/series/${seriesId}/seasons`, { seasons });
     
-    // Revalidate relevant paths
     revalidatePath("/dashboard/series");
     revalidatePath(`/dashboard/series/${seriesId}`);
     revalidatePath(`/series/${seriesId}`);
-    
+    revalidateTag("series");
+
     return { success: true, data: res.data?.data as Series };
   } catch (e: any) {
     console.error("addSeasonsToSeries error:", e?.response?.data || e?.message);

@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { listMovies } from "@/actions/movies";
-import { listGenres } from "@/actions/genres";
-import { listVJs } from "@/actions/vjs";
-import { listReleaseYears } from "@/actions/releaseYear";
+import { getCachedListGenres, getCachedListVJs, getCachedListReleaseYears } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 import { getSession } from "@/actions/auth";
@@ -45,9 +43,9 @@ export default async function MoviesPage({
   /* ── Fetch in parallel — use allSettled so a failing sidebar call never blocks the page ── */
   const [moviesResult, genresResult, vjsResult, yearsResult] = await Promise.allSettled([
     listMovies(apiParams),
-    listGenres(),
-    listVJs(),
-    listReleaseYears(),
+    getCachedListGenres(),
+    getCachedListVJs(),
+    getCachedListReleaseYears(),
   ]);
 
   const moviesData = moviesResult.status === "fulfilled" ? moviesResult.value : { data: [], pagination: undefined };

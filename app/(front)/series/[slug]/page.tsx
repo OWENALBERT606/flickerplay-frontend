@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
-import { getSeriesBySlug, incrementSeriesViews } from "@/actions/series";
+import { incrementSeriesViews } from "@/actions/series";
+import { getCachedSeriesBySlug } from "@/lib/cache";
 import { getSession } from "@/actions/auth";
-import { TrailerPlayer } from "@/components/front-end/trailer-player";
 import { SeriesDetailHero } from "../components/series-detail-hero";
+import { TrailerPlayer } from "@/components/front-end/trailer-player";
 
 export default async function SeriesDetailPage({ 
   params 
@@ -15,7 +15,7 @@ export default async function SeriesDetailPage({
   params: Promise<{ slug: string }> 
 }) {
   const { slug } = await params;
-  const seriesData = await getSeriesBySlug(slug);
+  const seriesData = await getCachedSeriesBySlug(slug);
   const session = await getSession();
   const user = session?.user;
     
@@ -70,12 +70,11 @@ export default async function SeriesDetailPage({
                             <CardContent className="p-6">
                               <div className="flex items-center gap-4">
                                 {season.poster && (
-                                  <div className="relative w-24 h-36 rounded-lg overflow-hidden flex-shrink-0">
-                                    <Image
+                                  <div className="w-24 h-36 rounded-lg overflow-hidden flex-shrink-0">
+                                    <img
                                       src={season.poster}
                                       alt={`Season ${season.seasonNumber}`}
-                                      fill
-                                      className="object-cover"
+                                      className="w-full h-full object-cover"
                                     />
                                   </div>
                                 )}
@@ -144,12 +143,11 @@ export default async function SeriesDetailPage({
             {/* Poster */}
             <Card>
               <CardContent className="p-4">
-                <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden">
-                  <Image
+                <div className="aspect-[2/3] w-full rounded-lg overflow-hidden">
+                  <img
                     src={series.poster}
                     alt={series.title}
-                    fill
-                    className="object-cover"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </CardContent>
@@ -163,12 +161,11 @@ export default async function SeriesDetailPage({
                     VJ
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                      <Image
+                    <div className="w-8 h-8 rounded-full overflow-hidden">
+                      <img
                         src={series.vj.avatarUrl}
                         alt={series.vj.name}
-                        fill
-                        className="object-cover"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                     <span className="font-medium">{series.vj.name}</span>

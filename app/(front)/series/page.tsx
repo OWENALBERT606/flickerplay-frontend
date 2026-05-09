@@ -1,8 +1,6 @@
 import { Suspense } from "react";
-import { listSeries, getTrendingSeries, getComingSoonSeries } from "@/actions/series";
-import { listGenres } from "@/actions/genres";
-import { listVJs } from "@/actions/vjs";
-import { listReleaseYears } from "@/actions/releaseYear";
+import { listSeries } from "@/actions/series";
+import { getCachedListGenres, getCachedListVJs, getCachedListReleaseYears } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 import { getSession } from "@/actions/auth";
@@ -46,9 +44,9 @@ export default async function SeriesPage({
   /* ── Fetch in parallel — use allSettled so a failing sidebar call never blocks the page ── */
   const [seriesResult, genresResult, vjsResult, yearsResult] = await Promise.allSettled([
     listSeries(apiParams),
-    listGenres(),
-    listVJs(),
-    listReleaseYears(),
+    getCachedListGenres(),
+    getCachedListVJs(),
+    getCachedListReleaseYears(),
   ]);
 
   const seriesData = seriesResult.status === "fulfilled" ? seriesResult.value : { data: [], pagination: undefined };

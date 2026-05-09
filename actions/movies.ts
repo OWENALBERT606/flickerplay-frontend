@@ -1,7 +1,7 @@
 "use server";
 
 import axios from "axios";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { deleteR2Files } from "@/lib/r2-delete";
 
 const BASE_API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "https://moviechamp256-nodejs-api-production.up.railway.app/api/v1";
@@ -171,6 +171,7 @@ export async function createMovie(input: MovieCreateInput) {
 
     revalidatePath("/dashboard/movies");
     revalidatePath("/movies");
+    revalidateTag("movies");
 
     return { success: true, data: res.data?.data as Movie };
   } catch (e: any) {
@@ -190,6 +191,7 @@ export async function updateMovie(id: string, input: MovieUpdateInput) {
     revalidatePath(`/dashboard/movies/${id}`);
     revalidatePath(`/movies/${id}`);
     revalidatePath("/movies");
+    revalidateTag("movies");
 
     return { success: true, data: res.data?.data as Movie };
   } catch (e: any) {
@@ -220,6 +222,7 @@ export async function deleteMovie(id: string) {
 
     revalidatePath("/dashboard/movies");
     revalidatePath("/movies");
+    revalidateTag("movies");
 
     return { success: true, message: "Movie deleted successfully" };
   } catch (e: any) {

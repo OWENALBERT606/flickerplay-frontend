@@ -1,17 +1,17 @@
-
-import { getMovieBySlug, listMovies, incrementMovieViews } from "@/actions/movies";
+import { incrementMovieViews } from "@/actions/movies";
+import { getCachedMovieBySlug, getCachedListMovies } from "@/lib/cache";
 import { notFound } from "next/navigation";
 import { MovieDetails } from "../components/movie-details";
 import { MovieTrailer } from "../components/movie-trailer";
 import { RelatedMovies } from "../components/related-movies";
-import { getSession } from "@/actions/auth";
 import { MoviePlayer } from "../components/movie-player";
+import { getSession } from "@/actions/auth";
 import { getWatchProgress } from "@/actions/watchHistory";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const movieData = await getMovieBySlug(slug);
+  const movieData = await getCachedMovieBySlug(slug);
   const movie = movieData.data;
 
   if (!movie) {
@@ -47,8 +47,7 @@ export default async function MovieDetailPage({
   const session = await getSession();
   const user = session?.user;
   
-  // Fetch movie by slug
-  const movieData = await getMovieBySlug(slug);
+  const movieData = await getCachedMovieBySlug(slug);
   const movie = movieData.data;
 
   if (!movie) {
@@ -60,7 +59,7 @@ export default async function MovieDetailPage({
 
   // Fetch related movies + watch progress in parallel
   const [relatedMoviesData, progressData] = await Promise.all([
-    listMovies({ genreId: movie.genreId, limit: 6 }),
+    getCachedListMovies({ genreId: movie.genreId, limit: 6 }),
     user?.id ? getWatchProgress(user.id, movie.id, "movie") : Promise.resolve(null),
   ]);
 
