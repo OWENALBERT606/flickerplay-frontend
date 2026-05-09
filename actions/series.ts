@@ -294,13 +294,13 @@ export async function deleteSeries(id: string) {
     // Delete from database (cascade removes seasons + episodes in DB)
     await api.delete(`/series/${id}`);
 
-    // Clean up all R2 files (fire and forget)
-    deleteR2Files([
+    // Delete R2 files — awaited so Vercel doesn't kill the request before completion
+    await deleteR2Files([
       series?.poster,
       series?.trailerPoster,
       ...seasons.map((s: any) => s.poster),
       ...allEpisodes.flatMap((e: any) => [e.videoUrl, e.poster]),
-    ]).catch(console.error);
+    ]);
 
     revalidatePath("/dashboard/series");
     revalidatePath("/series");
@@ -415,11 +415,11 @@ export async function deleteSeason(id: string) {
     // Delete from database
     await api.delete(`/seasons/${id}`);
 
-    // Clean up all R2 files (fire and forget)
-    deleteR2Files([
+    // Delete R2 files — awaited so Vercel doesn't kill the request before completion
+    await deleteR2Files([
       season?.poster,
       ...episodes.flatMap((e: any) => [e.videoUrl, e.poster]),
-    ]).catch(console.error);
+    ]);
 
     revalidatePath("/dashboard/series");
 
@@ -544,9 +544,9 @@ export async function deleteEpisode(id: string) {
     // Delete from database
     await api.delete(`/episodes/${id}`);
 
-    // Clean up R2 files (fire and forget)
+    // Delete R2 files — awaited so Vercel doesn't kill the request before completion
     if (episode) {
-      deleteR2Files([episode.videoUrl, episode.poster]).catch(console.error);
+      await deleteR2Files([episode.videoUrl, episode.poster]);
     }
 
     revalidatePath("/dashboard/series");

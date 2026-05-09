@@ -208,14 +208,14 @@ export async function deleteMovie(id: string) {
     // Delete from database
     await api.delete(`/movies/${id}`);
 
-    // Delete associated R2 files (fire and forget — don't block on this)
+    // Delete associated R2 files — awaited so Vercel doesn't kill the request before completion
     if (movie) {
-      deleteR2Files([
+      await deleteR2Files([
         movie.videoUrl,
         movie.image,
         movie.poster,
         movie.trailerPoster,
-      ]).catch(console.error);
+      ]);
     }
 
     revalidatePath("/dashboard/movies");
