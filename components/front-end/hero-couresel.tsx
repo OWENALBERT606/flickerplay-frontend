@@ -195,11 +195,6 @@ export function HeroCarousel({ items, userId }: HeroCarouselProps) {
             }`}
           />
         ))}
-        {shuffled.length > 10 && (
-          <span className="text-white/40 text-xs self-center ml-1">
-            {currentIndex + 1}/{shuffled.length}
-          </span>
-        )}
       </div>
     </div>
   );

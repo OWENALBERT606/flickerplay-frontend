@@ -103,13 +103,6 @@ export function InfiniteMovieGrid({
           <span className="text-sm">Loading more movies…</span>
         </div>
       )}
-
-      {/* End of results */}
-      {!hasMore && movies.length > 0 && (
-        <p className="text-center text-xs text-muted-foreground py-8">
-          You've seen all {movies.length} movies
-        </p>
-      )}
     </>
   );
 }
