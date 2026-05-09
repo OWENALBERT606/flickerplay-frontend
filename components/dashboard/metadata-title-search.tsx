@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import Image from "next/image";
 import { Loader2, Search, Sparkles, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -164,11 +163,10 @@ export function MetadataTitleSearch({
               {/* Poster thumbnail */}
               <div className="w-10 h-14 rounded overflow-hidden bg-muted shrink-0">
                 {c.poster ? (
-                  <Image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={c.poster}
                     alt={c.title}
-                    width={40}
-                    height={56}
                     className="object-cover w-full h-full"
                   />
                 ) : (
