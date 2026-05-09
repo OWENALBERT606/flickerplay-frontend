@@ -25,7 +25,6 @@ import {
   importSeriesFromTmdb,
   type EnrichedSeries,
 } from "@/actions/metadata";
-import Image from "next/image";
 
 interface SeriesFormProps {
   series?: Series;
@@ -249,7 +248,8 @@ export function SeriesForm({ series }: SeriesFormProps) {
                 onClick={() => { setSelectedPosterIdx(i); setFormData(p => ({ ...p, poster: url, trailerPoster: url })); }}
                 className={`relative w-16 h-24 rounded overflow-hidden border-2 transition-all ${selectedPosterIdx === i ? "border-orange-500 scale-105" : "border-border hover:border-orange-300"}`}
               >
-                <Image src={url} alt={`Poster ${i + 1}`} fill className="object-cover" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt={`Poster ${i + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
@@ -262,7 +262,8 @@ export function SeriesForm({ series }: SeriesFormProps) {
         <Label>Series Poster {formData.poster && <Badge variant="secondary" className="ml-2 text-xs">✓ Set</Badge>}</Label>
         {formData.poster && !posterFiles.length && (
           <div className="relative w-20 h-28 rounded overflow-hidden border border-border mb-2">
-            <Image src={formData.poster} alt="poster" fill className="object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={formData.poster} alt="poster" className="w-full h-full object-cover" />
           </div>
         )}
         <Dropzone provider="cloudflare-r2" variant="compact" maxFiles={1} maxSize={1024*1024*5}
@@ -275,7 +276,8 @@ export function SeriesForm({ series }: SeriesFormProps) {
         <Label>Trailer Poster {formData.trailerPoster && <Badge variant="secondary" className="ml-2 text-xs">✓ Set</Badge>}</Label>
         {formData.trailerPoster && !trailerPosterFiles.length && (
           <div className="relative w-32 h-20 rounded overflow-hidden border border-border mb-2">
-            <Image src={formData.trailerPoster} alt="trailer poster" fill className="object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={formData.trailerPoster} alt="trailer poster" className="w-full h-full object-cover" />
           </div>
         )}
         <Dropzone provider="cloudflare-r2" variant="compact" maxFiles={1} maxSize={1024*1024*5}

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -220,7 +219,8 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
                         className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/60 transition-colors text-left"
                       >
                         <div className="w-8 h-12 rounded overflow-hidden bg-muted shrink-0">
-                          {c.poster && <Image src={c.poster} alt={c.title} width={32} height={48} className="object-cover w-full h-full" />}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          {c.poster && <img src={c.poster} alt={c.title} className="object-cover w-full h-full" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium line-clamp-1">{c.title}</p>
@@ -311,7 +311,8 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
         <div className="space-y-1">
           <Label>Current Poster</Label>
           <div className="relative w-20 h-28 rounded overflow-hidden border border-border">
-            <Image src={formData.poster} alt="poster" fill className="object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={formData.poster} alt="poster" className="w-full h-full object-cover" />
           </div>
           <p className="text-xs text-muted-foreground">Upload below to override</p>
         </div>
@@ -341,7 +342,8 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
               {episodesMeta.map(ep => (
                 <div key={ep.episodeNumber} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
                   <div className="relative w-20 h-12 rounded overflow-hidden bg-muted shrink-0">
-                    {ep.poster ? <Image src={ep.poster} alt={ep.title} fill className="object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No img</div>}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {ep.poster ? <img src={ep.poster} alt={ep.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No img</div>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium line-clamp-1">E{ep.episodeNumber}: {ep.title}</p>
