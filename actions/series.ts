@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { revalidatePath } from "next/cache";
+import { deleteR2Files } from "@/lib/r2-delete";
 
 /** Axios client to your backend API */
 const BASE_API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "https://moviechamp256-nodejs-api-production.up.railway.app/api/v1";
@@ -270,17 +271,40 @@ export async function updateSeries(id: string, input: SeriesUpdateInput) {
   }
 }
 
-/** DELETE /series/:id - Delete series */
+/** DELETE /series/:id - Delete series + all associated R2 files */
 export async function deleteSeries(id: string) {
   try {
-    console.log("Deleting series:", id);
-    
+    // Fetch series, seasons, and all episode files before deleting from DB
+    const [seriesRes, seasonsRes] = await Promise.allSettled([
+      api.get(`/series/${id}`),
+      api.get(`/series/${id}/seasons`),
+    ]);
+
+    const series = seriesRes.status === "fulfilled" ? seriesRes.value.data?.data : null;
+    const seasons: any[] = seasonsRes.status === "fulfilled" ? (seasonsRes.value.data?.data ?? []) : [];
+
+    // Fetch all episodes for every season in parallel
+    const episodeBatches = await Promise.allSettled(
+      seasons.map((s: any) => api.get(`/seasons/${s.id}/episodes`))
+    );
+    const allEpisodes = episodeBatches.flatMap((r) =>
+      r.status === "fulfilled" ? (r.value.data?.data ?? []) : []
+    );
+
+    // Delete from database (cascade removes seasons + episodes in DB)
     await api.delete(`/series/${id}`);
-    
-    // Revalidate relevant paths
+
+    // Clean up all R2 files (fire and forget)
+    deleteR2Files([
+      series?.poster,
+      series?.trailerPoster,
+      ...seasons.map((s: any) => s.poster),
+      ...allEpisodes.flatMap((e: any) => [e.videoUrl, e.poster]),
+    ]).catch(console.error);
+
     revalidatePath("/dashboard/series");
     revalidatePath("/series");
-    
+
     return { success: true, message: "Series deleted successfully" };
   } catch (e: any) {
     console.error("deleteSeries error:", e?.response?.data || e?.message);
@@ -376,16 +400,29 @@ export async function updateSeason(id: string, input: SeasonUpdateInput) {
   }
 }
 
-/** DELETE /seasons/:id - Delete season */
+/** DELETE /seasons/:id - Delete season + all associated R2 files */
 export async function deleteSeason(id: string) {
   try {
-    console.log("Deleting season:", id);
-    
+    // Fetch season and its episodes before deleting from DB
+    const [seasonRes, episodesRes] = await Promise.allSettled([
+      api.get(`/seasons/${id}`),
+      api.get(`/seasons/${id}/episodes`),
+    ]);
+
+    const season = seasonRes.status === "fulfilled" ? seasonRes.value.data?.data : null;
+    const episodes: any[] = episodesRes.status === "fulfilled" ? (episodesRes.value.data?.data ?? []) : [];
+
+    // Delete from database
     await api.delete(`/seasons/${id}`);
-    
-    // Revalidate relevant paths
+
+    // Clean up all R2 files (fire and forget)
+    deleteR2Files([
+      season?.poster,
+      ...episodes.flatMap((e: any) => [e.videoUrl, e.poster]),
+    ]).catch(console.error);
+
     revalidatePath("/dashboard/series");
-    
+
     return { success: true, message: "Season deleted successfully" };
   } catch (e: any) {
     console.error("deleteSeason error:", e?.response?.data || e?.message);
@@ -497,16 +534,23 @@ export async function updateEpisode(id: string, input: EpisodeUpdateInput) {
   }
 }
 
-/** DELETE /episodes/:id - Delete episode */
+/** DELETE /episodes/:id - Delete episode + associated R2 files */
 export async function deleteEpisode(id: string) {
   try {
-    console.log("Deleting episode:", id);
-    
+    // Fetch episode first to get file URLs before deleting from DB
+    const episodeRes = await api.get(`/episodes/${id}`).catch(() => null);
+    const episode = episodeRes?.data?.data;
+
+    // Delete from database
     await api.delete(`/episodes/${id}`);
-    
-    // Revalidate relevant paths
+
+    // Clean up R2 files (fire and forget)
+    if (episode) {
+      deleteR2Files([episode.videoUrl, episode.poster]).catch(console.error);
+    }
+
     revalidatePath("/dashboard/series");
-    
+
     return { success: true, message: "Episode deleted successfully" };
   } catch (e: any) {
     console.error("deleteEpisode error:", e?.response?.data || e?.message);
