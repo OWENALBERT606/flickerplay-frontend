@@ -4,133 +4,45 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Zap, Crown, Star } from "lucide-react";
+import { Check, Zap, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 const PLANS = [
   {
-    id: "daily",
-    name: "24 Hours",
-    price: 1500,
-    duration: "1 day",
+    id: "free",
+    name: "Free",
+    price: 0,
+    duration: "forever",
     icon: Zap,
     color: "text-blue-500",
     features: [
-      "24-hour unlimited access",
-      "Live stream in HD quality",
-      "Unlimited movie downloads",
-      "Access to all movies and series",
-      "Ad-free experience",
-      "Watch on any device"
-    ]
-  },
-  {
-    id: "weekly",
-    name: "Weekly",
-    price: 5000,
-    duration: "7 days",
-    icon: Star,
-    color: "text-purple-500",
-    features: [
-      "7 days unlimited access",
-      "Live stream in HD & Full HD",
-      "Unlimited downloads",
-      "Access to all movies and series",
-      "Ad-free experience",
-      "Watch on up to 2 devices",
-      "Early access to new releases"
+      "Watch 5 movies free per month",
+      "No credit card required",
+      "HD quality streaming",
+      "Watch on any device",
+      "Ads during playback",
+      "No series access",
+      "No downloads"
     ]
   },
   {
     id: "monthly",
     name: "Monthly",
-    price: 15000,
+    price: 6000,
     duration: "30 days",
     popular: true,
     icon: Crown,
     color: "text-orange-500",
     features: [
-      "30 days unlimited access",
-      "Live stream in Full HD & 4K",
+      "Unlimited movies & series",
+      "Full HD & 4K streaming",
       "Unlimited downloads",
-      "Access to all movies and series",
       "Ad-free experience",
       "Watch on up to 3 devices",
       "Early access to new releases",
       "Offline viewing",
       "Priority customer support"
-    ]
-  },
-  {
-    id: "quarterly",
-    name: "3 Months",
-    price: 40000,
-    originalPrice: 45000,
-    duration: "90 days",
-    savings: "Save 11,000 UGX",
-    icon: Crown,
-    color: "text-green-500",
-    features: [
-      "90 days unlimited access",
-      "Live stream in Full HD & 4K",
-      "Unlimited downloads",
-      "Access to all movies and series",
-      "Ad-free experience",
-      "Watch on up to 4 devices",
-      "Early access to new releases",
-      "Offline viewing",
-      "Priority customer support",
-      "Exclusive content"
-    ]
-  },
-  {
-    id: "semiannual",
-    name: "6 Months",
-    price: 75000,
-    originalPrice: 90000,
-    duration: "180 days",
-    savings: "Save 15,000 UGX",
-    icon: Crown,
-    color: "text-yellow-500",
-    features: [
-      "180 days unlimited access",
-      "Live stream in Full HD & 4K",
-      "Unlimited downloads",
-      "Access to all movies and series",
-      "Ad-free experience",
-      "Watch on up to 5 devices",
-      "Early access to new releases",
-      "Offline viewing",
-      "Priority customer support",
-      "Exclusive content",
-      "Free 1 month when you renew"
-    ]
-  },
-  {
-    id: "annual",
-    name: "Annual",
-    price: 130000,
-    originalPrice: 180000,
-    duration: "365 days",
-    savings: "Save 50,000 UGX",
-    bestValue: true,
-    icon: Crown,
-    color: "text-red-500",
-    features: [
-      "365 days unlimited access",
-      "Live stream in Full HD & 4K",
-      "Unlimited downloads",
-      "Access to all movies and series",
-      "Ad-free experience",
-      "Watch on unlimited devices",
-      "Early access to new releases",
-      "Offline viewing",
-      "VIP customer support",
-      "Exclusive content",
-      "Free 2 months when you renew",
-      "Special event access",
-      "Gift subscription to a friend"
     ]
   }
 ];
@@ -155,7 +67,7 @@ export function PricingCards({ userId }: PricingCardsProps) {
   };
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+    <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-16">
       {PLANS.map((plan) => {
         const Icon = plan.icon;
         const isPopular = plan.popular;
@@ -225,7 +137,11 @@ export function PricingCards({ userId }: PricingCardsProps) {
               onClick={() => handleSubscribe(plan.id)}
               disabled={selectedPlan === plan.id}
             >
-              {selectedPlan === plan.id ? "Processing..." : "Subscribe Now"}
+              {selectedPlan === plan.id
+                ? "Processing..."
+                : plan.id === "free"
+                ? "Get Started Free"
+                : "Subscribe Now"}
             </Button>
           </Card>
         );

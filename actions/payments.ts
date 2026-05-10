@@ -206,6 +206,23 @@ export async function getUserSubscriptions(userId: string) {
   }
 }
 
+/* ---------------------------------- Validate Mobile Money Phone ---------------------------------- */
+
+export async function validateMobileMoneyPhone(phoneNumber: string) {
+  try {
+    const res = await api.post("/payments/mobile-money/validate-phone", { phoneNumber });
+    return {
+      success: true,
+      valid: res.data?.data?.valid ?? false,
+      customerName: res.data?.data?.customerName ?? null,
+    };
+  } catch (e: any) {
+    // Return success:false so the form knows the call itself failed
+    // (not that the number is invalid)
+    return { success: false, valid: false, customerName: null };
+  }
+}
+
 /* ---------------------------------- Cancel Subscription ---------------------------------- */
 
 export async function cancelSubscription(subscriptionId: string) {

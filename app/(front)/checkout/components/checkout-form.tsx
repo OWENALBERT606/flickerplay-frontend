@@ -86,11 +86,11 @@ export function CheckoutForm({ plan, user }: CheckoutFormProps) {
             <ul className="space-y-2 text-sm">
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Unlimited access to all content</span>
+                <span>Unlimited movies & series</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>HD/4K streaming quality</span>
+                <span>Full HD & 4K streaming</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -99,6 +99,10 @@ export function CheckoutForm({ plan, user }: CheckoutFormProps) {
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>Ad-free experience</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Watch on up to 3 devices</span>
               </li>
             </ul>
           </div>

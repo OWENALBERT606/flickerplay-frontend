@@ -176,3 +176,111 @@ export async function updatePaymentSettings(settings: any) {
     };
   }
 }
+
+/* ---------------------------------- Get All Subscriptions ---------------------------------- */
+
+export async function getAllSubscriptions(params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  plan?: string;
+}) {
+  try {
+    const res = await api.get("/admin/subscriptions", { params });
+
+    const raw = res.data?.data ?? {};
+    const subscriptions: any[] = raw.subscriptions ?? [];
+    const stats = raw.stats ?? {};
+    const totalPages: number = raw.totalPages ?? 1;
+
+    /* Build monthly revenue from subscription payments if backend doesn't */
+    const revenueByMonth = buildSubscriptionRevenue(subscriptions);
+
+    /* Status breakdown counts */
+    const statusBreakdown = buildStatusBreakdown(subscriptions);
+
+    return {
+      success: true,
+      data: subscriptions,
+      stats: {
+        totalRevenue:        stats.totalRevenue        ?? 0,
+        monthlyRevenue:      stats.monthlyRevenue      ?? 0,
+        activeCount:         stats.activeCount         ?? subscriptions.filter((s) => s.status === "ACTIVE").length,
+        expiredCount:        stats.expiredCount        ?? subscriptions.filter((s) => s.status === "EXPIRED").length,
+        cancelledCount:      stats.cancelledCount      ?? subscriptions.filter((s) => s.status === "CANCELLED").length,
+        pendingCount:        stats.pendingCount        ?? subscriptions.filter((s) => s.status === "PENDING").length,
+        revenueGrowth:       stats.revenueGrowth       ?? 0,
+        activeGrowth:        stats.activeGrowth        ?? 0,
+      },
+      revenueByMonth,
+      statusBreakdown,
+      totalPages,
+    };
+  } catch (e: any) {
+    console.error("❌ Error fetching subscriptions:", e?.response?.data || e?.message);
+    return {
+      success: false,
+      error: msg(e, "Failed to fetch subscriptions"),
+      data: [],
+      stats: {
+        totalRevenue: 0,
+        monthlyRevenue: 0,
+        activeCount: 0,
+        expiredCount: 0,
+        cancelledCount: 0,
+        pendingCount: 0,
+        revenueGrowth: 0,
+        activeGrowth: 0,
+      },
+      revenueByMonth: [],
+      statusBreakdown: [],
+      totalPages: 1,
+    };
+  }
+}
+
+/* ── Helpers ── */
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function buildSubscriptionRevenue(subscriptions: any[]) {
+  const now = new Date();
+  const map = new Map<string, number>();
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    map.set(`${d.getFullYear()}-${d.getMonth()}`, 0);
+  }
+
+  for (const s of subscriptions) {
+    if (s.status !== "ACTIVE" && s.status !== "EXPIRED") continue;
+    const d = new Date(s.startDate ?? s.createdAt);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    if (map.has(key)) map.set(key, (map.get(key) ?? 0) + (s.amount ?? 0));
+  }
+
+  return Array.from(map.entries()).map(([key, revenue]) => {
+    const [year, month] = key.split("-").map(Number);
+    return { month: `${MONTHS[month]} ${year}`, revenue };
+  });
+}
+
+function buildStatusBreakdown(subscriptions: any[]) {
+  const counts: Record<string, number> = {
+    ACTIVE: 0,
+    EXPIRED: 0,
+    CANCELLED: 0,
+    PENDING: 0,
+  };
+
+  for (const s of subscriptions) {
+    if (counts[s.status] !== undefined) counts[s.status]++;
+  }
+
+  return [
+    { name: "Active",    value: counts.ACTIVE,    color: "#22c55e" },
+    { name: "Expired",   value: counts.EXPIRED,   color: "#f97316" },
+    { name: "Cancelled", value: counts.CANCELLED, color: "#ef4444" },
+    { name: "Pending",   value: counts.PENDING,   color: "#eab308" },
+  ].filter((d) => d.value > 0);
+}

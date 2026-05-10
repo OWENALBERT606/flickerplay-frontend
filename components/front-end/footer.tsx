@@ -77,7 +77,6 @@ export function Footer() {
                 { href: "/movies", label: "Movies" },
                 { href: "/series", label: "TV Shows" },
                 { href: "/trending", label: "Trending" },
-                { href: "/pricing", label: "Pricing" },
                 { href: "/about", label: "Our Story" },
                 { href: "/help", label: "Help Center" },
                 { href: "/terms", label: "Terms of Service" },
