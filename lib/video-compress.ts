@@ -78,7 +78,16 @@ export async function compressVideo(
   onProgress?.({ ratio: 0.96, message: "Finalising…" });
 
   const data = await ffmpeg.readFile(outputName);
+  
+  if (!data || (data as Uint8Array).length === 0) {
+    throw new Error("Compression produced an empty file");
+  }
+  
   const blob = new Blob([data as unknown as BlobPart], { type: "video/mp4" });
+  
+  if (blob.size === 0) {
+    throw new Error("Compression produced a 0-byte file");
+  }
 
   await ffmpeg.deleteFile(inputName);
   await ffmpeg.deleteFile(outputName);

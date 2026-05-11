@@ -1,1 +1,1 @@
-export const FREE_MOVIES_PER_MONTH = 5;
+export const FREE_MOVIES_PER_MONTH = 999999;
