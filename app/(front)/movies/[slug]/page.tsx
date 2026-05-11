@@ -7,7 +7,8 @@ import { RelatedMovies } from "../components/related-movies";
 import { MoviePlayer } from "../components/movie-player";
 import { getSession } from "@/actions/auth";
 import { getWatchProgress } from "@/actions/watchHistory";
-import { getUserSubscriptionStatus, getFreeMoviesWatchedThisMonth, FREE_MOVIES_PER_MONTH } from "@/actions/subscription";
+import { getUserSubscriptionStatus, getFreeMoviesWatchedThisMonth } from "@/actions/subscription";
+import { FREE_MOVIES_PER_MONTH } from "@/lib/constants";
 import { SubscriptionPaywall } from "@/components/front-end/subscription-paywall";
 import type { Metadata } from "next";
 

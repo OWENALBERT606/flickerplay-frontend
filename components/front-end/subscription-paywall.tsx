@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Lock, Crown, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FREE_MOVIES_PER_MONTH } from "@/actions/subscription";
+import { FREE_MOVIES_PER_MONTH } from "@/lib/constants";
 
 interface SubscriptionPaywallProps {
   type: "movie-limit" | "series" | "movie-guest";

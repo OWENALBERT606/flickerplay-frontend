@@ -71,7 +71,8 @@ export function PricingCards({ userId }: PricingCardsProps) {
       {PLANS.map((plan) => {
         const Icon = plan.icon;
         const isPopular = plan.popular;
-        const isBestValue = plan.bestValue;
+        const p = plan as typeof plan & { bestValue?: boolean; originalPrice?: number; savings?: string };
+        const isBestValue = p.bestValue;
 
         return (
           <Card
@@ -99,9 +100,9 @@ export function PricingCards({ userId }: PricingCardsProps) {
               <Icon className={`w-12 h-12 mx-auto mb-3 ${plan.color}`} />
               <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
               <div className="mb-2">
-                {plan.originalPrice && (
+                {p.originalPrice && (
                   <span className="text-muted-foreground line-through text-sm mr-2">
-                    {plan.originalPrice.toLocaleString()} UGX
+                    {p.originalPrice.toLocaleString()} UGX
                   </span>
                 )}
                 <span className="text-4xl font-bold">
@@ -110,9 +111,9 @@ export function PricingCards({ userId }: PricingCardsProps) {
                 <span className="text-muted-foreground"> UGX</span>
               </div>
               <p className="text-muted-foreground text-sm">{plan.duration}</p>
-              {plan.savings && (
+              {p.savings && (
                 <p className="text-green-500 text-sm font-semibold mt-1">
-                  {plan.savings}
+                  {p.savings}
                 </p>
               )}
             </div>

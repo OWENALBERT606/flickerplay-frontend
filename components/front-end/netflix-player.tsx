@@ -8,7 +8,7 @@ import {
   Play, Pause, Volume2, VolumeX, Volume1,
   Maximize, Minimize, SkipBack, SkipForward,
   ArrowLeft, Loader2, RotateCcw, RotateCw,
-  ChevronRight,
+  ChevronRight, SlidersHorizontal,
 } from "lucide-react";
 import { useHls } from "@/hooks/use-hls";
 import { QualitySelector } from "@/components/front-end/quality-selector";
@@ -101,7 +101,9 @@ export function NetflixPlayer({
   const [nextCountdown, setNextCountdown] = useState(5);
   const [subtitleIdx, setSubtitleIdx]   = useState(-1);
   const [showSubMenu, setShowSubMenu]   = useState(false);
-  const [showVolSlider, setShowVolSlider] = useState(false);
+  const [contrast, setContrast]         = useState(1);
+  const [brightness, setBrightness]     = useState(1);
+  const [showPicMenu, setShowPicMenu]   = useState(false);
 
   /* ── refs ── */
   const containerRef   = useRef<HTMLDivElement>(null);
@@ -327,6 +329,7 @@ export function NetflixPlayer({
       <video
         ref={videoRef}
         className="w-full h-full object-contain"
+        style={{ filter: `contrast(${contrast}) brightness(${brightness})` }}
         poster={poster}
         preload="auto"
         playsInline
@@ -506,23 +509,17 @@ export function NetflixPlayer({
               </button>
 
               {/* Volume */}
-              <div className="relative flex items-center"
-                onMouseEnter={() => setShowVolSlider(true)}
-                onMouseLeave={() => setShowVolSlider(false)}>
+              <div className="flex items-center gap-1">
                 <button onClick={toggleMute}
-                  className="text-white hover:text-white/80 transition-colors p-2">
+                  className="text-white hover:text-white/80 transition-colors p-2 flex-shrink-0">
                   <VolumeIcon className="w-5 h-5" />
                 </button>
-                {/* Volume slider — appears on hover */}
-                <div className={`absolute left-full ml-1 flex items-center transition-all duration-200
-                  ${showVolSlider ? "opacity-100 w-24" : "opacity-0 w-0 overflow-hidden"}`}>
-                  <input
-                    type="range" min={0} max={1} step={0.02}
-                    value={muted ? 0 : volume}
-                    onChange={(e) => changeVolume(Number(e.target.value))}
-                    className="w-full accent-white h-1 cursor-pointer"
-                  />
-                </div>
+                <input
+                  type="range" min={0} max={1} step={0.02}
+                  value={muted ? 0 : volume}
+                  onChange={(e) => changeVolume(Number(e.target.value))}
+                  className="w-20 accent-white h-1 cursor-pointer hidden sm:block"
+                />
               </div>
 
               {/* Time */}
@@ -579,6 +576,50 @@ export function NetflixPlayer({
                   Next <ChevronRight className="w-3 h-3" />
                 </Link>
               )}
+
+              {/* Picture settings (contrast + brightness) */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowPicMenu((s) => !s)}
+                  className={`transition-colors p-2 ${showPicMenu ? "text-white" : "text-white/60 hover:text-white"}`}
+                  title="Picture settings">
+                  <SlidersHorizontal className="w-5 h-5" />
+                </button>
+                {showPicMenu && (
+                  <div className="absolute bottom-full right-0 mb-2 bg-black/95 border border-white/10
+                    rounded-xl p-4 w-52 shadow-2xl z-50 space-y-4 backdrop-blur-sm">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-white/70">
+                        <span>Contrast</span>
+                        <span>{Math.round(contrast * 100)}%</span>
+                      </div>
+                      <input
+                        type="range" min={0.5} max={1.5} step={0.01}
+                        value={contrast}
+                        onChange={(e) => setContrast(Number(e.target.value))}
+                        className="w-full accent-white h-1 cursor-pointer"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-white/70">
+                        <span>Brightness</span>
+                        <span>{Math.round(brightness * 100)}%</span>
+                      </div>
+                      <input
+                        type="range" min={0.5} max={1.5} step={0.01}
+                        value={brightness}
+                        onChange={(e) => setBrightness(Number(e.target.value))}
+                        className="w-full accent-white h-1 cursor-pointer"
+                      />
+                    </div>
+                    <button
+                      onClick={() => { setContrast(1); setBrightness(1); }}
+                      className="w-full text-xs text-white/50 hover:text-white transition-colors text-center pt-1">
+                      Reset
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {/* Fullscreen */}
               <button onClick={toggleFullscreen}

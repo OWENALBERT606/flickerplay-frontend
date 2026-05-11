@@ -48,13 +48,13 @@ export function VideoDropzone({
 
     // ── Step 1: Check resolution ──────────────────────────────────
     const res = await getVideoResolution(raw);
-    const needsCompression = res && res.height > 1080;
+    const needsCompression = res && res.height > 720;
 
     if (needsCompression) {
-      // ── Step 2: Compress only if > 1080p ─────────────────────────
+      // ── Step 2: Compress only if > 720p ─────────────────────────
       setStage("compressing");
-      setStatusMsg(`Video is ${res.height}p — compressing to 1080p…`);
-      toast.info(`Compressing ${res.height}p video to 1080p…`);
+      setStatusMsg(`Video is ${res.height}p — compressing to 720p…`);
+      toast.info(`Compressing ${res.height}p video to 720p…`);
 
       try {
         fileToUpload = await compressVideo(raw, ({ ratio, message }) => {
@@ -70,7 +70,7 @@ export function VideoDropzone({
         fileToUpload = raw;
       }
     } else {
-      // ── Skip compression — already ≤1080p ─────────────────────────
+      // ── Skip compression — already ≤720p ─────────────────────────
       const label = res ? `${res.height}p` : "unknown resolution";
       setStatusMsg(`Video is ${label} — uploading directly…`);
       setProgress(10);
@@ -184,7 +184,7 @@ export function VideoDropzone({
                 {isDragActive ? "Drop video here" : "Drag & drop video or click to select"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                MP4, MOV, AVI, MKV · Videos &gt;1080p are compressed automatically
+                MP4, MOV, AVI, MKV · Videos &gt;720p are compressed automatically
               </p>
             </div>
           </div>
@@ -222,10 +222,10 @@ export function VideoDropzone({
               <p className="text-sm font-medium text-green-600">Upload complete</p>
               <p className="text-xs text-muted-foreground truncate">{fileName}</p>
               {wasCompressed && finalSize && (
-                <p className="text-xs text-muted-foreground">{origSize} → {finalSize} (1080p)</p>
+                <p className="text-xs text-muted-foreground">{origSize} → {finalSize} (720p)</p>
               )}
               {!wasCompressed && (
-                <p className="text-xs text-muted-foreground">Uploaded as-is (already ≤1080p)</p>
+                <p className="text-xs text-muted-foreground">Uploaded as-is (already ≤720p)</p>
               )}
             </div>
             <button

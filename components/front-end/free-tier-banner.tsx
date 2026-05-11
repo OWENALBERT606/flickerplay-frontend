@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { X, Crown } from "lucide-react";
-import { FREE_MOVIES_PER_MONTH } from "@/actions/subscription";
+import { FREE_MOVIES_PER_MONTH } from "@/lib/constants";
 
 interface FreeTierBannerProps {
   moviesWatched: number;

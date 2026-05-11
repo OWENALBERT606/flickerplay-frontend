@@ -24,9 +24,9 @@ export function getVideoResolution(file: File): Promise<{ width: number; height:
 }
 
 /**
- * Compress a video to max 1080p using ffmpeg.wasm.
+ * Compress a video to max 720p using ffmpeg.wasm.
  *
- * ONLY called when the video is confirmed > 1080p.
+ * ONLY called when the video is confirmed > 720p.
  * Uses ultrafast preset + higher CRF for maximum speed.
  */
 export async function compressVideo(
@@ -49,7 +49,7 @@ export async function compressVideo(
   ffmpeg.on("progress", ({ progress }) => {
     onProgress?.({
       ratio:   Math.min(0.1 + progress * 0.85, 0.95),
-      message: `Compressing to 1080p… ${Math.round(progress * 100)}%`,
+      message: `Compressing to 720p… ${Math.round(progress * 100)}%`,
     });
   });
 
@@ -64,7 +64,7 @@ export async function compressVideo(
   // CRF 28 = faster + smaller, still good quality for streaming
   await ffmpeg.exec([
     "-i", inputName,
-    "-vf", "scale='min(1920,iw)':'min(1080,ih)':force_original_aspect_ratio=decrease",
+    "-vf", "scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease",
     "-c:v", "libx264",
     "-crf",  "28",
     "-preset", "ultrafast",   // ← fastest possible encode
@@ -86,11 +86,11 @@ export async function compressVideo(
 
   onProgress?.({ ratio: 1, message: "Done!" });
 
-  const name = file.name.replace(/\.[^.]+$/, "") + "_1080p.mp4";
+  const name = file.name.replace(/\.[^.]+$/, "") + "_720p.mp4";
   return new File([blob], name, { type: "video/mp4" });
 }
 
-/** Returns true only if the video needs compression (> 1080p height) */
+/** Returns true only if the video needs compression (> 720p height) */
 export function shouldCompress(file: File): boolean {
   return file.type.startsWith("video/");
 }

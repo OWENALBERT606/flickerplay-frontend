@@ -304,7 +304,7 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber = 1, ser
       <div className="space-y-2">
         <Label>Episode Video <span className="text-destructive">*</span></Label>
         <VideoDropzone onFilesChange={files => { if (files[0]?.publicUrl) setFormData(p => ({ ...p, videoUrl: files[0].publicUrl! })); }} disabled={isLoading} />
-        <p className="text-xs text-muted-foreground">Compressed to 1080p before uploading.</p>
+        <p className="text-xs text-muted-foreground">Compressed to 720p before uploading.</p>
       </div>
 
       {/* ── Actions ── */}

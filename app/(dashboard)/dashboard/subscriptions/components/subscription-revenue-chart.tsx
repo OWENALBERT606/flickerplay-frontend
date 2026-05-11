@@ -50,7 +50,7 @@ export function SubscriptionRevenueChart({ revenueByMonth, statusBreakdown }: Re
               />
               <Tooltip
                 contentStyle={tooltipStyle}
-                formatter={(v: number) => [`${v.toLocaleString()} UGX`, "Revenue"]}
+                formatter={(v: any) => [`${Number(v).toLocaleString()} UGX`, "Revenue"]}
               />
               <Line
                 type="monotone"
@@ -90,7 +90,7 @@ export function SubscriptionRevenueChart({ revenueByMonth, statusBreakdown }: Re
                   </Pie>
                   <Tooltip
                     contentStyle={tooltipStyle}
-                    formatter={(v: number, name) => [`${v} (${((v / total) * 100).toFixed(1)}%)`, name]}
+                    formatter={(v, name) => { const n = Number(v); return [`${n} (${((n / total) * 100).toFixed(1)}%)`, name]; }}
                   />
                 </PieChart>
               </ResponsiveContainer>

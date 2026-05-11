@@ -1,7 +1,6 @@
 "use server";
 
 import axios from "axios";
-import { getWatchHistory } from "./watchHistory";
 
 const BASE_API_URL =
   process.env.API_URL ||
@@ -13,8 +12,6 @@ const api = axios.create({
   timeout: 10000,
   headers: { "Content-Type": "application/json" },
 });
-
-export const FREE_MOVIES_PER_MONTH = 5;
 
 export interface SubscriptionStatus {
   isSubscribed: boolean;
@@ -68,20 +65,21 @@ export async function getFreeMoviesWatchedThisMonth(
   userId: string
 ): Promise<number> {
   try {
-    const result = await getWatchHistory(userId, "movies");
-    const items = result.data || [];
+    const params = { type: "movies" };
+    const res = await api.get(`/watchhistory/${userId}`, { params });
+    const items = res.data?.data || [];
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const uniqueMovieIds = new Set(
       items
-        .filter((item) => {
+        .filter((item: any) => {
           if (!item.movieId) return false;
           const watchedAt = new Date(item.lastWatchedAt || item.createdAt);
           return watchedAt >= startOfMonth;
         })
-        .map((item) => item.movieId)
+        .map((item: any) => item.movieId)
     );
 
     return uniqueMovieIds.size;
