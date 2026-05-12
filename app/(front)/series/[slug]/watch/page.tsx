@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getSeriesBySlug, getNextEpisode, getPreviousEpisode } from "@/actions/series";
 import { getSession } from "@/actions/auth";
-import { getUserSubscriptionStatus } from "@/actions/subscription";
 import { SubscriptionPaywall } from "@/components/front-end/subscription-paywall";
 import { LoadingPlayer } from "../../components/loading-player";
 import { EpisodePlayer } from "../../components/episode-player";
@@ -27,17 +26,6 @@ export default async function WatchEpisodePage({
     return (
       <div className="min-h-screen bg-black text-white">
         <SubscriptionPaywall type="movie-guest" />
-      </div>
-    );
-  }
-
-  // Check subscription — series require active plan
-  const subscriptionStatus = await getUserSubscriptionStatus(user.id);
-
-  if (!subscriptionStatus.isSubscribed) {
-    return (
-      <div className="min-h-screen bg-black text-white">
-        <SubscriptionPaywall type="series" />
       </div>
     );
   }
