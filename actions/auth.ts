@@ -605,10 +605,11 @@ export async function getSession() {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken");
   const userData = cookieStore.get("userData");
-  if (!accessToken || !userData) return null;
+  if (!accessToken || !userData || !userData.value?.trim()) return null;
 
   try {
-    return { user: JSON.parse(userData.value), accessToken: accessToken.value };
+    const parsedUser = JSON.parse(userData.value);
+    return { user: parsedUser, accessToken: accessToken.value };
   } catch (e) {
     console.error("Session parse error:", e);
     return null;
