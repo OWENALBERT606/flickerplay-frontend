@@ -517,6 +517,68 @@ export async function loginUser(data: {
   }
 }
 
+export async function googleSignIn(): Promise<LoginResponse> {
+  try {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const redirectUri = `${typeof window !== "undefined" ? window.location.origin : ""}/api/auth/google/callback`;
+    
+    const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    googleAuthUrl.searchParams.set("client_id", clientId || "");
+    googleAuthUrl.searchParams.set("redirect_uri", redirectUri);
+    googleAuthUrl.searchParams.set("response_type", "code");
+    googleAuthUrl.searchParams.set("scope", "openid email profile");
+    googleAuthUrl.searchParams.set("prompt", "select_account");
+    
+    const width = 500;
+    const height = 600;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    
+    const popup = window.open(
+      googleAuthUrl.toString(),
+      "Google Sign In",
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+    
+    return new Promise((resolve) => {
+      const checkClosed = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(checkClosed);
+          resolve({ success: false, error: "Sign in was cancelled" });
+        }
+      }, 500);
+      
+      window.addEventListener("message", async (event) => {
+        if (event.origin === window.location.origin && event.data?.type === "google-auth") {
+          clearInterval(checkClosed);
+          popup?.close();
+          
+          try {
+            const res = await api.post("/auth/google", {
+              code: event.data.code,
+            });
+            const { user, accessToken, refreshToken } = res.data.data as LoginSuccessPayload;
+            await setCookies(accessToken, refreshToken, user);
+            resolve({ success: true, data: { user, accessToken, refreshToken } });
+          } catch (error: any) {
+            console.error("Google auth error:", error?.response?.data || error);
+            resolve({
+              success: false,
+              error: error?.response?.data?.error || "Google sign in failed. Please try again.",
+            });
+          }
+        }
+      });
+    });
+  } catch (error: any) {
+    console.error("Google sign-in error:", error);
+    return {
+      success: false,
+      error: "Failed to initiate Google sign in. Please try again.",
+    };
+  }
+}
+
 export async function logoutUser() {
   try {
     const cookieStore = await cookies();
