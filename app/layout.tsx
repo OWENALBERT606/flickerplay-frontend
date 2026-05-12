@@ -146,16 +146,16 @@ export default function RootLayout({
 
         {children}
 
-        <RegisterSW />
+        {/* <RegisterSW /> */}
         <ServiceWorkerRegister />
 
-        <Script
+        {/* <Script
           src="https://quge5.com/88/tag.min.js"
           strategy="afterInteractive"
           data-zone="238682"
           data-cfasync="false"
           async
-        />
+        /> */}
       </body>
     </html>
   );
