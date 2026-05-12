@@ -190,7 +190,7 @@ export function MobileMoneyForm({ plan, user, onBack }: MobileMoneyFormProps) {
           <li>Click the Pay button below</li>
           <li>You'll receive a prompt on your phone</li>
           <li>Enter your Mobile Money PIN to confirm</li>
-          <li>Your subscription activates instantly</li>
+          <li>Your subscription activates instantly (30 days access)</li>
         </ol>
       </div>
 

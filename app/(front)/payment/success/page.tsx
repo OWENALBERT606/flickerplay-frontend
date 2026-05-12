@@ -41,6 +41,11 @@ export default async function PaymentSuccessPage() {
               </li>
             ))}
           </ul>
+          <div className="mt-3 pt-3 border-t border-green-500/20">
+            <p className="text-sm text-gray-400">
+              Your subscription expires in 30 days. You can cancel anytime.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

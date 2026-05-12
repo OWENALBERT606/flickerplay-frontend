@@ -4,14 +4,12 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Smartphone, CreditCard, Wallet, Check, Loader2 } from "lucide-react";
+import { Smartphone, Check } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { MobileMoneyForm } from "./mobile-money-form";
-import { CardPaymentForm } from "./card-payment-form";
-import { PayPalForm } from "./paypal-form";
 
-type PaymentMethod = "mobile_money" | "card" | "paypal";
+type PaymentMethod = "mobile_money";
 
 interface CheckoutFormProps {
   plan: {
@@ -39,18 +37,6 @@ export function CheckoutForm({ plan, user }: CheckoutFormProps) {
       description: "MTN & Airtel Money",
       icon: Smartphone,
       popular: true,
-    },
-    {
-      id: "card" as PaymentMethod,
-      name: "Debit/Credit Card",
-      description: "Visa, Mastercard",
-      icon: CreditCard,
-    },
-    {
-      id: "paypal" as PaymentMethod,
-      name: "PayPal",
-      description: "Pay with PayPal",
-      icon: Wallet,
     },
   ];
 
@@ -159,22 +145,6 @@ export function CheckoutForm({ plan, user }: CheckoutFormProps) {
           {/* Payment Forms */}
           {selectedMethod === "mobile_money" && (
             <MobileMoneyForm
-              plan={plan}
-              user={user}
-              onBack={() => setSelectedMethod(null)}
-            />
-          )}
-
-          {selectedMethod === "card" && (
-            <CardPaymentForm
-              plan={plan}
-              user={user}
-              onBack={() => setSelectedMethod(null)}
-            />
-          )}
-
-          {selectedMethod === "paypal" && (
-            <PayPalForm
               plan={plan}
               user={user}
               onBack={() => setSelectedMethod(null)}

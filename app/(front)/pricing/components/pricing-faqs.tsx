@@ -13,7 +13,7 @@ import Link from "next/link";
 const FAQS = [
   {
     question: "What payment methods do you accept?",
-    answer: "We accept MTN Mobile Money, Airtel Money, Visa, Mastercard, and PayPal. All payments are processed securely through trusted payment gateways.",
+    answer: "We accept MTN Mobile Money and Airtel Money. All payments are processed securely through Relworx.",
   },
   {
     question: "Can I cancel my subscription anytime?",

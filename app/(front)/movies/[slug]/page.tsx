@@ -74,20 +74,7 @@ export default async function MovieDetailPage({
     ]);
 
   const isSubscribed = subscriptionStatus.isSubscribed;
-  const overFreeLimit = !isSubscribed && moviesWatchedThisMonth >= FREE_MOVIES_PER_MONTH;
-
-  // Free tier exhausted: show paywall
-  if (overFreeLimit) {
-    return (
-      <div className="min-h-screen bg-black text-white">
-        <SubscriptionPaywall
-          type="movie-limit"
-          moviesWatched={moviesWatchedThisMonth}
-          title={movie.title}
-        />
-      </div>
-    );
-  }
+  const overFreeLimit = false;
 
   // Increment view count (fire and forget)
   incrementMovieViews(movie.id).catch(console.error);

@@ -34,9 +34,6 @@ export default async function PricingPage() {
           <div className="flex justify-center items-center gap-8 flex-wrap">
             <div className="text-muted-foreground">MTN Mobile Money</div>
             <div className="text-muted-foreground">Airtel Money</div>
-            <div className="text-muted-foreground">Visa</div>
-            <div className="text-muted-foreground">Mastercard</div>
-            <div className="text-muted-foreground">PayPal</div>
           </div>
         </div>
       </div>

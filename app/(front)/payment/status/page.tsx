@@ -89,7 +89,7 @@ export default function PaymentStatusPage() {
     loading: "Please wait while we check your payment.",
     pending: "Please approve the payment prompt on your phone.",
     processing: "Your payment is being processed. This may take a moment.",
-    completed: "Your subscription is now active.",
+    completed: "Your subscription is now active for 30 days.",
     failed: message || "Something went wrong with your payment.",
   };
 
