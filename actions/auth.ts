@@ -520,14 +520,24 @@ export async function loginUser(data: {
 export async function googleSignIn(): Promise<LoginResponse> {
   try {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    console.log("Google Sign In - Client ID:", clientId);
+    
+    if (!clientId) {
+      console.error("Google Client ID is not configured");
+      return { success: false, error: "Google sign in is not configured. Please contact admin." };
+    }
+    
     const redirectUri = `${typeof window !== "undefined" ? window.location.origin : ""}/api/auth/google/callback`;
+    console.log("Google Redirect URI:", redirectUri);
     
     const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    googleAuthUrl.searchParams.set("client_id", clientId || "");
+    googleAuthUrl.searchParams.set("client_id", clientId);
     googleAuthUrl.searchParams.set("redirect_uri", redirectUri);
     googleAuthUrl.searchParams.set("response_type", "code");
     googleAuthUrl.searchParams.set("scope", "openid email profile");
     googleAuthUrl.searchParams.set("prompt", "select_account");
+    
+    console.log("Google Auth URL:", googleAuthUrl.toString());
     
     const width = 500;
     const height = 600;
