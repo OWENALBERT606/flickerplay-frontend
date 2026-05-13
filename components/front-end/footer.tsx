@@ -80,6 +80,7 @@ export function Footer() {
                 { href: "/about", label: "Our Story" },
                 { href: "/help", label: "Help Center" },
                 { href: "/terms", label: "Terms of Service" },
+                { href: "/privacy", label: "Privacy Policy" },
               ].map((link) => (
                 <Link
                   key={link.href}
@@ -154,6 +155,8 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-orange-500/20">
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
             <p>© 2026 FlickerPlay. All rights reserved.</p>
+            <Link href="/privacy" className="hover:text-orange-500 transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-orange-500 transition-colors">Terms of Service</Link>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
