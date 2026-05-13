@@ -98,7 +98,7 @@ export function EpisodeInfo({ episode, series, season }: EpisodeInfoProps) {
                   />
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  VJ {series.vj.name}
+                  {series.vj.name}
                 </span>
               </div>
 

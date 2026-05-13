@@ -84,7 +84,7 @@ export function CheckoutForm({ plan, user }: CheckoutFormProps) {
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Ad-free experience</span>
+                <span>No Ads experience</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />

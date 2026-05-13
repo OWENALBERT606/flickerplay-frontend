@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Play, Plus, Star } from "lucide-react";
+import { cleanTitle } from "@/lib/utils";
 import type { Series } from "@/actions/series";
 import { AddToListButton } from "@/app/(front)/movies/components/add-to-list-button";
 
@@ -119,7 +120,7 @@ export function SeriesSection({ title, series, userId }: SeriesSectionProps) {
 
                   <div className="space-y-0.5">
                     <h3 className="font-semibold text-white text-balance line-clamp-2 text-xs leading-tight">
-                      {s.title}
+                      {cleanTitle(s.title)}
                     </h3>
                     <div className="flex items-center space-x-1.5 text-[10px] text-white/70">
                       <span>{s.year.value}</span>

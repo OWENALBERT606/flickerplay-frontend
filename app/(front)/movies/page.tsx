@@ -76,7 +76,7 @@ export default async function MoviesPage({
   const activeGenre = genres.find((g) => g.id === params.genre);
 
   const heading = activeVJ
-    ? `VJ ${activeVJ.name} Movies`
+    ? `${activeVJ.name} Movies`
     : activeGenre
     ? `${activeGenre.name} Movies`
     : params.trending    === "1" ? "🔥 Trending Movies"
@@ -120,7 +120,7 @@ export default async function MoviesPage({
                 <p className="text-muted-foreground text-sm mt-1">
                   {pagination?.total ?? movies.length} movie{(pagination?.total ?? movies.length) !== 1 ? "s" : ""}
                   {activeVJ && (
-                    <span className="ml-1">translated by <span className="text-orange-400 font-medium">VJ {activeVJ.name}</span></span>
+                    <span className="ml-1">translated by <span className="text-orange-400 font-medium">{activeVJ.name}</span></span>
                   )}
                 </p>
               </div>

@@ -7,6 +7,8 @@ import { LoadingPlayer } from "../../components/loading-player";
 import { EpisodePlayer } from "../../components/episode-player";
 import { EpisodeInfo } from "../../components/episode-info";
 import { EpisodesList } from "../../components/episodes-list";
+import { getUserSubscriptionStatus } from "@/actions/subscription";
+import { getWatchProgress } from "@/actions/watchHistory";
 
 export default async function WatchEpisodePage({
   params,
@@ -21,15 +23,6 @@ export default async function WatchEpisodePage({
   const session = await getSession();
   const user = session?.user;
 
-  // Guest: must log in
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white">
-        <SubscriptionPaywall type="movie-guest" />
-      </div>
-    );
-  }
-
   const seriesData = await getSeriesBySlug(slug);
 
   if (!seriesData.success || !seriesData.data) {
@@ -37,28 +30,48 @@ export default async function WatchEpisodePage({
   }
 
   const series = seriesData.data;
-
   const seasonNumber = seasonParam ? parseInt(seasonParam) : 1;
   const episodeNumber = episodeParam ? parseInt(episodeParam) : 1;
-
-  const season = series.seasons?.find((s) => s.seasonNumber === seasonNumber);
+  const season = series.seasons?.find((s: any) => s.seasonNumber === seasonNumber);
 
   if (!season) {
     notFound();
   }
 
   const episode = season.episodes?.find(
-    (e) => e.episodeNumber === episodeNumber
+    (e: any) => e.episodeNumber === episodeNumber
   );
 
   if (!episode) {
     notFound();
   }
 
+  // Determine ad status and initial progress
+  let showAds = true;
+  let initialProgress = 0;
+  let userId = "guest";
+
+  if (user) {
+    userId = user.id;
+    const [subscriptionStatus, progressData] = await Promise.all([
+      getUserSubscriptionStatus(user.id),
+      getWatchProgress(user.id, episode.id, "episode"),
+    ]);
+    showAds = !subscriptionStatus.isSubscribed;
+    initialProgress = progressData?.data?.progressPercent ?? 0;
+  }
+
   return (
     <div className="min-h-screen bg-black">
       <Suspense fallback={<LoadingPlayer />}>
-        <EpisodePlayer episode={episode} series={series} season={season} />
+        <EpisodePlayer 
+          episode={episode} 
+          series={series} 
+          season={season} 
+          userId={userId}
+          showAds={showAds}
+          initialProgress={initialProgress}
+        />
       </Suspense>
 
       <div className="container mx-auto px-4 md:px-12 lg:px-24 py-8">

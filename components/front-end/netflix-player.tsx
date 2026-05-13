@@ -50,6 +50,8 @@ export interface NetflixPlayerProps {
   onEnded?: () => void;
   /** Auto-play on mount */
   autoPlay?: boolean;
+  /** Show ads for free tier */
+  showAds?: boolean;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -83,6 +85,7 @@ export function NetflixPlayer({
   nextItem,
   onEnded,
   autoPlay = true,
+  showAds = false,
 }: NetflixPlayerProps) {
   /* ── state ── */
   const [playing, setPlaying]           = useState(false);
@@ -105,6 +108,13 @@ export function NetflixPlayer({
   const [brightness, setBrightness]     = useState(1);
   const [showPicMenu, setShowPicMenu]   = useState(false);
 
+  // Monetag Ad state
+  const [adShown, setAdShown] = useState(true); // Default to true to avoid flash before effect
+
+  // Ad state
+  const [isAdPlaying, setIsAdPlaying] = useState(showAds);
+  const [adCountdown, setAdCountdown] = useState(10);
+
   /* ── refs ── */
   const containerRef   = useRef<HTMLDivElement>(null);
   const seekBarRef     = useRef<HTMLDivElement>(null);
@@ -115,6 +125,35 @@ export function NetflixPlayer({
 
   /* ── HLS ── */
   const { videoRef, levels, currentLevel, setLevel } = useHls(src, subtitlesProp);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Monetag Ad initialization
+  ───────────────────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const shown = sessionStorage.getItem("ad_shown");
+      setAdShown(shown === "true");
+    }
+  }, []);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Ads logic
+  ───────────────────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (isAdPlaying && adCountdown > 0) {
+      const timer = setInterval(() => {
+        setAdCountdown((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (adCountdown === 0) {
+      setIsAdPlaying(false);
+      // Resume or start video when ad ends
+      if (videoRef.current && autoPlay) {
+        videoRef.current.play().catch(() => {});
+        setPlaying(true);
+      }
+    }
+  }, [isAdPlaying, adCountdown]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      Progress save
@@ -181,7 +220,7 @@ export function NetflixPlayer({
     if (initialProgress > 0 && initialProgress < 95) {
       v.currentTime = (initialProgress / 100) * v.duration;
     }
-    if (autoPlay) {
+    if (autoPlay && !isAdPlaying) {
       v.muted = true; // must be muted for browsers to allow autoplay
       setMuted(true);
       v.play().catch(() => {});
@@ -230,10 +269,32 @@ export function NetflixPlayer({
      Controls
   ───────────────────────────────────────────────────────────────────────── */
   const togglePlay = () => {
+    if (isAdPlaying) return; // Prevent play during ad
+
+    // Monetag Ad Trigger logic
+    if (!adShown) {
+      if (typeof window !== "undefined") {
+        window.open("YOUR_MONETAG_DIRECT_LINK", "_blank");
+        sessionStorage.setItem("ad_shown", "true");
+        setAdShown(true);
+        return; // Do NOT start video yet
+      }
+    }
+
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) { v.play(); setPlaying(true); }
-    else          { v.pause(); setPlaying(false); saveProgress(); }
+
+    if (v.paused) {
+      // Small delay before playing after ad (as requested)
+      setTimeout(() => {
+        v.play().catch(() => {});
+        setPlaying(true);
+      }, 300);
+    } else {
+      v.pause();
+      setPlaying(false);
+      saveProgress();
+    }
     resetUITimer();
   };
 
@@ -633,6 +694,34 @@ export function NetflixPlayer({
           </div>
         </div>
       </div>
+
+      {/* Ad Overlay */}
+      {isAdPlaying && (
+        <div className="absolute inset-0 z-[100] bg-black flex flex-col items-center justify-center text-center p-6">
+          <div className="space-y-6 max-w-md">
+            <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto animate-pulse">
+              <span className="text-white font-bold text-xl">AD</span>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white">Experience FlickerPlay Premium</h2>
+              <p className="text-gray-400">
+                Watch all movies and series without ads, download unlimited content, and stream in 4K.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <div className="text-sm text-gray-500">
+                Ad will end in <span className="text-white font-mono font-bold">{adCountdown}s</span>
+              </div>
+              <Link 
+                href="/checkout?plan=monthly"
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+              >
+                Upgrade Now — 6,000 UGX
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -259,7 +259,7 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
               {movie.vj?.name && (
                 <>
                   <span className="text-white/40">|</span>
-                  <span className="text-orange-400 text-xs">VJ {movie.vj.name}</span>
+                  <span className="text-orange-400 text-xs">{movie.vj.name}</span>
                 </>
               )}
             </div>

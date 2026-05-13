@@ -1,6 +1,3 @@
-
-
-
 "use client"
 
 import { useState } from "react"
@@ -8,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowBigDown, ChevronLeft, ChevronRight, Play, Plus, Star, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cleanTitle } from "@/lib/utils"
 import type { Movie } from "@/actions/movies"
 import { AddToListButton } from "@/app/(front)/movies/components/add-to-list-button"
 
@@ -99,29 +97,25 @@ export function MovieSection({ title, movies, userId, viewAllHref = "/movies" }:
               >
                 <div className="absolute bottom-0 left-0 right-0 p-3 space-y-2">
                   <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center space-x-1">
-                      <Button size="sm" className="bg-orange-500 hover:bg-orange-600 h-7 w-7 p-0" asChild>
+                    <div className="flex items-center space-x-1.5">
+                      <Button 
+                        size="sm" 
+                        className="bg-orange-500 hover:bg-orange-600 h-7 w-7 p-0 flex items-center justify-center" 
+                        asChild
+                      >
                         <Link href={`/movies/${movie.slug}`}>
                           <Play className="w-3 h-3 fill-white" />
                         </Link>
                       </Button>
-                     <AddToListButton
-                                    itemId={movie.id}
-                                    type="movie"
-                                    userId={userId || undefined}
-                                    variant="secondary"
-                                    size="icon"
-                                    showText={false}
-                                    className="h-10 w-10 rounded-full bg-gray-800/80 hover:bg-gray-700 border-0 backdrop-blur-sm"
-                                  />
-                      <Button
-                        size="sm"
-                        title="Download"
-                        variant="outline"
-                        className="border-white/20 hover:bg-white/20 bg-white/10 h-7 w-7 p-0"
-                      >
-                        <ArrowBigDown className="w-3 h-3" />
-                      </Button>
+                      <AddToListButton
+                        itemId={movie.id}
+                        type="movie"
+                        userId={userId || undefined}
+                        variant="secondary"
+                        size="icon"
+                        showText={false}
+                        className="h-7 w-7 bg-gray-800/80 hover:bg-gray-700 border-0 backdrop-blur-sm"
+                      />
                     </div>
                     <div className="flex items-center space-x-1 text-orange-500">
                       <Star className="w-3 h-3 fill-current" />
@@ -131,18 +125,13 @@ export function MovieSection({ title, movies, userId, viewAllHref = "/movies" }:
 
                   <div className="space-y-0.5">
                     <h3 className="font-semibold text-white text-balance line-clamp-2 text-xs leading-tight">
-                      {movie.title}
-                    </h3>
+                    {cleanTitle(movie.title)}
+                  </h3>
                     <div className="flex items-center space-x-1.5 text-[10px] text-white/70">
                       <span>{movie.year.value}</span>
                       <span>•</span>
                       <span className="truncate">{movie.genre.name}</span>
                     </div>
-                    {movie.vj && (
-                      <div className="text-[10px] text-white/60 truncate">
-                        VJ {movie.vj.name}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -156,11 +145,22 @@ export function MovieSection({ title, movies, userId, viewAllHref = "/movies" }:
                 </div>
               )}
 
-              {/* Rating Badge (Always Visible) */}
+              {/* Coming Soon Badge */}
+              {movie.isComingSoon && (
+                <div className="absolute top-2 left-2 z-10">
+                  <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[10px] font-semibold rounded">
+                    Coming Soon
+                  </span>
+                </div>
+              )}
+
+              {/* Rating Badge */}
               <div className="absolute top-2 right-2 z-10">
                 <div className="flex items-center gap-1 bg-black/70 backdrop-blur-sm rounded px-1.5 py-0.5">
                   <Star className="w-2.5 h-2.5 fill-orange-500 text-orange-500" />
-                  <span className="text-[10px] font-bold text-white">{movie.rating.toFixed(1)}</span>
+                  <span className="text-[10px] font-bold text-white">
+                    {movie.rating.toFixed(1)}
+                  </span>
                 </div>
               </div>
             </div>

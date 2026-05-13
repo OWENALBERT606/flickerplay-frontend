@@ -51,7 +51,7 @@ export function RelatedMovies({ movies }: RelatedMoviesProps) {
               </div>
               {movie.vj && (
                 <p className="text-white/70">
-                  VJ {movie.vj.name}
+                  {movie.vj.name}
                 </p>
               )}
             </div>

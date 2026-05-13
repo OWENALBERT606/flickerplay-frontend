@@ -66,6 +66,27 @@ export async function updateUserStatus(userId: string, status: string) {
   }
 }
 
+/* ---------------------------------- Toggle User Exemption ---------------------------------- */
+
+export async function toggleUserExemption(userId: string, isExempt: boolean) {
+  try {
+    const res = await api.patch(`/admin/users/${userId}/exempt`, { isExempt });
+
+    revalidatePath("/dashboard/users");
+
+    return {
+      success: true,
+      data: res.data?.data,
+    };
+  } catch (e: any) {
+    console.error("❌ Error updating user exemption status:", e?.response?.data || e?.message);
+    return {
+      success: false,
+      error: msg(e, "Failed to update user exemption status"),
+    };
+  }
+}
+
 /* ---------------------------------- Delete User ---------------------------------- */
 
 export async function deleteUser(userId: string) {

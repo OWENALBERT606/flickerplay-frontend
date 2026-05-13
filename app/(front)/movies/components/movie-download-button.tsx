@@ -11,12 +11,16 @@ interface MovieDownloadButtonProps {
   downloadUrl?: string | null;
 }
 
+import { useSessionStore } from "@/store/authStore";
+import { checkDownloadLimitAction, recordDownloadAction } from "@/actions/downloads";
+
 export function MovieDownloadButton({
   movieId,
   movieTitle,
   downloadUrl,
 }: MovieDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const { isAuthenticated } = useSessionStore();
 
   const handleDownload = async () => {
     if (!downloadUrl) {
@@ -24,17 +28,26 @@ export function MovieDownloadButton({
       return;
     }
 
+    if (!isAuthenticated) {
+      toast.error("Please sign in to download movies");
+      return;
+    }
+
     try {
       setIsDownloading(true);
       
-      // Track download analytics
-      await fetch("/api/movies/track-download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ movieId }),
-      });
+      // 1. Check download limit
+      const checkRes = await checkDownloadLimitAction();
+      
+      if (checkRes.error || !checkRes.data?.canDownload) {
+        toast.error(checkRes.error || "You have reached your daily download limit. Upgrade to Premium for unlimited downloads.");
+        return;
+      }
 
-      // Create a temporary link and trigger download
+      // 2. Record download event
+      await recordDownloadAction(movieId);
+
+      // 3. Trigger download
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.download = `${movieTitle.replace(/[^a-z0-9]/gi, "_")}.mp4`;

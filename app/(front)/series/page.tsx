@@ -77,7 +77,7 @@ export default async function SeriesPage({
   const activeGenre = genres.find((g) => g.id === params.genre);
 
   const heading = activeVJ
-    ? `VJ ${activeVJ.name} Series`
+    ? `${activeVJ.name} Series`
     : activeGenre
     ? `${activeGenre.name} Series`
     : params.trending    === "1" ? "🔥 Trending Series"
@@ -119,7 +119,7 @@ export default async function SeriesPage({
               <p className="text-muted-foreground text-sm mt-1">
                 {pagination?.total ?? series.length} series
                 {activeVJ && (
-                  <span className="ml-1">translated by <span className="text-orange-400 font-medium">VJ {activeVJ.name}</span></span>
+                  <span className="ml-1">translated by <span className="text-orange-400 font-medium">{activeVJ.name}</span></span>
                 )}
               </p>
             </div>

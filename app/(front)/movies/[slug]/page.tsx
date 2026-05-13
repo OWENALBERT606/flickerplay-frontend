@@ -39,6 +39,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+import { cookies } from "next/headers";
+
 export default async function MovieDetailPage({
   params,
 }: {
@@ -47,6 +49,7 @@ export default async function MovieDetailPage({
   const { slug } = await params;
   const session = await getSession();
   const user = session?.user;
+  const cookieStore = await cookies();
 
   const movieData = await getCachedMovieBySlug(slug);
   const movie = movieData.data;
@@ -55,11 +58,89 @@ export default async function MovieDetailPage({
     notFound();
   }
 
-  // Guest users: show paywall
+  // Guest users: allow 2 movies
   if (!user) {
+    const guestMoviesCookie = cookieStore.get("guest_movies")?.value || "";
+    const watchedMovieIds = guestMoviesCookie ? guestMoviesCookie.split(",") : [];
+    const hasWatchedThisMovie = watchedMovieIds.includes(movie.id);
+
+    if (!hasWatchedThisMovie && watchedMovieIds.length >= 2) {
+      return (
+        <div className="min-h-screen bg-black text-white">
+          <SubscriptionPaywall type="guest-limit" title={movie.title} />
+        </div>
+      );
+    }
+
+    // Guest users can watch - they also experience ads
+    const relatedMoviesData = await getCachedListMovies({ genreId: movie.genreId, limit: 6 });
+    const relatedMovies = (relatedMoviesData.data || []).filter((m) => m.id !== movie.id);
+
     return (
       <div className="min-h-screen bg-black text-white">
-        <SubscriptionPaywall type="movie-guest" title={movie.title} />
+        <MoviePlayer
+          movie={movie}
+          userId="guest"
+          initialProgress={0}
+          showAds={true}
+          moviesWatchedThisMonth={watchedMovieIds.length}
+          isGuest={true}
+        />
+
+        <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 relative z-10">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <MovieDetails 
+                userId="guest" 
+                userName="Guest User" 
+                userImage="" 
+                movie={movie} 
+              />
+              {movie.trailerUrl && <MovieTrailer movie={movie} />}
+            </div>
+            {/* ... rest of the sidebar ... */}
+            <div className="space-y-6">
+              {movie.director && (
+                <div className="bg-gray-900/50 backdrop-blur-sm rounded-lg p-6">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-3">Director</h3>
+                  <p className="text-white font-medium">{movie.director}</p>
+                </div>
+              )}
+
+              {movie.cast && movie.cast.length > 0 && (
+                <div className="bg-gray-900/50 backdrop-blur-sm rounded-lg p-6">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-3">Cast</h3>
+                  <div className="space-y-2">
+                    {movie.cast.map((actor, index) => (
+                      <p key={index} className="text-white">{actor}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-gray-900/50 backdrop-blur-sm rounded-lg p-6">
+                <h3 className="text-sm font-semibold text-gray-400 mb-3">Translated By</h3>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                    {movie.vj.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{movie.vj.name}</p>
+                    {movie.vj.bio && (
+                      <p className="text-sm text-gray-400">{movie.vj.bio}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {relatedMovies.length > 0 && (
+            <div className="mt-16">
+              <RelatedMovies movies={relatedMovies} />
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -96,7 +177,12 @@ export default async function MovieDetailPage({
       <div className="container mx-auto px-4 md:px-8 lg:px-16 py-12 relative z-10">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <MovieDetails userId={user.id} movie={movie} />
+            <MovieDetails 
+              userId={user.id} 
+              userName={user.name} 
+              userImage={user.imageUrl} 
+              movie={movie} 
+            />
             {movie.trailerUrl && <MovieTrailer movie={movie} />}
           </div>
 

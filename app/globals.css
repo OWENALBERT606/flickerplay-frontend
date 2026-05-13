@@ -149,4 +149,52 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* GLOBAL SCROLLBAR OVERRIDE - FORCE BLACK */
+  * {
+    scrollbar-width: thin !important;
+    scrollbar-color: #333333 #000000 !important;
+  }
+
+  /* Target ALL elements, including pseudo-elements */
+  *:not(html)::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+    background-color: #000000 !important;
+    display: block !important;
+  }
+
+  *:not(html)::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-track {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    border-radius: 0 !important;
+  }
+
+  *:not(html)::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-thumb {
+    background: #333333 !important;
+    background-color: #333333 !important;
+    border-radius: 10px !important;
+    border: 2px solid #000000 !important;
+  }
+
+  *:not(html)::-webkit-scrollbar-thumb:hover,
+  *::-webkit-scrollbar-thumb:hover {
+    background: #444444 !important;
+    background-color: #444444 !important;
+  }
+
+  /* Force hide arrows (buttons) which often stay white */
+  *::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* Specific fix for elements that might have their own background-color on the scrollbar */
+  *::-webkit-scrollbar-corner {
+    background: #000000 !important;
+  }
 }

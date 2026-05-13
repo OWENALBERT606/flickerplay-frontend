@@ -179,7 +179,7 @@ export function FilterDrawer({
           {activeSort === "rating" && <ActiveChip label="Top Rated" onRemove={() => push({ sort: "" })} />}
           {activeDubbed === "yes" && <ActiveChip label="Translated (VJ)" onRemove={() => push({ dubbed: "" })} />}
           {activeDubbed === "no"  && <ActiveChip label="Original" onRemove={() => push({ dubbed: "" })} />}
-          {activeVJ !== "all" && <ActiveChip label={`VJ: ${vjs.find(v => v.id === activeVJ)?.name ?? activeVJ}`} onRemove={() => push({ vj: "all" })} />}
+          {activeVJ !== "all" && <ActiveChip label={vjs.find(v => v.id === activeVJ)?.name ?? activeVJ} onRemove={() => push({ vj: "all" })} />}
           {activeGenre !== "all" && <ActiveChip label={genres.find(g => g.id === activeGenre)?.name ?? activeGenre} onRemove={() => push({ genre: "all" })} />}
           {activeYear !== "all" && <ActiveChip label={String(years.find(y => y.id === activeYear)?.value ?? activeYear)} onRemove={() => push({ year: "all" })} />}
           <button onClick={clearAll} className="text-xs text-red-400 hover:text-red-300 underline ml-1">Clear all</button>

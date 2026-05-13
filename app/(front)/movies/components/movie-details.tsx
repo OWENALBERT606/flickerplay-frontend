@@ -119,13 +119,16 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import type { Movie } from "@/actions/movies";
 import { AddToListButton } from "./add-to-list-button";
+import { CommentSection } from "@/components/front-end/comment-section";
 
 interface MovieDetailsProps {
   movie: Movie;
   userId?: string;
+  userName?: string;
+  userImage?: string;
 }
 
-export function MovieDetails({ movie, userId }: MovieDetailsProps) {
+export function MovieDetails({ movie, userId, userName, userImage }: MovieDetailsProps) {
   const viewsCount = Number(movie.viewsCount || 0);
 
   const handleDownload = () => {
@@ -296,6 +299,15 @@ export function MovieDetails({ movie, userId }: MovieDetailsProps) {
           </div>
         )}
       </div>
+
+      {/* Comment Section */}
+      <CommentSection 
+        itemId={movie.id} 
+        type="movie" 
+        userId={userId} 
+        userName={userName}
+        userImage={userImage}
+      />
     </div>
   );
 }

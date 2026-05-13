@@ -437,10 +437,12 @@ import {
   CheckCircle,
   ChevronLeft,
   ChevronRight,
-  Crown
+  Crown,
+  ShieldCheck,
+  ShieldOff
 } from "lucide-react";
 import { toast } from "sonner";
-import { deleteUser, updateUserStatus } from "@/actions/admin";
+import { deleteUser, updateUserStatus, toggleUserExemption } from "@/actions/admin";
 
 interface UsersTableProps {
   users: any[];
@@ -493,6 +495,16 @@ export function UsersTable({ users, totalPages, currentPage }: UsersTableProps) 
       router.refresh();
     } else {
       toast.error(result.error || "Failed to update status");
+    }
+  };
+
+  const handleExemptionToggle = async (userId: string, isExempt: boolean) => {
+    const result = await toggleUserExemption(userId, isExempt);
+    if (result.success) {
+      toast.success(isExempt ? "User exempted from subscription" : "User exemption removed");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Failed to update exemption status");
     }
   };
 
@@ -652,7 +664,12 @@ export function UsersTable({ users, totalPages, currentPage }: UsersTableProps) 
                   <TableCell>{getStatusBadge(user.status)}</TableCell>
 
                   <TableCell>
-                    {user.currentPlan ? (
+                    {user.isExempt ? (
+                      <div className="flex items-center gap-2">
+                        <Crown className="w-4 h-4 text-orange-500" />
+                        <span className="text-sm font-bold text-orange-500">EXEMPT (Forever)</span>
+                      </div>
+                    ) : user.currentPlan ? (
                       <div className="flex items-center gap-2">
                         <Crown className="w-4 h-4 text-orange-500" />
                         <span className="text-sm">{user.currentPlan}</span>
@@ -696,6 +713,22 @@ export function UsersTable({ users, totalPages, currentPage }: UsersTableProps) 
                           >
                             <CheckCircle className="w-4 h-4 mr-2" />
                             Activate User
+                          </DropdownMenuItem>
+                        )}
+
+                        {user.isExempt ? (
+                          <DropdownMenuItem
+                            onClick={() => handleExemptionToggle(user.id, false)}
+                          >
+                            <ShieldOff className="w-4 h-4 mr-2 text-orange-500" />
+                            Remove Exemption
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onClick={() => handleExemptionToggle(user.id, true)}
+                          >
+                            <ShieldCheck className="w-4 h-4 mr-2 text-green-500" />
+                            Exempt User
                           </DropdownMenuItem>
                         )}
 

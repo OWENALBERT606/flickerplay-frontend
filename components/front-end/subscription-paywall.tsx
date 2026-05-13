@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FREE_MOVIES_PER_MONTH } from "@/lib/constants";
 
 interface SubscriptionPaywallProps {
-  type: "movie-limit" | "series" | "movie-guest";
+  type: "movie-limit" | "series" | "movie-guest" | "guest-limit";
   moviesWatched?: number;
   title?: string;
 }
@@ -28,6 +28,10 @@ export function SubscriptionPaywall({
     "movie-guest": {
       heading: "Sign in to watch",
       body: "Create a free account to watch up to 5 movies per month, or subscribe for unlimited access.",
+    },
+    "guest-limit": {
+      heading: "Guest limit reached",
+      body: "You've watched 2 movies as a guest. Sign in to keep watching for free or subscribe for unlimited access.",
     },
   };
 
@@ -93,7 +97,7 @@ export function SubscriptionPaywall({
           >
             <Link href="/checkout?plan=monthly">Subscribe for 6,000 UGX/mo</Link>
           </Button>
-          {type === "movie-guest" && (
+          {(type === "movie-guest" || type === "guest-limit") && (
             <Button asChild variant="outline" size="lg">
               <Link href="/register">Create free account</Link>
             </Button>

@@ -5,7 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { Loader2, Upload, Video, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { getVideoResolution, compressVideo } from "@/lib/video-compress";
+import { getVideoResolution, getFFmpegResolution, compressVideo } from "@/lib/video-compress";
 import type { FileWithMetadata } from "@/components/ui/dropzone";
 
 interface VideoDropzoneProps {
@@ -47,14 +47,24 @@ export function VideoDropzone({
     let fileToUpload = raw;
 
     // ── Step 1: Check resolution ──────────────────────────────────
-    const res = await getVideoResolution(raw);
-    const needsCompression = res && res.height > 720;
+    let res = await getVideoResolution(raw);
+    
+    // If browser probe fails (common for MKV/AVI), try FFmpeg probe
+    if (!res) {
+      setStatusMsg("Probing video format…");
+      res = await getFFmpegResolution(raw);
+    }
+
+    // If resolution is still unknown, but it's a large file, assume it needs compression
+    // to be safe and ensure it's a playable MP4.
+    const needsCompression = res ? res.height > 720 : raw.size > 50 * 1024 * 1024; // > 50MB
+    const heightLabel = res ? `${res.height}p` : "unknown format";
 
     if (needsCompression) {
-      // ── Step 2: Compress only if > 720p ─────────────────────────
+      // ── Step 2: Compress ────────────────────────────────────────
       setStage("compressing");
-      setStatusMsg(`Video is ${res.height}p — compressing to 720p…`);
-      toast.info(`Compressing ${res.height}p video to 720p…`);
+      setStatusMsg(`Video is ${heightLabel} — compressing to 720p…`);
+      toast.info(`Processing ${heightLabel} video for streaming (720p)…`);
 
       try {
         fileToUpload = await compressVideo(raw, ({ ratio, message }) => {

@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Star, ChevronLeft, ChevronRight, Film, Tv } from "lucide-react";
+import { cleanTitle } from "@/lib/utils";
 import type { Movie } from "@/actions/movies";
 import type { Series } from "@/actions/series";
 import { AddToListButton } from "@/app/(front)/movies/components/add-to-list-button";
@@ -115,7 +116,7 @@ export function HeroCarousel({ items, userId }: HeroCarouselProps) {
 
             {/* Title */}
             <h1 className="text-5xl md:text-7xl font-bold text-white drop-shadow-lg">
-              {current.title}
+              {cleanTitle(current.title)}
             </h1>
 
             {/* Meta */}

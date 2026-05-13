@@ -128,6 +128,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <Script
+          src="https://quge5.com/88/tag.min.js"
+          strategy="afterInteractive"
+          data-zone="238682"
+          data-cfasync="false"
+          async
+        />
+        {/* Monetag Global Script */}
+        <Script
+          id="monetag-script"
+          strategy="afterInteractive"
+          src="https://groleegni.net/88/tag.min.js"
+          data-zone="YOUR_ZONE_ID"
+        />
         <meta name="theme-color" content="#000000" />
         <meta name="mobile-web-app-capable" content="yes" />
 
@@ -149,13 +163,7 @@ export default function RootLayout({
         {/* <RegisterSW /> */}
         <ServiceWorkerRegister />
 
-        {/* <Script
-          src="https://quge5.com/88/tag.min.js"
-          strategy="afterInteractive"
-          data-zone="238682"
-          data-cfasync="false"
-          async
-        /> */}
+       
       </body>
     </html>
   );

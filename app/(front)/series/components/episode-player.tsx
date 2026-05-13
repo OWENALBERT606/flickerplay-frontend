@@ -14,6 +14,7 @@ interface EpisodePlayerProps {
   season: any;
   userId?: string;
   initialProgress?: number;
+  showAds?: boolean;
 }
 
 export function EpisodePlayer({
@@ -22,6 +23,7 @@ export function EpisodePlayer({
   season,
   userId,
   initialProgress = 0,
+  showAds = false,
 }: EpisodePlayerProps) {
   const router = useRouter();
   const [hasTrackedView, setHasTrackedView] = useState(false);
@@ -94,6 +96,7 @@ export function EpisodePlayer({
         nextItem={nextItem}
         onEnded={() => nextHref && router.push(nextHref)}
         autoPlay
+        showAds={showAds}
       />
 
       {/* ── Below-player info & nav ── */}

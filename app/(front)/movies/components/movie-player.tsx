@@ -3,6 +3,8 @@
 import type { Movie } from "@/actions/movies";
 import { NetflixPlayer } from "@/components/front-end/netflix-player";
 import { FreeTierBanner } from "@/components/front-end/free-tier-banner";
+import { useEffect } from "react";
+import { GuestWatchManager } from "@/lib/guest-watch-manager";
 
 interface MoviePlayerProps {
   movie: Movie;
@@ -10,6 +12,7 @@ interface MoviePlayerProps {
   initialProgress?: number;
   showAds?: boolean;
   moviesWatchedThisMonth?: number;
+  isGuest?: boolean;
 }
 
 export function MoviePlayer({
@@ -18,7 +21,14 @@ export function MoviePlayer({
   initialProgress = 0,
   showAds = false,
   moviesWatchedThisMonth = 0,
+  isGuest = false,
 }: MoviePlayerProps) {
+  useEffect(() => {
+    if (isGuest) {
+      GuestWatchManager.addWatchedMovie(movie.id);
+    }
+  }, [isGuest, movie.id]);
+
   return (
     <div className="w-full bg-black">
       {showAds && (
@@ -36,6 +46,7 @@ export function MoviePlayer({
         initialProgress={initialProgress}
         subtitles={movie.subtitles || []}
         autoPlay
+        showAds={showAds}
       />
     </div>
   );

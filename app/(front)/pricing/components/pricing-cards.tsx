@@ -17,19 +17,18 @@ const PLANS = [
     icon: Zap,
     color: "text-blue-500",
     features: [
-      "Watch 5 movies free per month",
-      "No credit card required",
-      "HD quality streaming",
-      "Watch on any device",
+      "Watch all movies & series",
+      "Standard quality streaming",
+      "1 movie download per day",
       "Ads during playback",
-      "No series access",
-      "No downloads"
+      "Watch on 1 device",
+      "Access to all content"
     ]
   },
   {
     id: "monthly",
-    name: "Monthly",
-    price: 6000,
+    name: "Premium Monthly",
+    price: 10000,
     duration: "30 days",
     popular: true,
     icon: Crown,
@@ -38,7 +37,7 @@ const PLANS = [
       "Unlimited movies & series",
       "Full HD & 4K streaming",
       "Unlimited downloads",
-      "Ad-free experience",
+      "Ad-free experience (No Ads)",
       "Watch on up to 3 devices",
       "Early access to new releases",
       "Offline viewing",

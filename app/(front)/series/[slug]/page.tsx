@@ -8,6 +8,7 @@ import { getCachedSeriesBySlug } from "@/lib/cache";
 import { getSession } from "@/actions/auth";
 import { SeriesDetailHero } from "../components/series-detail-hero";
 import { TrailerPlayer } from "@/components/front-end/trailer-player";
+import { CommentSection } from "@/components/front-end/comment-section";
 
 export default async function SeriesDetailPage({ 
   params 
@@ -136,6 +137,15 @@ export default async function SeriesDetailPage({
                 </p>
               </div>
             </div>
+
+            {/* Comment Section */}
+            <CommentSection 
+              itemId={series.id} 
+              type="series" 
+              userId={user?.id} 
+              userName={user?.name}
+              userImage={user?.imageUrl}
+            />
           </div>
 
           {/* Sidebar */}

@@ -79,7 +79,7 @@ export default async function SeasonDetailPage({
               <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
                 <span>{(season.episodes || []).filter((e: any) => e.videoUrl).length} Episodes</span>
                 <span>•</span>
-                <span>VJ {series.vj.name}</span>
+                <span>{series.vj.name}</span>
               </div>
             </div>
           </div>

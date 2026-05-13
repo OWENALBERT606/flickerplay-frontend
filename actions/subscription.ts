@@ -33,6 +33,21 @@ export async function getUserSubscriptionStatus(
   };
 
   try {
+    // 1. Check if user is exempt (forever premium)
+    const userProfileRes = await api.get(`/users/${userId}`);
+    const user = userProfileRes.data?.data;
+    
+    if (user?.isExempt) {
+      return {
+        isSubscribed: true,
+        plan: "PREMIUM",
+        expiresAt: "2099-12-31T23:59:59.999Z", // Forever
+        daysRemaining: 9999,
+        subscriptionId: "exempt",
+      };
+    }
+
+    // 2. Check regular subscriptions
     const res = await api.get(`/subscriptions/user/${userId}`);
     const subscriptions: any[] = res.data?.data || [];
 
