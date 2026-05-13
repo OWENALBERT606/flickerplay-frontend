@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
+        source: "/dashboard/:path*",
         headers: [
           {
             key: "Cross-Origin-Embedder-Policy",
@@ -50,18 +50,31 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**",
-      },
-      {
-        protocol: "https",
         hostname: "image.tmdb.org",
-        pathname: "/t/p/**",
       },
       {
         protocol: "https",
         hostname: "*.ufs.sh",
-        port: "",
-        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-f98f31f5e3fe4f3db4af51c84cf302f2.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+      },
+      {
+        protocol: "https",
+        hostname: "**.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.ufs.sh",
       },
     ],
   },
