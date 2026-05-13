@@ -492,7 +492,7 @@ export function LoginForm() {
       {/* Google Sign-In Button */}
       <GoogleSignInButton 
         clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
-        redirectUri={`${typeof window !== "undefined" ? window.location.origin : ""}/api/auth/google/callback`}
+        redirectUri="https://moviechamp256-nodejs-api-production.up.railway.app/api/v1/auth/google/callback"
       />
     </form>
   )

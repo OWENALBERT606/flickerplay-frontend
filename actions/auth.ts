@@ -527,7 +527,7 @@ export async function googleSignIn(): Promise<LoginResponse> {
       return { success: false, error: "Google sign in is not configured. Please contact admin." };
     }
     
-    const redirectUri = `${typeof window !== "undefined" ? window.location.origin : ""}/api/auth/google/callback`;
+    const redirectUri = "https://moviechamp256-nodejs-api-production.up.railway.app/api/v1/auth/google/callback";
     console.log("Google Redirect URI:", redirectUri);
     
     const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -559,7 +559,12 @@ export async function googleSignIn(): Promise<LoginResponse> {
       }, 500);
       
       window.addEventListener("message", async (event) => {
-        if (event.origin === window.location.origin && event.data?.type === "google-auth") {
+        const allowedOrigins = [
+          window.location.origin,
+          "https://moviechamp256-nodejs-api-production.up.railway.app"
+        ];
+        
+        if (allowedOrigins.includes(event.origin) && event.data?.type === "google-auth") {
           clearInterval(checkClosed);
           popup?.close();
           

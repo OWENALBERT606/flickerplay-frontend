@@ -54,7 +54,12 @@ export function GoogleSignInButton({ clientId, redirectUri }: GoogleSignInButton
         }, 500);
 
         window.addEventListener("message", async (event) => {
-          if (event.origin !== window.location.origin) return;
+          const allowedOrigins = [
+            window.location.origin,
+            "https://moviechamp256-nodejs-api-production.up.railway.app"
+          ];
+          
+          if (!allowedOrigins.includes(event.origin)) return;
 
           clearInterval(checkClosed);
           popup.close();
