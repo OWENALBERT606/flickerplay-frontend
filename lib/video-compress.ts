@@ -39,15 +39,27 @@ export async function compressVideo(
   onProgress?.({ ratio: 0, message: "Loading compressor…" });
 
   const ffmpeg = new FFmpeg();
-  // Using ESM build for better performance with multi-threading (now enabled via headers)
-  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
+  // Using multiple CDNs for robustness against slow internet/outages
+  const primaryBaseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
+  const fallbackBaseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
 
-  try {
+  const loadFFmpeg = async (baseURL: string) => {
     await ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
       wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
       workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
     });
+  };
+
+  try {
+    try {
+      onProgress?.({ ratio: 0, message: "Loading compressor (Primary)…" });
+      await loadFFmpeg(primaryBaseURL);
+    } catch (primaryErr) {
+      console.warn("Primary CDN failed, trying fallback...", primaryErr);
+      onProgress?.({ ratio: 0, message: "Loading compressor (Fallback)…" });
+      await loadFFmpeg(fallbackBaseURL);
+    }
 
     ffmpeg.on("progress", ({ progress }) => {
       onProgress?.({
@@ -131,13 +143,22 @@ export async function getFFmpegResolution(file: File): Promise<{ width: number; 
   const { fetchFile, toBlobURL } = await import("@ffmpeg/util");
 
   const ffmpeg = new FFmpeg();
-  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
+  const primaryBaseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
+  const fallbackBaseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
 
-  try {
+  const loadFFmpeg = async (baseURL: string) => {
     await ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
       wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
     });
+  };
+
+  try {
+    try {
+      await loadFFmpeg(primaryBaseURL);
+    } catch (err) {
+      await loadFFmpeg(fallbackBaseURL);
+    }
 
     await ffmpeg.writeFile("input", await fetchFile(file));
     
