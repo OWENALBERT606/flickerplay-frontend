@@ -6,7 +6,7 @@ import { getSession } from "@/actions/auth";
 import { CheckoutForm } from "./components/checkout-form";
 
 const PLANS = {
-  test: { name: "Test Plan", price: 100, duration: 1 },
+  test: { name: "Test Plan", price: 500, duration: 1 },
   daily: { name: "Daily", price: 1000, duration: 1 },
   weekly: { name: "Weekly", price: 2500, duration: 7 },
   two_weeks: { name: "2 Weeks", price: 3500, duration: 14 },

@@ -36,7 +36,7 @@ export default function PaymentStatusPage() {
       const paymentStatus: string = result.data?.status ?? "pending";
 
       if (paymentStatus === "COMPLETED") {
-        router.replace("/payment/success");
+        router.replace(`/payment/success?paymentId=${paymentId}`);
         return;
       }
 

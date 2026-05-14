@@ -28,29 +28,25 @@ export function MobileMoneyForm({ plan, user, onBack }: MobileMoneyFormProps) {
   const [customerName, setCustomerName] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handlePhoneChange = (value: string) => {
-    setPhoneNumber(value);
-    setPhoneValid(null);
-    setCustomerName(null);
+  const isPlausibleUgandaNumber = (clean: string) => {
+    const digits = clean.replace(/\D/g, "");
+    // Accept: 0XXXXXXXXX (10 digits), XXXXXXXXX (9 digits not starting with 0), 256XXXXXXXXX (12 digits)
+    if (digits.startsWith("256") && digits.length === 12) return true;
+    if (digits.startsWith("0") && digits.length === 10) return true;
+    if (!digits.startsWith("0") && digits.length === 9) return true;
+    return false;
+  };
 
+  const triggerValidation = (phone: string, prov: "mtn" | "airtel") => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-
-    const clean = value.replace(/[\s\-()]/g, ""); // strip spaces, dashes, brackets
-    // Only validate when we have a plausible number length (9 digits minimum)
-    if (clean.replace(/\D/g, "").length < 9) return;
-
+    const clean = phone.replace(/[\s\-()]/g, "");
+    if (!isPlausibleUgandaNumber(clean)) return;
     debounceRef.current = setTimeout(async () => {
       setValidating(true);
       try {
-        const result = await validateMobileMoneyPhone(clean);
-        // Only mark invalid when Relworx explicitly confirmed it — not on API/network errors
-        if (result.success) {
-          setPhoneValid(result.valid);
-          setCustomerName(result.customerName ?? null);
-        } else {
-          // Validation call itself failed — leave as unknown, don't block the user
-          setPhoneValid(null);
-        }
+        const result = await validateMobileMoneyPhone(clean, prov);
+        setPhoneValid(result.success ? result.valid : null);
+        setCustomerName(result.customerName ?? null);
       } catch {
         setPhoneValid(null);
       } finally {
@@ -59,12 +55,26 @@ export function MobileMoneyForm({ plan, user, onBack }: MobileMoneyFormProps) {
     }, 800);
   };
 
+  const handlePhoneChange = (value: string) => {
+    setPhoneNumber(value);
+    setPhoneValid(null);
+    setCustomerName(null);
+    triggerValidation(value, provider);
+  };
+
+  const handleProviderChange = (value: "mtn" | "airtel") => {
+    setProvider(value);
+    setPhoneValid(null);
+    setCustomerName(null);
+    if (phoneNumber) triggerValidation(phoneNumber, value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const cleanPhone = phoneNumber.replace(/[\s\-()]/g, "");
-    if (cleanPhone.replace(/\D/g, "").length < 9) {
-      toast.error("Please enter a valid Ugandan phone number");
+    if (!isPlausibleUgandaNumber(cleanPhone)) {
+      toast.error("Please enter a valid 10-digit Ugandan phone number (e.g. 0709704128)");
       return;
     }
 
@@ -109,7 +119,7 @@ export function MobileMoneyForm({ plan, user, onBack }: MobileMoneyFormProps) {
       {/* Provider selection */}
       <div>
         <Label className="mb-3 block">Select Provider</Label>
-        <RadioGroup value={provider} onValueChange={(v: any) => setProvider(v)}>
+        <RadioGroup value={provider} onValueChange={(v: any) => handleProviderChange(v)}>
           <div className="flex items-center space-x-2 border-2 border-border rounded-lg p-4 hover:border-orange-500 transition-colors">
             <RadioGroupItem value="mtn" id="mtn" />
             <Label htmlFor="mtn" className="flex-1 cursor-pointer">
@@ -200,7 +210,7 @@ export function MobileMoneyForm({ plan, user, onBack }: MobileMoneyFormProps) {
         </Button>
         <Button
           type="submit"
-          disabled={isProcessing || phoneValid === false}
+          disabled={isProcessing || phoneValid !== true}
           className="flex-1 bg-orange-500 hover:bg-orange-600"
         >
           {isProcessing ? (

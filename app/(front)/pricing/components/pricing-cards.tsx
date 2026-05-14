@@ -27,7 +27,7 @@ const PLANS = [
   {
     id: "test",
     name: "Test Plan",
-    price: 100,
+    price: 500,
     duration: "1 hour",
     icon: Zap,
     color: "text-gray-400",
