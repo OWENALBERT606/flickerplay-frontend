@@ -27,12 +27,12 @@ export const GuestWatchManager = {
   },
 
   hasReachedLimit(): boolean {
-    return this.getWatchCount() >= 2;
+    return this.getWatchCount() >= 1;
   },
 
   canWatch(movieId: string): boolean {
     const watched = this.getWatchedMovies();
     if (watched.includes(movieId)) return true;
-    return watched.length < 2;
+    return watched.length < 1;
   }
 };

@@ -10,25 +10,39 @@ import { toast } from "sonner";
 
 const PLANS = [
   {
-    id: "free",
-    name: "Free",
-    price: 0,
-    duration: "forever",
+    id: "weekly",
+    name: "Premium Weekly",
+    price: 2000,
+    duration: "7 days",
     icon: Zap,
     color: "text-blue-500",
     features: [
-      "Watch all movies & series",
-      "Standard quality streaming",
-      "1 movie download per day",
-      "Ads during playback",
+      "Unlimited movies & series",
+      "Full HD streaming",
+      "Download movies",
+      "Ad-free experience",
       "Watch on 1 device",
-      "Access to all content"
+    ]
+  },
+  {
+    id: "two_weeks",
+    name: "Premium 2 Weeks",
+    price: 3500,
+    duration: "14 days",
+    icon: Zap,
+    color: "text-purple-500",
+    features: [
+      "Unlimited movies & series",
+      "Full HD & 4K streaming",
+      "Unlimited downloads",
+      "Ad-free experience",
+      "Watch on 2 devices",
     ]
   },
   {
     id: "monthly",
     name: "Premium Monthly",
-    price: 10000,
+    price: 6000,
     duration: "30 days",
     popular: true,
     icon: Crown,
@@ -66,7 +80,7 @@ export function PricingCards({ userId }: PricingCardsProps) {
   };
 
   return (
-    <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-16">
+    <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
       {PLANS.map((plan) => {
         const Icon = plan.icon;
         const isPopular = plan.popular;

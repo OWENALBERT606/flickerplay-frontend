@@ -58,13 +58,13 @@ export default async function MovieDetailPage({
     notFound();
   }
 
-  // Guest users: allow 2 movies
+  // Guest users: allow 1 movie
   if (!user) {
     const guestMoviesCookie = cookieStore.get("guest_movies")?.value || "";
     const watchedMovieIds = guestMoviesCookie ? guestMoviesCookie.split(",") : [];
     const hasWatchedThisMovie = watchedMovieIds.includes(movie.id);
 
-    if (!hasWatchedThisMovie && watchedMovieIds.length >= 2) {
+    if (!hasWatchedThisMovie && watchedMovieIds.length >= 1) {
       return (
         <div className="min-h-screen bg-black text-white">
           <SubscriptionPaywall type="guest-limit" title={movie.title} />
@@ -155,7 +155,24 @@ export default async function MovieDetailPage({
     ]);
 
   const isSubscribed = subscriptionStatus.isSubscribed;
-  const overFreeLimit = false;
+  
+  // Free tier limit: 3 movies
+  if (!isSubscribed && moviesWatchedThisMonth >= 3) {
+    // Check if they've already started this movie
+    const hasProgress = progressData?.data?.progressPercent && progressData.data.progressPercent > 0;
+    
+    if (!hasProgress) {
+      return (
+        <div className="min-h-screen bg-black text-white">
+          <SubscriptionPaywall 
+            type="movie-limit" 
+            title={movie.title} 
+            moviesWatched={moviesWatchedThisMonth} 
+          />
+        </div>
+      );
+    }
+  }
 
   // Increment view count (fire and forget)
   incrementMovieViews(movie.id).catch(console.error);

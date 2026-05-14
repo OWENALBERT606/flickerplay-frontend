@@ -6,7 +6,9 @@ import { getSession } from "@/actions/auth";
 import { CheckoutForm } from "./components/checkout-form";
 
 const PLANS = {
-  monthly: { name: "Premium Monthly", price: 10000, duration: 30 },
+  weekly: { name: "Premium Weekly", price: 2000, duration: 7 },
+  two_weeks: { name: "Premium 2 Weeks", price: 3500, duration: 14 },
+  monthly: { name: "Premium Monthly", price: 6000, duration: 30 },
 };
 
 export default async function CheckoutPage({

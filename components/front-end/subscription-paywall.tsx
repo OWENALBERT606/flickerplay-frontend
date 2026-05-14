@@ -18,20 +18,20 @@ export function SubscriptionPaywall({
 }: SubscriptionPaywallProps) {
   const messages = {
     "movie-limit": {
-      heading: "Free movie limit reached",
-      body: `You've watched all ${FREE_MOVIES_PER_MONTH} free movies for this month. Upgrade to keep watching.`,
+      heading: "Free limit reached",
+      body: "You've watched 3 movies for free. Subscribe to unlock unlimited access to all 20+ movies and series.",
     },
     series: {
       heading: "Subscription required",
-      body: "Series are available on the Monthly plan only. Upgrade to unlock all series.",
+      body: "Series are available on Premium plans. Upgrade to unlock all series.",
     },
     "movie-guest": {
       heading: "Sign in to watch",
-      body: "Create a free account to watch up to 5 movies per month, or subscribe for unlimited access.",
+      body: "Create a free account to watch more movies, or subscribe for unlimited access.",
     },
     "guest-limit": {
       heading: "Guest limit reached",
-      body: "You've watched 2 movies as a guest. Sign in to keep watching for free or subscribe for unlimited access.",
+      body: "You've watched 1 movie as a guest. Sign in to keep watching for free or subscribe for unlimited access.",
     },
   };
 
@@ -57,7 +57,7 @@ export function SubscriptionPaywall({
 
         {type === "movie-limit" && (
           <div className="flex items-center justify-center gap-2">
-            {Array.from({ length: FREE_MOVIES_PER_MONTH }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
                 className={`w-8 h-2 rounded-full ${
@@ -68,10 +68,20 @@ export function SubscriptionPaywall({
           </div>
         )}
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3 text-left">
-          <div className="flex items-center gap-2 text-orange-500 font-semibold">
-            <Crown className="w-4 h-4" />
-            Monthly Plan — 6,000 UGX/month
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4 text-left">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="p-2 bg-gray-800 rounded-lg text-center">
+              <p className="text-[10px] text-gray-400 uppercase">Weekly</p>
+              <p className="text-sm font-bold text-white">2,000</p>
+            </div>
+            <div className="p-2 bg-orange-500/10 border border-orange-500/30 rounded-lg text-center">
+              <p className="text-[10px] text-orange-500 uppercase font-bold">Monthly</p>
+              <p className="text-sm font-bold text-white">6,000</p>
+            </div>
+            <div className="p-2 bg-gray-800 rounded-lg text-center">
+              <p className="text-[10px] text-gray-400 uppercase">2 Weeks</p>
+              <p className="text-sm font-bold text-white">3,500</p>
+            </div>
           </div>
           <ul className="space-y-2 text-sm text-gray-300">
             {[
@@ -79,7 +89,6 @@ export function SubscriptionPaywall({
               "Full HD & 4K streaming",
               "Unlimited downloads",
               "Ad-free experience",
-              "Watch on up to 3 devices",
             ].map((f) => (
               <li key={f} className="flex items-center gap-2">
                 <Play className="w-3 h-3 text-orange-500 flex-shrink-0" />
@@ -95,7 +104,7 @@ export function SubscriptionPaywall({
             className="bg-orange-500 hover:bg-orange-600 text-white font-semibold"
             size="lg"
           >
-            <Link href="/checkout?plan=monthly">Subscribe for 6,000 UGX/mo</Link>
+            <Link href="/pricing">Choose a Plan</Link>
           </Button>
           {(type === "movie-guest" || type === "guest-limit") && (
             <Button asChild variant="outline" size="lg">
