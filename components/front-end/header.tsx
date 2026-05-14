@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { Bell, User, Menu, X, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -17,6 +17,18 @@ export function Header({ user }: { user?: any }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -129,76 +141,66 @@ export function Header({ user }: { user?: any }) {
 
             {/* Profile */}
             {user ? (
-              <div className="relative group">
-                <button className="flex items-center gap-2 focus:outline-none">
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen((o) => !o)}
+                  className="flex items-center gap-2 focus:outline-none"
+                >
                   {user.imageUrl ? (
                     <Image
                       src={user.imageUrl}
                       alt={user.name}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
+                      width={36}
+                      height={36}
+                      className="rounded-full ring-2 ring-transparent hover:ring-orange-500 transition"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold">
-                      {user.email?.[0]?.toUpperCase()}
+                    <div className="w-9 h-9 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold ring-2 ring-transparent hover:ring-orange-400 transition">
+                      {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
                     </div>
                   )}
-                  <span className="hidden lg:block text-sm text-foreground truncate max-w-[150px]">
+                  <span className="hidden lg:block text-sm text-foreground truncate max-w-[140px]">
                     {user.email}
                   </span>
                 </button>
 
                 {/* Dropdown */}
-                <div className="absolute right-0 mt-2 w-48 bg-background border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-                  <div className="px-4 py-3 border-b border-border">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                    {/* Show role badge for admins */}
-                    {(user.role === "ADMIN" || user.role === "SUPER_ADMIN" || user.role === "MANAGER") && (
-                      <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-orange-500 text-white rounded">
-                        {user.role}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="p-2">
-                    {/* ✅ Profile/Dashboard Link */}
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-left mb-1"
-                      asChild
-                    >
-                      <Link href={getProfileRoute()}>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-background border border-border rounded-xl shadow-xl z-50">
+                    <div className="px-4 py-3 border-b border-border">
+                      <p className="text-sm font-semibold truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      {(user.role === "ADMIN" || user.role === "SUPER_ADMIN" || user.role === "MANAGER") && (
+                        <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-orange-500 text-white rounded-full">
+                          {user.role.replace("_", " ")}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-2 space-y-0.5">
+                      <Link
+                        href={getProfileRoute()}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent transition-colors"
+                      >
                         {user.role === "ADMIN" || user.role === "SUPER_ADMIN" || user.role === "MANAGER" ? (
-                          <>
-                            <LayoutDashboard className="w-4 h-4 mr-2" />
-                            Dashboard
-                          </>
+                          <><LayoutDashboard className="w-4 h-4 text-muted-foreground" /> Dashboard</>
                         ) : (
-                          <>
-                            <UserCircle className="w-4 h-4 mr-2" />
-                            Profile
-                          </>
+                          <><UserCircle className="w-4 h-4 text-muted-foreground" /> Profile</>
                         )}
                       </Link>
-                    </Button>
 
-                    {/* Logout Button */}
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-left text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (!isLoggingOut) handleLogout();
-                      }}
-                      disabled={isLoggingOut}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      {isLoggingOut ? "Logging out..." : "Log out"}
-                    </Button>
+                      <button
+                        onClick={(e) => { e.preventDefault(); setIsDropdownOpen(false); if (!isLoggingOut) handleLogout(); }}
+                        disabled={isLoggingOut}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-lg text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        {isLoggingOut ? "Logging out..." : "Log out"}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             ) : (
               <Link href="/login">
