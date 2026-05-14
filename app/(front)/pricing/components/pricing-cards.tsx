@@ -96,6 +96,49 @@ const PLANS = [
       "Watch on up to 3 devices",
       "Early access to new releases",
     ]
+  },
+  {
+    id: "quarterly",
+    name: "Quarterly",
+    price: 15000,
+    duration: "3 months",
+    icon: Crown,
+    color: "text-amber-600",
+    features: [
+      "Everything in Monthly",
+      "Valid for 90 days",
+      "Watch on up to 4 devices",
+      "Priority support",
+    ]
+  },
+  {
+    id: "semiannual",
+    name: "6 Months",
+    price: 25000,
+    duration: "6 months",
+    icon: Crown,
+    color: "text-indigo-500",
+    features: [
+      "Everything in Quarterly",
+      "Valid for 180 days",
+      "Watch on up to 5 devices",
+      "Exclusive preview of upcoming content",
+    ]
+  },
+  {
+    id: "annual",
+    name: "Annual",
+    price: 45000,
+    duration: "1 year",
+    bestValue: true,
+    icon: Crown,
+    color: "text-rose-500",
+    features: [
+      "Best overall value",
+      "Unlimited devices simultaneously",
+      "Valid for 365 days",
+      "Lifetime membership badge",
+    ]
   }
 ];
 
@@ -119,7 +162,7 @@ export function PricingCards({ userId }: PricingCardsProps) {
   };
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
       {PLANS.map((plan) => {
         const Icon = plan.icon;
         const isPopular = plan.popular;
@@ -129,7 +172,7 @@ export function PricingCards({ userId }: PricingCardsProps) {
         return (
           <Card
             key={plan.id}
-            className={`relative p-6 ${
+            className={`relative p-6 flex flex-col ${
               isPopular || isBestValue
                 ? "border-2 border-orange-500 shadow-lg shadow-orange-500/20"
                 : ""
@@ -170,22 +213,34 @@ export function PricingCards({ userId }: PricingCardsProps) {
               )}
             </div>
 
+            {/* Features */}
+            <ul className="space-y-3 mb-8 flex-1">
+              {plan.features.map((feature, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm">
+                  <Check className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
             {/* CTA Button */}
-            <Button
-              className={`w-full ${
-                isPopular || isBestValue
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : ""
-              }`}
-              onClick={() => handleSubscribe(plan.id)}
-              disabled={selectedPlan === plan.id}
-            >
-              {selectedPlan === plan.id
-                ? "Processing..."
-                : plan.id === "free"
-                ? "Get Started Free"
-                : "Subscribe Now"}
-            </Button>
+            <div className="mt-auto">
+              <Button
+                className={`w-full ${
+                  isPopular || isBestValue
+                    ? "bg-orange-500 hover:bg-orange-600"
+                    : ""
+                }`}
+                onClick={() => handleSubscribe(plan.id)}
+                disabled={selectedPlan === plan.id}
+              >
+                {selectedPlan === plan.id
+                  ? "Processing..."
+                  : plan.id === "free"
+                  ? "Get Started Free"
+                  : "Subscribe Now"}
+              </Button>
+            </div>
           </Card>
         );
       })}
