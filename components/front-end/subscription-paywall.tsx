@@ -69,11 +69,17 @@ export function SubscriptionPaywall({
         )}
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4 text-left">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="p-2 bg-gray-800 rounded-lg text-center">
+              <p className="text-[10px] text-gray-400 uppercase">Test Plan</p>
+              <p className="text-sm font-bold text-white">100</p>
+            </div>
             <div className="p-2 bg-gray-800 rounded-lg text-center">
               <p className="text-[10px] text-gray-400 uppercase">Weekly</p>
               <p className="text-sm font-bold text-white">2,000</p>
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
             <div className="p-2 bg-orange-500/10 border border-orange-500/30 rounded-lg text-center">
               <p className="text-[10px] text-orange-500 uppercase font-bold">Monthly</p>
               <p className="text-sm font-bold text-white">6,000</p>

@@ -20,7 +20,7 @@ export function MobileMoneyForm({ plan, user, onBack }: MobileMoneyFormProps) {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [provider, setProvider] = useState<"mtn" | "airtel">("mtn");
-  const [phoneNumber, setPhoneNumber] = useState(user.phone || "");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   // Live phone validation state
   const [validating, setValidating] = useState(false);
@@ -145,7 +145,7 @@ export function MobileMoneyForm({ plan, user, onBack }: MobileMoneyFormProps) {
           <Input
             id="phone"
             type="tel"
-            placeholder="e.g. 0701234567 or +256701234567"
+            placeholder="07xxxxxxxx"
             value={phoneNumber}
             onChange={(e) => handlePhoneChange(e.target.value)}
             required

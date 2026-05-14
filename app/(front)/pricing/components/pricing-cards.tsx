@@ -10,9 +10,50 @@ import { toast } from "sonner";
 
 const PLANS = [
   {
+    id: "free",
+    name: "Free",
+    price: 0,
+    duration: "forever",
+    icon: Zap,
+    color: "text-blue-500",
+    features: [
+      "Watch 3 movies for free",
+      "No credit card required",
+      "HD quality streaming",
+      "Watch on any device",
+      "No series access",
+    ]
+  },
+  {
+    id: "test",
+    name: "Test Plan",
+    price: 100,
+    duration: "1 hour",
+    icon: Zap,
+    color: "text-gray-400",
+    features: [
+      "Testing only",
+      "Valid for 1 hour",
+    ]
+  },
+  {
+    id: "daily",
+    name: "Daily",
+    price: 1000,
+    duration: "24 hours",
+    icon: Zap,
+    color: "text-green-500",
+    features: [
+      "Unlimited movies & series",
+      "HD streaming",
+      "Ad-free experience",
+      "Watch on 1 device",
+    ]
+  },
+  {
     id: "weekly",
-    name: "Premium Weekly",
-    price: 2000,
+    name: "Weekly",
+    price: 2500,
     duration: "7 days",
     icon: Zap,
     color: "text-blue-500",
@@ -26,7 +67,7 @@ const PLANS = [
   },
   {
     id: "two_weeks",
-    name: "Premium 2 Weeks",
+    name: "2 Weeks",
     price: 3500,
     duration: "14 days",
     icon: Zap,
@@ -41,7 +82,7 @@ const PLANS = [
   },
   {
     id: "monthly",
-    name: "Premium Monthly",
+    name: "Monthly",
     price: 6000,
     duration: "30 days",
     popular: true,
@@ -54,8 +95,6 @@ const PLANS = [
       "Ad-free experience (No Ads)",
       "Watch on up to 3 devices",
       "Early access to new releases",
-      "Offline viewing",
-      "Priority customer support"
     ]
   }
 ];
@@ -80,7 +119,7 @@ export function PricingCards({ userId }: PricingCardsProps) {
   };
 
   return (
-    <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
       {PLANS.map((plan) => {
         const Icon = plan.icon;
         const isPopular = plan.popular;
@@ -130,16 +169,6 @@ export function PricingCards({ userId }: PricingCardsProps) {
                 </p>
               )}
             </div>
-
-            {/* Features */}
-            <ul className="space-y-3 mb-6">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm">{feature}</span>
-                </li>
-              ))}
-            </ul>
 
             {/* CTA Button */}
             <Button
