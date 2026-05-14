@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -13,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Pencil, Plus, Play, Star } from "lucide-react";
+import { Eye, Pencil, Plus, Play, Star, Search } from "lucide-react";
 import type { Movie } from "@/actions/movies";
 import { DeleteMovieButton } from "./delete-movie-button";
 
@@ -22,6 +24,14 @@ interface MovieListingProps {
 }
 
 export default function MovieListing({ movies }: MovieListingProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredMovies = movies.filter((movie) =>
+    movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    movie.vj.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    movie.genre.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const totalMovies = movies.length;
   const trendingCount = movies.filter((m) => m.isTrending).length;
   const comingSoonCount = movies.filter((m) => m.isComingSoon).length;
@@ -78,8 +88,17 @@ export default function MovieListing({ movies }: MovieListingProps) {
 
       {/* Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>All Movies</CardTitle>
+          <div className="relative w-72">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search movies, VJs, or genres..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -98,23 +117,27 @@ export default function MovieListing({ movies }: MovieListingProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {movies.length === 0 ? (
+              {filteredMovies.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-12">
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-4xl mb-2">🎬</span>
-                      <p className="text-muted-foreground">No movies found</p>
-                      <Link href="/dashboard/movies/new">
-                        <Button variant="outline" size="sm" className="mt-2">
-                          <Plus className="mr-2 h-4 w-4" />
-                          Create your first movie
-                        </Button>
-                      </Link>
+                      <p className="text-muted-foreground">
+                        {searchQuery ? `No movies matching "${searchQuery}"` : "No movies found"}
+                      </p>
+                      {!searchQuery && (
+                        <Link href="/dashboard/movies/new">
+                          <Button variant="outline" size="sm" className="mt-2">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Create your first movie
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                movies.map((movie) => (
+                filteredMovies.map((movie) => (
                   <TableRow key={movie.id}>
                     <TableCell>
                       <div className="relative w-16 h-24 rounded overflow-hidden">
