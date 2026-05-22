@@ -1,249 +1,68 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Check, Zap, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Crown, Zap, Check } from "lucide-react";
 
-const PLANS = [
-  {
-    id: "free",
-    name: "Free",
-    price: 0,
-    duration: "forever",
-    icon: Zap,
-    color: "text-blue-500",
-    features: [
-      "Watch 3 movies for free",
-      "No credit card required",
-      "HD quality streaming",
-      "Watch on any device",
-      "No series access",
-    ]
-  },
-  {
-    id: "test",
-    name: "Test Plan",
-    price: 500,
-    duration: "1 hour",
-    icon: Zap,
-    color: "text-gray-400",
-    features: [
-      "Testing only",
-      "Valid for 1 hour",
-    ]
-  },
-  {
-    id: "daily",
-    name: "Daily",
-    price: 1000,
-    duration: "24 hours",
-    icon: Zap,
-    color: "text-green-500",
-    features: [
-      "Unlimited movies & series",
-      "HD streaming",
-      "Ad-free experience",
-      "Watch on 1 device",
-    ]
-  },
-  {
-    id: "weekly",
-    name: "Weekly",
-    price: 2500,
-    duration: "7 days",
-    icon: Zap,
-    color: "text-blue-500",
-    features: [
-      "Unlimited movies & series",
-      "Full HD streaming",
-      "Download movies",
-      "Ad-free experience",
-      "Watch on 1 device",
-    ]
-  },
-  {
-    id: "two_weeks",
-    name: "2 Weeks",
-    price: 3500,
-    duration: "14 days",
-    icon: Zap,
-    color: "text-purple-500",
-    features: [
-      "Unlimited movies & series",
-      "Full HD & 4K streaming",
-      "Unlimited downloads",
-      "Ad-free experience",
-      "Watch on 2 devices",
-    ]
-  },
-  {
-    id: "monthly",
-    name: "Monthly",
-    price: 6000,
-    duration: "30 days",
-    popular: true,
-    icon: Crown,
-    color: "text-orange-500",
-    features: [
-      "Unlimited movies & series",
-      "Full HD & 4K streaming",
-      "Unlimited downloads",
-      "Ad-free experience (No Ads)",
-      "Watch on up to 3 devices",
-      "Early access to new releases",
-    ]
-  },
-  {
-    id: "quarterly",
-    name: "Quarterly",
-    price: 15000,
-    duration: "3 months",
-    icon: Crown,
-    color: "text-amber-600",
-    features: [
-      "Everything in Monthly",
-      "Valid for 90 days",
-      "Watch on up to 4 devices",
-      "Priority support",
-    ]
-  },
-  {
-    id: "semiannual",
-    name: "6 Months",
-    price: 25000,
-    duration: "6 months",
-    icon: Crown,
-    color: "text-indigo-500",
-    features: [
-      "Everything in Quarterly",
-      "Valid for 180 days",
-      "Watch on up to 5 devices",
-      "Exclusive preview of upcoming content",
-    ]
-  },
-  {
-    id: "annual",
-    name: "Annual",
-    price: 45000,
-    duration: "1 year",
-    bestValue: true,
-    icon: Crown,
-    color: "text-rose-500",
-    features: [
-      "Best overall value",
-      "Unlimited devices simultaneously",
-      "Valid for 365 days",
-      "Lifetime membership badge",
-    ]
-  }
-];
-
-interface PricingCardsProps {
+interface PricingCardProps {
   userId?: string;
 }
 
-export function PricingCards({ userId }: PricingCardsProps) {
-  const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+const plans = [
+  { id: "daily", name: "Daily Pass", price: "1,000", period: "day", popular: false, features: ["All content", "HD streaming", "24-hour access"] },
+  { id: "weekly", name: "Weekly", price: "2,500", period: "week", popular: false, features: ["All content", "Full HD", "7-day access", "Downloads"] },
+  { id: "monthly", name: "Monthly", price: "6,000", period: "month", popular: true, features: ["All content", "4K streaming", "30-day access", "Downloads", "Ad-free"] },
+  { id: "annual", name: "Annual", price: "45,000", period: "year", popular: false, features: ["All content", "4K streaming", "365-day access", "Downloads", "Ad-free", "Early access"] },
+];
 
-  const handleSubscribe = (planId: string) => {
+export function PricingCards({ userId }: PricingCardProps) {
+  const router = useRouter();
+
+  const handleSelect = (planId: string) => {
     if (!userId) {
-      toast.error("Please login to subscribe");
       router.push(`/login?redirect=/pricing&plan=${planId}`);
       return;
     }
-
-    setSelectedPlan(planId);
     router.push(`/checkout?plan=${planId}`);
   };
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
-      {PLANS.map((plan) => {
-        const Icon = plan.icon;
-        const isPopular = plan.popular;
-        const p = plan as typeof plan & { bestValue?: boolean; originalPrice?: number; savings?: string };
-        const isBestValue = p.bestValue;
-
-        return (
-          <Card
-            key={plan.id}
-            className={`relative p-6 flex flex-col ${
-              isPopular || isBestValue
-                ? "border-2 border-orange-500 shadow-lg shadow-orange-500/20"
-                : ""
-            }`}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+      {plans.map((plan) => (
+        <div
+          key={plan.id}
+          className={`relative bg-card rounded-xl border-2 p-6 ${
+            plan.popular ? "border-orange-500 shadow-lg shadow-orange-500/20" : "border-border"
+          }`}
+        >
+          {plan.popular && (
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-orange-500 text-white text-sm font-semibold rounded-full">
+              Most Popular
+            </div>
+          )}
+          <div className="text-center mb-6">
+            <p className="text-3xl font-bold mb-1">{plan.price}</p>
+            <p className="text-sm text-muted-foreground">UGX / {plan.period}</p>
+          </div>
+          <h3 className="text-lg font-semibold text-center mb-4">{plan.name}</h3>
+          <ul className="space-y-2 mb-6">
+            {plan.features.map((f, i) => (
+              <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Check className="w-4 h-4 text-green-500" />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <Button
+            onClick={() => handleSelect(plan.id)}
+            className={`w-full ${plan.popular ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+            variant={plan.popular ? "default" : "outline"}
           >
-            {/* Badge */}
-            {isPopular && (
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-orange-500">
-                Most Popular
-              </Badge>
-            )}
-            {isBestValue && (
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-500 to-red-500">
-                Best Value
-              </Badge>
-            )}
-
-            {/* Header */}
-            <div className="text-center mb-6">
-              <Icon className={`w-12 h-12 mx-auto mb-3 ${plan.color}`} />
-              <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-              <div className="mb-2">
-                {p.originalPrice && (
-                  <span className="text-muted-foreground line-through text-sm mr-2">
-                    {p.originalPrice.toLocaleString()} UGX
-                  </span>
-                )}
-                <span className="text-4xl font-bold">
-                  {plan.price.toLocaleString()}
-                </span>
-                <span className="text-muted-foreground"> UGX</span>
-              </div>
-              <p className="text-muted-foreground text-sm">{plan.duration}</p>
-              {p.savings && (
-                <p className="text-green-500 text-sm font-semibold mt-1">
-                  {p.savings}
-                </p>
-              )}
-            </div>
-
-            {/* Features */}
-            <ul className="space-y-3 mb-8 flex-1">
-              {plan.features.map((feature, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm">
-                  <Check className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* CTA Button */}
-            <div className="mt-auto">
-              <Button
-                className={`w-full ${
-                  isPopular || isBestValue
-                    ? "bg-orange-500 hover:bg-orange-600"
-                    : ""
-                }`}
-                onClick={() => handleSubscribe(plan.id)}
-                disabled={selectedPlan === plan.id}
-              >
-                {selectedPlan === plan.id
-                  ? "Processing..."
-                  : plan.id === "free"
-                  ? "Get Started Free"
-                  : "Subscribe Now"}
-              </Button>
-            </div>
-          </Card>
-        );
-      })}
+            Select Plan
+          </Button>
+        </div>
+      ))}
     </div>
   );
 }

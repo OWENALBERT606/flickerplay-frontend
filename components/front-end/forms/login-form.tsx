@@ -490,9 +490,9 @@ export function LoginForm() {
       </div>
 
       {/* Google Sign-In Button */}
-      <GoogleSignInButton 
+      <GoogleSignInButton
         clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
-        redirectUri="https://moviechamp256-nodejs-api-production.up.railway.app/api/v1/auth/google/callback"
+        redirectUri={`${process.env.NEXT_PUBLIC_APP_URL || "https://flickerplay-frontend.vercel.app"}/api/auth/google/callback`}
       />
     </form>
   )

@@ -9,10 +9,14 @@ function GoogleCallbackContent() {
   const error = searchParams.get("error");
 
   useEffect(() => {
+    if (!window.opener) return;
+    const origin = window.location.origin;
     if (code) {
-      window.opener.postMessage({ type: "google-auth", code }, "*");
+      window.opener.postMessage({ type: "google-auth", code }, origin);
+      window.close();
     } else if (error) {
-      window.opener.postMessage({ type: "google-auth-error", error }, "*");
+      window.opener.postMessage({ type: "google-auth-error", error }, origin);
+      window.close();
     }
   }, [code, error]);
 

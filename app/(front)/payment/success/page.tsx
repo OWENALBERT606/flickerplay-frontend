@@ -19,16 +19,16 @@ const PLAN_INFO: Record<string, { name: string; duration: string }> = {
 export default async function PaymentSuccessPage({
   searchParams,
 }: {
-  searchParams: { paymentId?: string };
+  searchParams: Promise<{ paymentId?: string }>;
 }) {
+  const params = await searchParams;
   const session = await getSession();
   if (!session?.user) redirect("/login");
 
-  const paymentId = searchParams.paymentId;
+  const paymentId = params.paymentId;
 
   let planName = "Subscription";
   let duration = "";
-  let daysLeft: number | null = null;
 
   if (paymentId) {
     const result = await getPaymentStatus(paymentId);
@@ -38,19 +38,10 @@ export default async function PaymentSuccessPage({
       planName = info.name;
       duration = info.duration;
     }
-    if (sub?.endDate) {
-      daysLeft = Math.ceil(
-        (new Date(sub.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-      );
-    }
   }
 
   const expiryText =
-    daysLeft !== null && daysLeft > 0
-      ? `Your subscription expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"}.`
-      : duration
-      ? `Your ${planName} is valid for ${duration}.`
-      : "Your subscription is now active.";
+    `Your subscription is now active.`;
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
@@ -86,7 +77,7 @@ export default async function PaymentSuccessPage({
             ))}
           </ul>
           <div className="mt-3 pt-3 border-t border-green-500/20">
-            <p className="text-sm text-gray-400">{expiryText} You can cancel anytime.</p>
+            <p className="text-sm text-gray-400">{expiryText}</p>
           </div>
         </div>
 

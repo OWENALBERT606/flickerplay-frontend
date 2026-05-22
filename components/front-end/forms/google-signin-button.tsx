@@ -46,67 +46,58 @@ export function GoogleSignInButton({ clientId, redirectUri }: GoogleSignInButton
       }
 
       const result = await new Promise<{ success: boolean; error?: string }>((resolve) => {
+        let settled = false;
+        const settle = (val: { success: boolean; error?: string }) => {
+          if (settled) return;
+          settled = true;
+          clearInterval(checkClosed);
+          window.removeEventListener("message", onMessage);
+          resolve(val);
+        };
+
         const checkClosed = setInterval(() => {
-          if (popup.closed) {
-            clearInterval(checkClosed);
-            resolve({ success: false, error: "Sign in was cancelled" });
-          }
+          if (popup.closed) settle({ success: false, error: "Sign in was cancelled" });
         }, 500);
 
-        window.addEventListener("message", async (event) => {
-          const allowedOrigins = [
-            window.location.origin,
-            "https://moviechamp256-nodejs-api-production.up.railway.app"
-          ];
-          
-          if (!allowedOrigins.includes(event.origin)) return;
+        const onMessage = async (event: MessageEvent) => {
+          if (event.origin !== window.location.origin) return;
+          if (event.data?.type !== "google-auth" && event.data?.type !== "google-auth-error") return;
 
-          clearInterval(checkClosed);
           popup.close();
 
-          if (event.data?.type === "google-auth-error") {
-            resolve({ success: false, error: event.data.error });
+          if (event.data.type === "google-auth-error") {
+            settle({ success: false, error: event.data.error });
             return;
           }
 
-          if (event.data?.type === "google-auth" && event.data.code) {
+          if (event.data.code) {
             try {
               const res = await fetch("/api/auth/google", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ code: event.data.code }),
               });
-
               const data = await res.json();
-
               if (res.ok && data.success) {
-                toast.success("Google sign-in successful!", {
-                  description: "Welcome to Flickerplay"
-                });
-                
-                if (data.data?.user?.role === "SUPER_ADMIN" || 
-                    data.data?.user?.role === "ADMIN" || 
-                    data.data?.user?.role === "MANAGER") {
+                toast.success("Google sign-in successful!", { description: "Welcome to Flickerplay" });
+                const role = data.data?.user?.role;
+                if (role === "SUPER_ADMIN" || role === "ADMIN" || role === "MANAGER") {
                   router.push("/dashboard");
                 } else {
                   router.push("/");
                 }
                 router.refresh();
-                resolve({ success: true });
+                settle({ success: true });
               } else {
-                resolve({ 
-                  success: false, 
-                  error: data.error || "Google sign-in failed. Please try again." 
-                });
+                settle({ success: false, error: data.error || "Google sign-in failed. Please try again." });
               }
-            } catch (error: any) {
-              resolve({ 
-                success: false, 
-                error: error.message || "Google sign-in failed. Please try again." 
-              });
+            } catch (err: any) {
+              settle({ success: false, error: err.message || "Google sign-in failed. Please try again." });
             }
           }
-        });
+        };
+
+        window.addEventListener("message", onMessage);
       });
 
       if (!result.success && result.error) {

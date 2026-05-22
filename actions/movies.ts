@@ -60,6 +60,8 @@ export interface Movie {
     id: string;
     value: number;
   };
+  /** "tx" for movies sourced from the external scraper — absent for backend movies */
+  source?: "tx";
 }
 
 export interface MovieCreateInput {

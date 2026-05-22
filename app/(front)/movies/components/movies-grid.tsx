@@ -67,12 +67,18 @@ export function MovieGrid({ movies, userId }: MovieGridProps) {
               {movie.vj && <p className="text-xs text-white/70 mt-1">{movie.vj.name}</p>}
             </div>
 
-            {/* Rating Badge */}
+            {/* Rating / Source Badge */}
             <div className="absolute top-3 right-3 z-10">
-              <Badge className="bg-orange-500 text-white border-0 flex items-center gap-1 px-2 py-1">
-                <Star className="h-3 w-3 fill-white text-white" />
-                <span className="font-bold">{movie.rating.toFixed(1)}</span>
-              </Badge>
+              {movie.source === "tx" ? (
+                <Badge className="bg-orange-500/90 text-white border-0 px-2 py-1 text-xs font-bold">
+                  SC1
+                </Badge>
+              ) : (
+                <Badge className="bg-orange-500 text-white border-0 flex items-center gap-1 px-2 py-1">
+                  <Star className="h-3 w-3 fill-white text-white" />
+                  <span className="font-bold">{(movie.rating ?? 0).toFixed(1)}</span>
+                </Badge>
+              )}
             </div>
 
             {/* Trending Badge */}
@@ -106,19 +112,21 @@ export function MovieGrid({ movies, userId }: MovieGridProps) {
                 </Button>
               </Link>
 
-              {/* Add to list */}
-              <AddToListButton
-                itemId={movie.id}
-                userId={userId}
-                type="movie"
-                variant="secondary"
-                size="icon"
-                showText={false}
-                className="h-9 w-9 rounded-full bg-gray-800/80 hover:bg-gray-700 border-0 backdrop-blur-sm"
-              />
+              {/* Add to list — only for backend movies */}
+              {movie.source !== "tx" && (
+                <AddToListButton
+                  itemId={movie.id}
+                  userId={userId}
+                  type="movie"
+                  variant="secondary"
+                  size="icon"
+                  showText={false}
+                  className="h-9 w-9 rounded-full bg-gray-800/80 hover:bg-gray-700 border-0 backdrop-blur-sm"
+                />
+              )}
 
-              {/* Download */}
-              {movie.videoUrl && (
+              {/* Download — only for backend movies with a direct video URL */}
+              {movie.source !== "tx" && movie.videoUrl && (
                 <Button
                   onClick={(e) => handleDownload(movie, e)}
                   className="h-9 w-9 rounded-full bg-gray-800/80 hover:bg-gray-700 p-0 flex items-center justify-center border-0 backdrop-blur-sm"

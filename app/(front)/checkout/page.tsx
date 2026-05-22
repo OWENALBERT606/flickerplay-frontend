@@ -1,6 +1,3 @@
-
-
-
 import { redirect } from "next/navigation";
 import { getSession } from "@/actions/auth";
 import { CheckoutForm } from "./components/checkout-form";

@@ -108,9 +108,6 @@ export function NetflixPlayer({
   const [brightness, setBrightness]     = useState(1);
   const [showPicMenu, setShowPicMenu]   = useState(false);
 
-  // Monetag Ad state
-  const [adShown, setAdShown] = useState(true); // Default to true to avoid flash before effect
-
   // Ad state
   const [isAdPlaying, setIsAdPlaying] = useState(showAds);
   const [adCountdown, setAdCountdown] = useState(10);
@@ -125,16 +122,6 @@ export function NetflixPlayer({
 
   /* ── HLS ── */
   const { videoRef, levels, currentLevel, setLevel } = useHls(src, subtitlesProp);
-
-  /* ─────────────────────────────────────────────────────────────────────────
-     Monetag Ad initialization
-  ───────────────────────────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const shown = sessionStorage.getItem("ad_shown");
-      setAdShown(shown === "true");
-    }
-  }, []);
 
   /* ─────────────────────────────────────────────────────────────────────────
      Ads logic
@@ -270,16 +257,6 @@ export function NetflixPlayer({
   ───────────────────────────────────────────────────────────────────────── */
   const togglePlay = () => {
     if (isAdPlaying) return; // Prevent play during ad
-
-    // Monetag Ad Trigger logic
-    if (!adShown) {
-      if (typeof window !== "undefined") {
-        window.open("YOUR_MONETAG_DIRECT_LINK", "_blank");
-        sessionStorage.setItem("ad_shown", "true");
-        setAdShown(true);
-        return; // Do NOT start video yet
-      }
-    }
 
     const v = videoRef.current;
     if (!v) return;

@@ -1,6 +1,8 @@
 import { Suspense } from "react";
-import { listMovies } from "@/actions/movies";
+import { listMovies, type Movie } from "@/actions/movies";
+import { listTulabeMovies, normalizeTulabeMovie } from "@/actions/tulabe";
 import { getCachedListGenres, getCachedListVJs, getCachedListReleaseYears } from "@/lib/cache";
+import type { TulabePagination } from "@/actions/tulabe";
 
 export const dynamic = "force-dynamic";
 import { getSession } from "@/actions/auth";
@@ -40,23 +42,30 @@ export default async function MoviesPage({
     isComingSoon: params.coming_soon === "1"  ? true  : undefined,
   };
 
+  /* ── Only mix Tulabe movies when no filters are active ── */
+  const hasFilters = !!(params.genre || params.vj || params.year || params.search ||
+    params.trending || params.coming_soon || params.dubbed || params.sort);
+
   /* ── Fetch in parallel — use allSettled so a failing sidebar call never blocks the page ── */
-  const [moviesResult, genresResult, vjsResult, yearsResult] = await Promise.allSettled([
+  const [moviesResult, genresResult, vjsResult, yearsResult, tulabeResult] = await Promise.allSettled([
     listMovies(apiParams),
     getCachedListGenres(),
     getCachedListVJs(),
     getCachedListReleaseYears(),
+    hasFilters ? Promise.resolve({ movies: [], pagination: null as TulabePagination | null }) : listTulabeMovies(currentPage),
   ]);
 
   const moviesData = moviesResult.status === "fulfilled" ? moviesResult.value : { data: [], pagination: undefined };
   const genresData = genresResult.status === "fulfilled" ? genresResult.value : { data: [] };
   const vjsData    = vjsResult.status    === "fulfilled" ? vjsResult.value    : { data: [] };
   const yearsData  = yearsResult.status  === "fulfilled" ? yearsResult.value  : { data: [] };
+  const tulabeData = tulabeResult.status === "fulfilled" ? tulabeResult.value : { movies: [], pagination: null };
 
   let movies     = moviesData.data     || [];
   const genres   = genresData.data     || [];
   const vjs      = vjsData.data        || [];
   const years    = yearsData.data      || [];
+  const tulabeMovies: Movie[] = (tulabeData.movies || []).map(normalizeTulabeMovie);
   const pagination = moviesData.pagination;
 
   /* ── Client-side dubbed filter (VJ presence) ── */
@@ -70,6 +79,25 @@ export default async function MoviesPage({
   if (params.sort === "rating") {
     movies = [...movies].sort((a, b) => b.rating - a.rating);
   }
+
+  /* ── Interleave Tulabe movies: 1 after every 3 backend movies ── */
+  if (!hasFilters && tulabeMovies.length > 0) {
+    const mixed: Movie[] = [];
+    let ti = 0;
+    for (let i = 0; i < movies.length; i++) {
+      mixed.push(movies[i]);
+      if ((i + 1) % 3 === 0 && ti < tulabeMovies.length) {
+        mixed.push(tulabeMovies[ti++]);
+      }
+    }
+    while (ti < tulabeMovies.length) mixed.push(tulabeMovies[ti++]);
+    movies = mixed;
+  }
+
+  /* ── Total pages = max of backend and Tulabe ── */
+  const backendTotalPages = pagination?.totalPages ?? 1;
+  const tulabeTotalPages  = tulabeData.pagination?.total_pages ?? 1;
+  const totalPages = hasFilters ? backendTotalPages : Math.max(backendTotalPages, tulabeTotalPages);
 
   /* ── Active filter label for heading ── */
   const activeVJ    = vjs.find((v) => v.id === params.vj);
@@ -130,7 +158,7 @@ export default async function MoviesPage({
             <InfiniteMovieGrid
               initialMovies={movies}
               initialPage={currentPage}
-              totalPages={pagination?.totalPages ?? 1}
+              totalPages={totalPages}
               userId={userId}
               searchParams={params}
             />

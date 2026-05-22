@@ -41,28 +41,18 @@ export async function POST(request: NextRequest) {
     const res = await api.post("/auth/google", { code });
     const { user, accessToken, refreshToken } = res.data.data as LoginSuccessPayload;
 
-    // Set cookies
-    const response = NextResponse.json({
-      success: true,
-      data: { user, accessToken, refreshToken },
+    const isProd = process.env.NODE_ENV === "production";
+    const response = NextResponse.json({ success: true, data: { user, accessToken, refreshToken } });
+
+    response.cookies.set("accessToken", accessToken, {
+      httpOnly: true, secure: isProd, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/",
     });
-
-    // Set cookies on the response
-    const cookieHeaders = new Headers();
-    cookieHeaders.append(
-      "Set-Cookie",
-      `accessToken=${accessToken}; HttpOnly; Secure=${process.env.NODE_ENV === "production"}; SameSite=Lax; Max-Age=604800; Path=/`
-    );
-    cookieHeaders.append(
-      "Set-Cookie",
-      `refreshToken=${refreshToken}; HttpOnly; Secure=${process.env.NODE_ENV === "production"}; SameSite=Lax; Max-Age=2592000; Path=/`
-    );
-    cookieHeaders.append(
-      "Set-Cookie",
-      `userData=${JSON.stringify(user)}; HttpOnly; Secure=${process.env.NODE_ENV === "production"}; SameSite=Lax; Max-Age=2592000; Path=/`
-    );
-
-    response.headers.set("Set-Cookie", cookieHeaders.get("Set-Cookie") || "");
+    response.cookies.set("refreshToken", refreshToken, {
+      httpOnly: true, secure: isProd, sameSite: "lax", maxAge: 60 * 60 * 24 * 30, path: "/",
+    });
+    response.cookies.set("userData", JSON.stringify(user), {
+      httpOnly: true, secure: isProd, sameSite: "lax", maxAge: 60 * 60 * 24 * 30, path: "/",
+    });
 
     return response;
   } catch (error: any) {
