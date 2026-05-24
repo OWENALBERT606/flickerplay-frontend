@@ -57,14 +57,13 @@ export function ContinueWatchingContent({ items: initialItems, userId }: Continu
     <section>
       <h2 className="text-base font-bold mb-3 text-foreground">Continue Watching</h2>
 
-      {/* 4 compact landscape cards — forced single horizontal line */}
-      <div className="flex gap-3 overflow-x-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {items.slice(0, 4).map(item => {
           const details = getItemDetails(item);
           if (!details) return null;
 
           return (
-            <div key={item.id} className="group relative flex-1 min-w-0" style={{ minWidth: 0 }}>
+            <div key={item.id} className="group relative min-w-0">
               <Link href={details.link} className="block">
                 {/* 16:9 thumbnail */}
                 <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted">
