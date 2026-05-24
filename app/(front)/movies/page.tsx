@@ -5,7 +5,6 @@ import { getCachedListGenres, getCachedListVJs, getCachedListReleaseYears } from
 export const dynamic = "force-dynamic";
 import { getSession } from "@/actions/auth";
 import { MoviesSidebar } from "./components/movies-sidebar";
-import { FilterDrawer } from "@/components/front-end/filter-drawer";
 import { InfiniteMovieGrid } from "./components/infinite-movie-grid";
 import { Film } from "lucide-react";
 export default async function MoviesPage({
@@ -91,27 +90,15 @@ export default async function MoviesPage({
   return (
     <div className="min-h-screen bg-background">
       <main className="pt-20 px-4 md:px-8 lg:px-12 pb-12">
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+        <div className="flex flex-col gap-6">
 
-          {/* ── Sidebar ── */}
+          {/* ── Top filter bar ── */}
           <Suspense>
             <MoviesSidebar genres={genres} vjs={vjs} years={years} />
           </Suspense>
 
           {/* ── Main content ── */}
-          <div className="flex-1 min-w-0">
-            {/* Mobile/tablet filter drawer */}
-            <Suspense>
-              <FilterDrawer
-                basePath="/movies"
-                placeholder="Search movies…"
-                genres={genres}
-                vjs={vjs}
-                years={years}
-                allLabel="All Movies"
-              />
-            </Suspense>
-
+          <div className="min-w-0">
             {/* Header */}
             <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
               <div>
