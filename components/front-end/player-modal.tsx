@@ -25,7 +25,7 @@ export function PlayerModal({ children, backHref }: PlayerModalProps) {
 
   // Mobile / tablet — fixed full-screen overlay
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col">
+    <div className="fixed inset-0 z-[9999] bg-black flex flex-col">
       {/* Close button */}
       <button
         onClick={() => (backHref ? router.push(backHref) : router.back())}
