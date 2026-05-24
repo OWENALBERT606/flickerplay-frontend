@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { incrementEpisodeViews } from "@/actions/series";
 import { NetflixPlayer, type NextItem } from "@/components/front-end/netflix-player";
-import { PlayerModal } from "@/components/front-end/player-modal";
 import { Button } from "@/components/ui/button";
 import { SkipBack, SkipForward } from "lucide-react";
 
@@ -83,24 +82,22 @@ export function EpisodePlayer({
 
   return (
     <div className="bg-black min-h-screen">
-      {/* ── Player (modal on mobile/tablet) ── */}
-      <PlayerModal backHref={`/series/${series.slug}`}>
-        <NetflixPlayer
-          src={episode.videoUrl}
-          poster={episode.poster || season.poster || series.poster}
-          title={series.title}
-          subtitle={`Season ${season.seasonNumber} · Episode ${episode.episodeNumber}${episode.title ? ` · ${episode.title}` : ""}`}
-          backHref={`/series/${series.slug}`}
-          userId={userId}
-          itemId={episode.id}
-          itemType="episode"
-          initialProgress={initialProgress}
-          nextItem={nextItem}
-          onEnded={() => nextHref && router.push(nextHref)}
-          autoPlay
-          showAds={showAds}
-        />
-      </PlayerModal>
+      {/* ── Player ── */}
+      <NetflixPlayer
+        src={episode.videoUrl}
+        poster={episode.poster || season.poster || series.poster}
+        title={series.title}
+        subtitle={`Season ${season.seasonNumber} · Episode ${episode.episodeNumber}${episode.title ? ` · ${episode.title}` : ""}`}
+        backHref={`/series/${series.slug}`}
+        userId={userId}
+        itemId={episode.id}
+        itemType="episode"
+        initialProgress={initialProgress}
+        nextItem={nextItem}
+        onEnded={() => nextHref && router.push(nextHref)}
+        autoPlay
+        showAds={showAds}
+      />
 
       {/* ── Below-player info & nav ── */}
       <div className="px-4 md:px-8 lg:px-12 py-6 bg-black">
