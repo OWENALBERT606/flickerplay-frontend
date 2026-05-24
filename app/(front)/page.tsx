@@ -265,7 +265,7 @@ export default async function HomePage({
   return (
     <div className="min-h-screen bg-background">
       {/* ── Hero row: sidebar left + carousel right ── */}
-      <div className="flex mt-12">
+      <div className="flex mt-20">
         <Suspense>
           <HomeSidebar mode="hero" />
         </Suspense>
