@@ -3,6 +3,7 @@
 import type { Movie } from "@/actions/movies";
 import { NetflixPlayer } from "@/components/front-end/netflix-player";
 import { FreeTierBanner } from "@/components/front-end/free-tier-banner";
+import { PlayerModal } from "@/components/front-end/player-modal";
 import { useEffect, useState } from "react";
 import { GuestWatchManager } from "@/lib/guest-watch-manager";
 import { Loader2 } from "lucide-react";
@@ -63,22 +64,24 @@ export function MoviePlayer({
   }
 
   return (
-    <div className="w-full bg-black">
-      {showAds && <FreeTierBanner moviesWatched={moviesWatchedThisMonth} />}
-      <NetflixPlayer
-        src={streamUrl}
-        poster={movie.poster || movie.image}
-        title={movie.title}
-        subtitle={`${movie.year.value} · ${movie.genre.name}${movie.length ? ` · ${movie.length}` : ""}`}
-        backHref={`/movies/${movie.slug}`}
-        userId={userId}
-        itemId={movie.id}
-        itemType="movie"
-        initialProgress={initialProgress}
-        subtitles={movie.subtitles || []}
-        autoPlay
-        showAds={showAds}
-      />
-    </div>
+    <PlayerModal backHref={`/movies/${movie.slug}`}>
+      <div className="w-full bg-black">
+        {showAds && <FreeTierBanner moviesWatched={moviesWatchedThisMonth} />}
+        <NetflixPlayer
+          src={streamUrl}
+          poster={movie.poster || movie.image}
+          title={movie.title}
+          subtitle={`${movie.year.value} · ${movie.genre.name}${movie.length ? ` · ${movie.length}` : ""}`}
+          backHref={`/movies/${movie.slug}`}
+          userId={userId}
+          itemId={movie.id}
+          itemType="movie"
+          initialProgress={initialProgress}
+          subtitles={movie.subtitles || []}
+          autoPlay
+          showAds={showAds}
+        />
+      </div>
+    </PlayerModal>
   );
 }
