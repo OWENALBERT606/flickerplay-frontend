@@ -69,11 +69,11 @@ export default async function LbMoviePage({
                     {movie.genres.join(", ")}
                   </Badge>
                 )}
-                {movie.rating > 0 && (
+                {(movie.rating ?? 0) > 0 && (
                   <>
                     <span className="text-gray-400">•</span>
                     <Badge className="bg-orange-500/20 text-orange-400 border-0 text-xs">
-                      ⭐ {movie.rating.toFixed(1)}
+                      ⭐ {(movie.rating ?? 0).toFixed(1)}
                     </Badge>
                   </>
                 )}
