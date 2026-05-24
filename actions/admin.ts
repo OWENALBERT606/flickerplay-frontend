@@ -305,3 +305,23 @@ function buildStatusBreakdown(subscriptions: any[]) {
     { name: "Pending",   value: counts.PENDING,   color: "#eab308" },
   ].filter((d) => d.value > 0);
 }
+
+/* ─────────────── LabaFilm R2 Migration ─────────────── */
+
+export async function getLabaFilmMigrationStatus() {
+  try {
+    const res = await api.get("/admin/sync/labafilm/status");
+    return { success: true, data: res.data?.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to fetch migration status"), data: null };
+  }
+}
+
+export async function triggerLabaFilmMigration() {
+  try {
+    const res = await api.post("/admin/sync/labafilm/migrate-r2");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start migration") };
+  }
+}

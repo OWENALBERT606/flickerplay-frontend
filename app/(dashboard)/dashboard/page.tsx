@@ -1,5 +1,6 @@
 import { getSession } from "@/actions/auth";
 import { getDashboardStats } from "@/actions/dashboard";
+import { getLabaFilmMigrationStatus } from "@/actions/admin";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,7 @@ import { UserGrowthChart } from "./components/user-growth-chart";
 import { TopContent } from "./components/top-component";
 import { RecentTransactions } from "./components/recent-transactions";
 import { RecentUsers } from "./components/recent-users";
+import { LabaFilmMigrationPanel } from "./components/labafilm-migration-panel";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -24,7 +26,10 @@ export default async function DashboardPage() {
     redirect("/account");
   }
 
-  const stats = await getDashboardStats();
+  const [stats, migrationStatus] = await Promise.all([
+    getDashboardStats(),
+    getLabaFilmMigrationStatus(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -38,6 +43,9 @@ export default async function DashboardPage() {
 
       {/* Stats Cards */}
       <StatsCards stats={stats.data} />
+
+      {/* LabaFilm R2 Migration */}
+      <LabaFilmMigrationPanel initial={migrationStatus.data ?? null} />
 
       {/* Charts Row */}
       <div className="grid lg:grid-cols-2 gap-6">
