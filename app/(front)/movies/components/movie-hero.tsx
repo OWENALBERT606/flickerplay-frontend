@@ -180,7 +180,7 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
         <>
           {/* Poster shown until direct video is ready */}
           {!trailerReady && poster && (
-            <Image src={poster} alt={movie.title} fill className="object-cover" priority />
+            <Image src={poster} alt={movie.title} fill sizes="100vw" className="object-cover" priority />
           )}
           {/* Direct video file — autoplays muted in background */}
           <video
@@ -196,7 +196,7 @@ export function MovieHero({ movie, userId, initialProgress = 0 }: MovieHeroProps
         </>
       ) : poster ? (
         /* YouTube trailer or no trailer — show poster as background */
-        <Image src={poster} alt={movie.title} fill className="object-cover" priority />
+        <Image src={poster} alt={movie.title} fill sizes="100vw" className="object-cover" priority />
       ) : null}
 
       {/* Gradient overlays */}

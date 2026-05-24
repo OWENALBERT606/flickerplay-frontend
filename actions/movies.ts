@@ -60,8 +60,10 @@ export interface Movie {
     id: string;
     value: number;
   };
-  /** "tx" for movies sourced from the external scraper — absent for backend movies */
-  source?: "tx";
+  /** "tx" for Tulabe scraper movies, "labafilm" for LabaFilm-synced movies */
+  source?: "tx" | "labafilm";
+  /** LabaFilm internal _id — present when source === "labafilm" */
+  externalId?: string | null;
 }
 
 export interface MovieCreateInput {

@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED = ["f006.backblazeb2.com", "cdn.tulabe.com"];
+const ALLOWED = ["f006.backblazeb2.com", "labafilm.com", "labacdn.xyz"];
 
 export async function GET(req: NextRequest) {
   const rawUrl = req.nextUrl.searchParams.get("url");

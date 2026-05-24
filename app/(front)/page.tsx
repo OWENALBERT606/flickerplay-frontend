@@ -264,32 +264,40 @@ export default async function HomePage({
 
   return (
     <div className="min-h-screen bg-background">
-      <HeroCarousel userId={userId} items={heroItems} />
+      {/* ── Hero row: sidebar left + carousel right ── */}
+      <div className="flex mt-12">
+        <Suspense>
+          <HomeSidebar mode="hero" />
+        </Suspense>
+        <div className="flex-1 min-w-0">
+          <HeroCarousel userId={userId} items={heroItems} />
+        </div>
+      </div>
 
+      {/* ── Full-width content below hero ── */}
       <main className="px-4 md:px-8 lg:px-12 py-8">
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-          <Suspense>
-            <HomeSidebar />
-          </Suspense>
+        {/* Mobile/tablet filter pills */}
+        <Suspense>
+          <HomeSidebar mode="mobile" />
+        </Suspense>
 
-          <div className="flex-1 min-w-0 space-y-12 pb-12">
-            <ContinueWatching userId={userId} />
+        <div className="space-y-12 pb-12">
+          <ContinueWatching userId={userId} />
 
-            {availableTrendingMovies.length > 0 && (
-              <MovieSection userId={userId} title="🔥 Trending Movies" movies={availableTrendingMovies} />
-            )}
-            {availableTrendingSeries.length > 0 && (
-              <SeriesSection userId={userId} title="🔥 Trending TV Series" series={availableTrendingSeries} />
-            )}
-            {newMovies.length > 0 && (
-              <MovieSection userId={userId} title="🆕 New Releases" movies={newMovies} />
-            )}
-            {newSeries.length > 0 && (
-              <SeriesSection userId={userId} title="🆕 New TV Series" series={newSeries} />
-            )}
-            {/* Coming Soon — from TMDB/OMDB/YouTube only, not internal DB */}
-            <ExternalComingSoon movies={upcomingMovies} series={upcomingSeries} />
-          </div>
+          {availableTrendingMovies.length > 0 && (
+            <MovieSection userId={userId} title="🔥 Trending Movies" movies={availableTrendingMovies} />
+          )}
+          {availableTrendingSeries.length > 0 && (
+            <SeriesSection userId={userId} title="🔥 Trending TV Series" series={availableTrendingSeries} />
+          )}
+          {newMovies.length > 0 && (
+            <MovieSection userId={userId} title="🆕 New Releases" movies={newMovies} />
+          )}
+          {newSeries.length > 0 && (
+            <SeriesSection userId={userId} title="🆕 New TV Series" series={newSeries} />
+          )}
+          {/* Coming Soon — from TMDB/OMDB/YouTube only, not internal DB */}
+          <ExternalComingSoon movies={upcomingMovies} series={upcomingSeries} />
         </div>
       </main>
     </div>

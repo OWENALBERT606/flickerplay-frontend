@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowBigDown, ChevronLeft, ChevronRight, Play, Plus, Star, ArrowRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Play, Plus, Star, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cleanTitle } from "@/lib/utils"
 import type { Movie } from "@/actions/movies"
@@ -68,7 +68,7 @@ export function MovieSection({ title, movies, userId, viewAllHref = "/movies" }:
 
       <div
         id={`scroll-${title.replace(/\s+/g, "-")}`}
-        className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 overflow-x-auto scrollbar-hide pb-4"
+        className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3 overflow-x-auto scrollbar-hide pb-4"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {movies.map((movie) => (
@@ -85,7 +85,7 @@ export function MovieSection({ title, movies, userId, viewAllHref = "/movies" }:
                   alt={movie.title}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 16.66vw"
+                  sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 17vw, 11vw"
                 />
               </div>
 

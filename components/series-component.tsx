@@ -63,7 +63,7 @@ export function SeriesSection({ title, series, userId }: SeriesSectionProps) {
 
       <div
         id={`scroll-${title.replace(/\s+/g, "-")}`}
-        className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 overflow-x-auto scrollbar-hide pb-4"
+        className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3 overflow-x-auto scrollbar-hide pb-4"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {series.map((s) => (
@@ -80,7 +80,7 @@ export function SeriesSection({ title, series, userId }: SeriesSectionProps) {
                   alt={s.title}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 16.66vw"
+                  sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 17vw, 11vw"
                 />
               </div>
 

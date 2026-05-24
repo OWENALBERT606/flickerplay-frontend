@@ -18,7 +18,12 @@ const NAV_ITEMS = [
   { label: "New Releases", href: "/?type=new",          icon: Clapperboard, param: "new"          },
 ];
 
-export function HomeSidebar() {
+/**
+ * mode="hero"   — desktop sidebar only (no mobile pills), sits alongside the hero slider
+ * mode="mobile" — mobile pills only (lg:hidden), for use below the hero
+ * mode="both"   — default: desktop sidebar + mobile pills
+ */
+export function HomeSidebar({ mode = "both" }: { mode?: "both" | "hero" | "mobile" }) {
   const pathname     = usePathname();
   const searchParams = useSearchParams();
   const currentType  = searchParams.get("type");
@@ -32,46 +37,55 @@ export function HomeSidebar() {
   return (
     <>
       {/* ── Mobile / tablet: horizontal scrollable pill row ── */}
-      <div className="lg:hidden w-full overflow-x-auto pb-2 mb-4 -mx-1 px-1">
-        <div className="flex items-center gap-2 w-max">
-          {NAV_ITEMS.map(({ label, href, icon: Icon, param }) => (
-            <Link
-              key={label}
-              href={href}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap border transition-colors shrink-0",
-                isTypeActive(param)
-                  ? "bg-orange-500 border-orange-500 text-white"
-                  : "border-border text-muted-foreground hover:border-orange-400 hover:text-foreground",
-              )}
-            >
-              <Icon className="w-3.5 h-3.5 shrink-0" />
-              {label}
-            </Link>
-          ))}
+      {mode !== "hero" && (
+        <div className="lg:hidden w-full overflow-x-auto pb-2 mb-4 -mx-1 px-1">
+          <div className="flex items-center gap-2 w-max">
+            {NAV_ITEMS.map(({ label, href, icon: Icon, param }) => (
+              <Link
+                key={label}
+                href={href}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap border transition-colors shrink-0",
+                  isTypeActive(param)
+                    ? "bg-orange-500 border-orange-500 text-white"
+                    : "border-border text-muted-foreground hover:border-orange-400 hover:text-foreground",
+                )}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Desktop: vertical sidebar ── */}
-      <aside className="hidden lg:flex flex-col w-52 shrink-0 sticky top-20 self-start h-[calc(100vh-5rem)] overflow-y-auto">
-        <nav className="flex flex-col gap-1 py-4">
-          {NAV_ITEMS.map(({ label, href, icon: Icon, param }) => (
-            <Link
-              key={label}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                isTypeActive(param)
-                  ? "bg-orange-500 text-white"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary",
-              )}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              {label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
+      {mode !== "mobile" && (
+        <aside className={cn(
+          "hidden lg:flex flex-col w-52 shrink-0 overflow-y-auto border-r border-border/40",
+          mode === "hero"
+            ? "h-[85vh] bg-background/95 backdrop-blur-sm"
+            : "sticky top-20 self-start h-[calc(100vh-5rem)]",
+        )}>
+          <nav className="flex flex-col gap-1 py-4">
+            {NAV_ITEMS.map(({ label, href, icon: Icon, param }) => (
+              <Link
+                key={label}
+                href={href}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  isTypeActive(param)
+                    ? "bg-orange-500 text-white"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary",
+                )}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                {label}
+              </Link>
+            ))}
+          </nav>
+        </aside>
+      )}
     </>
   );
 }

@@ -92,6 +92,7 @@ export function Header({ user }: { user?: any }) {
               alt="FlickerPlay"
               width={160}
               height={100}
+              sizes="128px"
               className="h-10 w-32 object-contain"
             />
             <div className="text-2xl  font-bold text-primary hidden">

@@ -79,7 +79,7 @@ export function HeroCarousel({ items, userId }: HeroCarouselProps) {
   const poster = (current.trailerPoster || current.poster || "").trim();
 
   return (
-    <div className="relative h-[85vh] mt-12 w-full overflow-hidden">
+    <div className="relative h-[85vh] w-full overflow-hidden">
       {/* Background — fades between items */}
       <div
         className={`absolute inset-0 transition-opacity duration-500 ${
@@ -90,6 +90,7 @@ export function HeroCarousel({ items, userId }: HeroCarouselProps) {
           src={poster}
           alt={current.title}
           fill
+          sizes="100vw"
           className="object-cover"
           priority
         />

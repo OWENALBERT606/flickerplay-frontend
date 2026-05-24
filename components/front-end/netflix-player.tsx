@@ -108,10 +108,6 @@ export function NetflixPlayer({
   const [brightness, setBrightness]     = useState(1);
   const [showPicMenu, setShowPicMenu]   = useState(false);
 
-  // Ad state
-  const [isAdPlaying, setIsAdPlaying] = useState(showAds);
-  const [adCountdown, setAdCountdown] = useState(10);
-
   /* ── refs ── */
   const containerRef   = useRef<HTMLDivElement>(null);
   const seekBarRef     = useRef<HTMLDivElement>(null);
@@ -122,25 +118,6 @@ export function NetflixPlayer({
 
   /* ── HLS ── */
   const { videoRef, levels, currentLevel, setLevel } = useHls(src, subtitlesProp);
-
-  /* ─────────────────────────────────────────────────────────────────────────
-     Ads logic
-  ───────────────────────────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (isAdPlaying && adCountdown > 0) {
-      const timer = setInterval(() => {
-        setAdCountdown((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(timer);
-    } else if (adCountdown === 0) {
-      setIsAdPlaying(false);
-      // Resume or start video when ad ends
-      if (videoRef.current && autoPlay) {
-        videoRef.current.play().catch(() => {});
-        setPlaying(true);
-      }
-    }
-  }, [isAdPlaying, adCountdown]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      Progress save
@@ -207,7 +184,7 @@ export function NetflixPlayer({
     if (initialProgress > 0 && initialProgress < 95) {
       v.currentTime = (initialProgress / 100) * v.duration;
     }
-    if (autoPlay && !isAdPlaying) {
+    if (autoPlay) {
       v.muted = true; // must be muted for browsers to allow autoplay
       setMuted(true);
       v.play().catch(() => {});
@@ -256,8 +233,6 @@ export function NetflixPlayer({
      Controls
   ───────────────────────────────────────────────────────────────────────── */
   const togglePlay = () => {
-    if (isAdPlaying) return; // Prevent play during ad
-
     const v = videoRef.current;
     if (!v) return;
 
@@ -672,33 +647,6 @@ export function NetflixPlayer({
         </div>
       </div>
 
-      {/* Ad Overlay */}
-      {isAdPlaying && (
-        <div className="absolute inset-0 z-[100] bg-black flex flex-col items-center justify-center text-center p-6">
-          <div className="space-y-6 max-w-md">
-            <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto animate-pulse">
-              <span className="text-white font-bold text-xl">AD</span>
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-white">Experience FlickerPlay Premium</h2>
-              <p className="text-gray-400">
-                Watch all movies and series without ads, download unlimited content, and stream in 4K.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="text-sm text-gray-500">
-                Ad will end in <span className="text-white font-mono font-bold">{adCountdown}s</span>
-              </div>
-              <Link 
-                href="/checkout?plan=monthly"
-                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-              >
-                Upgrade Now — 6,000 UGX
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

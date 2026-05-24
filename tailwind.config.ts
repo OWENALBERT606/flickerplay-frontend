@@ -64,6 +64,12 @@ const config: Config = {
       },
     },
   },
+  safelist: [
+    "grid-cols-9",
+    "sm:grid-cols-4",
+    "md:grid-cols-6",
+    "lg:grid-cols-9",
+  ],
   plugins: [require("tailwindcss-animate")],
 }
 
