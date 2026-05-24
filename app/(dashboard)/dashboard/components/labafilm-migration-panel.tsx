@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CloudUpload, RefreshCw, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { CloudUpload, RefreshCw, CheckCircle2, Loader2, AlertCircle, Film } from "lucide-react";
 import { getLabaFilmMigrationStatus, triggerLabaFilmMigration } from "@/actions/admin";
 
 interface MigrationStatus {
@@ -12,7 +12,21 @@ interface MigrationStatus {
   pending: number;
   total: number;
   running: boolean;
-  progress: { migrated: number; total: number };
+  progress: {
+    migrated: number;
+    total: number;
+    currentMovie: string | null;
+    startedAt: string | null;
+  };
+}
+
+function formatDuration(isoStart: string): string {
+  const ms = Date.now() - new Date(isoStart).getTime();
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ${s % 60}s`;
+  return `${Math.floor(m / 60)}h ${m % 60}m`;
 }
 
 export function LabaFilmMigrationPanel({
@@ -23,10 +37,11 @@ export function LabaFilmMigrationPanel({
   const [status, setStatus] = useState<MigrationStatus | null>(initial);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [elapsed, setElapsed] = useState<string>("");
 
   async function refresh() {
     const res = await getLabaFilmMigrationStatus();
-    if (res.success && res.data) setStatus(res.data);
+    if (res.success && res.data) setStatus(res.data as MigrationStatus);
     else setError(res.error ?? "Failed to load");
   }
 
@@ -39,12 +54,24 @@ export function LabaFilmMigrationPanel({
     });
   }
 
-  // Auto-refresh every 15s while migration is running
+  // Auto-refresh every 5s while running
   useEffect(() => {
     if (!status?.running) return;
-    const id = setInterval(refresh, 15_000);
+    const id = setInterval(refresh, 5_000);
     return () => clearInterval(id);
   }, [status?.running]);
+
+  // Tick elapsed time every second while running
+  useEffect(() => {
+    if (!status?.running || !status.progress.startedAt) {
+      setElapsed("");
+      return;
+    }
+    const tick = () => setElapsed(formatDuration(status.progress.startedAt!));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [status?.running, status?.progress.startedAt]);
 
   if (!status) {
     return (
@@ -59,6 +86,7 @@ export function LabaFilmMigrationPanel({
   const pct = status.total > 0 ? Math.round((status.migrated / status.total) * 100) : 0;
   const isDone = status.pending === 0 && status.total > 0;
   const isRunning = status.running;
+  const currentMovie = status.progress.currentMovie;
 
   return (
     <Card className="p-6 space-y-5">
@@ -102,6 +130,23 @@ export function LabaFilmMigrationPanel({
           </Button>
         </div>
       </div>
+
+      {/* Current movie + elapsed */}
+      {isRunning && (
+        <div className="bg-orange-500/5 border border-orange-500/20 rounded-lg px-4 py-3 space-y-1">
+          <div className="flex items-center gap-2 text-xs text-orange-400 font-medium">
+            <Film className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="truncate">
+              {currentMovie ? `Processing: ${currentMovie}` : "Starting…"}
+            </span>
+          </div>
+          {elapsed && (
+            <p className="text-xs text-muted-foreground pl-5">
+              Running for {elapsed}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Progress bar */}
       <div className="space-y-2">
