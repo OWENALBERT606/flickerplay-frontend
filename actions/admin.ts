@@ -362,6 +362,15 @@ export async function debugSeriesApiAction() {
   }
 }
 
+export async function probeEpisodeEndpointsAction() {
+  try {
+    const res = await api.get("/admin/sync/labafilm/episodes/probe");
+    return { success: true, data: res.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Probe failed"), data: null };
+  }
+}
+
 export async function removeMoviesWithoutVideoAction() {
   try {
     const res = await api.delete("/admin/movies/no-video");

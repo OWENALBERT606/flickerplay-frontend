@@ -10,6 +10,7 @@ import {
   syncLabaFilmSeriesAction,
   getSeriesSyncStatusAction,
   debugSeriesApiAction,
+  probeEpisodeEndpointsAction,
   removeMoviesWithoutVideoAction,
   removeDuplicateMoviesAction,
 } from "@/actions/admin";
@@ -258,7 +259,29 @@ export function DbToolsPanel() {
             });
           }}
         >
-          Debug API
+          Debug Series API
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="px-3"
+          title="Probe all episode URL patterns against a real series"
+          disabled={isPending}
+          onClick={() => {
+            startTransition(async () => {
+              const res = await probeEpisodeEndpointsAction();
+              if (res.success) {
+                setDebugInfo(JSON.stringify(res.data, null, 2));
+                console.log("[Episode Probe]", res.data);
+                toast.info("Episode probe results logged — check the panel");
+              } else {
+                setDebugInfo(res.error ?? "Error");
+                toast.error(res.error ?? "Probe failed");
+              }
+            });
+          }}
+        >
+          Probe Episodes
         </Button>
       </div>
 
