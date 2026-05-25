@@ -10,7 +10,6 @@ import { Play, Star, ChevronLeft, ChevronRight, Film, Tv } from "lucide-react";
 import { cleanTitle } from "@/lib/utils";
 import type { Movie } from "@/actions/movies";
 import type { Series } from "@/actions/series";
-import { AddToListButton } from "@/app/(front)/movies/components/add-to-list-button";
 
 type HeroItem = Movie | Series;
 
@@ -153,15 +152,6 @@ export function HeroCarousel({ items, userId }: HeroCarouselProps) {
                   {current.isComingSoon ? "View Details" : "Watch Now"}
                 </Link>
               </Button>
-              <AddToListButton
-                itemId={current.id}
-                type={movie ? "movie" : "series"}
-                userId={userId || undefined}
-                variant="secondary"
-                size="icon"
-                showText={false}
-                className="h-10 w-10 rounded-full bg-gray-800/80 hover:bg-gray-700 border-0 backdrop-blur-sm"
-              />
             </div>
           </div>
         </div>

@@ -325,3 +325,57 @@ export async function triggerLabaFilmMigration() {
     return { success: false, error: msg(e, "Failed to start migration") };
   }
 }
+
+export async function syncLabaFilmMoviesToWaitlist() {
+  try {
+    const res = await api.post("/admin/sync/labafilm/incremental");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start sync") };
+  }
+}
+
+export async function syncLabaFilmSeriesAction() {
+  try {
+    const res = await api.post("/admin/sync/labafilm/series");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start series sync") };
+  }
+}
+
+export async function getSeriesSyncStatusAction() {
+  try {
+    const res = await api.get("/admin/sync/labafilm/series/status");
+    return { success: true, data: res.data?.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to fetch series sync status"), data: null };
+  }
+}
+
+export async function debugSeriesApiAction() {
+  try {
+    const res = await api.get("/admin/sync/labafilm/series/debug");
+    return { success: true, data: res.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Debug request failed"), data: null };
+  }
+}
+
+export async function removeMoviesWithoutVideoAction() {
+  try {
+    const res = await api.delete("/admin/movies/no-video");
+    return { success: true, deleted: res.data?.deleted ?? 0 };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to remove movies without video") };
+  }
+}
+
+export async function removeDuplicateMoviesAction() {
+  try {
+    const res = await api.post("/admin/movies/remove-duplicates");
+    return { success: true, deleted: res.data?.deleted ?? 0 };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to remove duplicates") };
+  }
+}

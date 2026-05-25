@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Star, Play, Clock, Download } from "lucide-react"
 import { cleanTitle } from "@/lib/utils"
 import type { Movie } from "@/actions/movies"
-import { AddToListButton } from "./add-to-list-button"
 
 interface MovieGridProps {
   movies: Movie[]
@@ -112,19 +111,6 @@ export function MovieGrid({ movies, userId }: MovieGridProps) {
                   <Play className="h-4 w-4 text-white fill-white" />
                 </Button>
               </Link>
-
-              {/* Add to list — only for backend movies */}
-              {movie.source !== "tx" && (
-                <AddToListButton
-                  itemId={movie.id}
-                  userId={userId}
-                  type="movie"
-                  variant="secondary"
-                  size="icon"
-                  showText={false}
-                  className="h-9 w-9 rounded-full bg-gray-800/80 hover:bg-gray-700 border-0 backdrop-blur-sm"
-                />
-              )}
 
               {/* Download — only for backend movies with a direct video URL */}
               {movie.source !== "tx" && movie.videoUrl && (

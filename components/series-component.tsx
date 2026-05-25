@@ -4,10 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Play, Plus, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Star } from "lucide-react";
 import { cleanTitle } from "@/lib/utils";
 import type { Series } from "@/actions/series";
-import { AddToListButton } from "@/app/(front)/movies/components/add-to-list-button";
 
 interface SeriesSectionProps {
   title: string;
@@ -102,15 +101,6 @@ export function SeriesSection({ title, series, userId }: SeriesSectionProps) {
                           <Play className="w-3 h-3 fill-white" />
                         </Link>
                       </Button>
-                       <AddToListButton
-                                      itemId={s.id}
-                                      type="series"
-                                      userId={userId || undefined}
-                                      variant="secondary"
-                                      size="icon"
-                                      showText={false}
-                                      className="h-10 w-10 rounded-full bg-gray-800/80 hover:bg-gray-700 border-0 backdrop-blur-sm"
-                                    />
                     </div>
                     <div className="flex items-center space-x-1 text-orange-500">
                       <Star className="w-3 h-3 fill-current" />

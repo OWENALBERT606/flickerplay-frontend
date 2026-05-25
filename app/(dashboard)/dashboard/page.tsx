@@ -11,6 +11,7 @@ import { TopContent } from "./components/top-component";
 import { RecentTransactions } from "./components/recent-transactions";
 import { RecentUsers } from "./components/recent-users";
 import { LabaFilmMigrationPanel } from "./components/labafilm-migration-panel";
+import { DbToolsPanel } from "./components/db-tools-panel";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -44,8 +45,11 @@ export default async function DashboardPage() {
       {/* Stats Cards */}
       <StatsCards stats={stats.data} />
 
-      {/* LabaFilm R2 Migration */}
-      <LabaFilmMigrationPanel initial={migrationStatus.data ?? null} />
+      {/* LabaFilm tools */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <LabaFilmMigrationPanel initial={migrationStatus.data ?? null} />
+        <DbToolsPanel />
+      </div>
 
       {/* Charts Row */}
       <div className="grid lg:grid-cols-2 gap-6">

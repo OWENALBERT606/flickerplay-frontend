@@ -3,11 +3,10 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight, Play, Plus, Star, ArrowRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Play, Star, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cleanTitle } from "@/lib/utils"
 import type { Movie } from "@/actions/movies"
-import { AddToListButton } from "@/app/(front)/movies/components/add-to-list-button"
 
 interface MovieSectionProps {
   title: string
@@ -107,15 +106,6 @@ export function MovieSection({ title, movies, userId, viewAllHref = "/movies" }:
                           <Play className="w-3 h-3 fill-white" />
                         </Link>
                       </Button>
-                      <AddToListButton
-                        itemId={movie.id}
-                        type="movie"
-                        userId={userId || undefined}
-                        variant="secondary"
-                        size="icon"
-                        showText={false}
-                        className="h-7 w-7 bg-gray-800/80 hover:bg-gray-700 border-0 backdrop-blur-sm"
-                      />
                     </div>
                     <div className="flex items-center space-x-1 text-orange-500">
                       <Star className="w-3 h-3 fill-current" />
