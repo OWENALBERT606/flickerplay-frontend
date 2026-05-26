@@ -335,12 +335,48 @@ export async function syncLabaFilmMoviesToWaitlist() {
   }
 }
 
+export async function syncAllLabaFilmMoviesAction() {
+  try {
+    const res = await api.post("/admin/sync/labafilm");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start full sync") };
+  }
+}
+
+export async function debugLabaFilmMoviesApiAction() {
+  try {
+    const res = await api.get("/admin/sync/labafilm/movies/debug");
+    return { success: true, data: res.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Debug failed") };
+  }
+}
+
 export async function syncLabaFilmSeriesAction() {
   try {
     const res = await api.post("/admin/sync/labafilm/series");
     return { success: true, message: res.data?.message };
   } catch (e: any) {
     return { success: false, error: msg(e, "Failed to start series sync") };
+  }
+}
+
+export async function syncLabaFilmSeriesFullAction() {
+  try {
+    const res = await api.post("/admin/sync/labafilm/series-full");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start full series sync") };
+  }
+}
+
+export async function syncLabaFilmEpisodesAction() {
+  try {
+    const res = await api.post("/admin/sync/labafilm/episodes");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start episode sync") };
   }
 }
 

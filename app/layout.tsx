@@ -97,6 +97,7 @@ import { Toaster } from "sonner";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import Script from "next/script";
 import RegisterSW from "@/components/RegisterSW";
+import { SecurityGuard } from "@/components/security-guard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -157,6 +158,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+        <SecurityGuard />
         <Toaster position="top-center" richColors />
 
         {children}

@@ -660,7 +660,7 @@ export function RegisterForm() {
     <div className="w-full max-w-md">
       {/* Welcome Text */}
       <div className="mb-4 flex flex-col justify-center text-center items-center">
-        <Image src="/logo-flickerplay.png" alt="FlickerPlay" width={160} height={40} className="h-14 w-56 object-contain mb-4" />
+        <Image src="/logo-flickerplay.png" alt="FlickerPlay" width={160} height={40} unoptimized className="h-14 w-56 object-contain mb-4" />
         <h2 className="text-3xl font-bold text-foreground mb-2">Create Account</h2>
         <p className="text-muted-foreground">Join FlickerPlay and start streaming today</p>
       </div>

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from "react";
-import { Bell, User, Menu, X, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
+import { Bell, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,7 +14,6 @@ import { InstallButton } from "@/components/pwa/install-button";
 export function Header({ user }: { user?: any }) {
   const [isLoggingOut, startTransition] = useTransition();
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -64,7 +63,6 @@ export function Header({ user }: { user?: any }) {
       // Hide header when scrolling down (after scrolling past 10px)
       else if (currentScrollY > lastScrollY && currentScrollY > 10) {
         setIsVisible(false);
-        setIsMenuOpen(false); // Close mobile menu when hiding
       }
 
       setLastScrollY(currentScrollY);
@@ -91,8 +89,8 @@ export function Header({ user }: { user?: any }) {
               src="/logo-flickerplay.png"
               alt="FlickerPlay"
               width={160}
-              height={100}
-              sizes="128px"
+              height={40}
+              unoptimized
               className="h-10 w-32 object-contain"
             />
             <div className="text-2xl  font-bold text-primary hidden">
@@ -209,76 +207,9 @@ export function Header({ user }: { user?: any }) {
               </Link>
             )}
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-border">
-            <nav className="flex flex-col space-y-4 mt-4">
-              {/* ✅ Mobile Search */}
-              <GlobalSearch />
-
-              <Link
-                href="/"
-                className="text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                href="/movies"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Movies
-              </Link>
-              <Link
-                href="/series"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Series
-              </Link>
-              <Link
-                href="/list"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                My List
-              </Link>
-              {/* ✅ Mobile Profile/Dashboard Link */}
-              {user && (
-                <Link
-                  href={getProfileRoute()}
-                  className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {user.role === "ADMIN" || user.role === "SUPER_ADMIN" || user.role === "MANAGER" ? (
-                    <>
-                      <LayoutDashboard className="w-4 h-4" />
-                      Dashboard
-                    </>
-                  ) : (
-                    <>
-                      <UserCircle className="w-4 h-4" />
-                      Profile
-                    </>
-                  )}
-                </Link>
-              )}
-            </nav>
-          </div>
-        )}
       </div>
     </header>
   );

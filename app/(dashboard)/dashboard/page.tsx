@@ -45,11 +45,11 @@ export default async function DashboardPage() {
       {/* Stats Cards */}
       <StatsCards stats={stats.data} />
 
-      {/* LabaFilm tools */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <LabaFilmMigrationPanel initial={migrationStatus.data ?? null} />
-        <DbToolsPanel />
-      </div>
+      {/* LabaFilm migration */}
+      <LabaFilmMigrationPanel initial={migrationStatus.data ?? null} />
+
+      {/* Series sync + DB tools */}
+      <DbToolsPanel />
 
       {/* Charts Row */}
       <div className="grid lg:grid-cols-2 gap-6">

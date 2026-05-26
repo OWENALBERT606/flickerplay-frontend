@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { listMovies } from "@/actions/movies";
+import { listLabaMovies, normalizeLabaMovie } from "@/actions/labafilm";
 import { getCachedListGenres, getCachedListVJs, getCachedListReleaseYears } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
@@ -39,15 +40,19 @@ export default async function MoviesPage({
     isComingSoon: params.coming_soon === "1"  ? true  : undefined,
   };
 
-  /* ── Fetch in parallel — use allSettled so a failing sidebar call never blocks the page ── */
-  const [moviesResult, genresResult, vjsResult, yearsResult] = await Promise.allSettled([
+  const shouldFetchLaba = !params.genre && !params.vj && !params.year && !params.trending && !params.coming_soon;
+
+  /* ── Fetch in parallel — use allSettled so a failing call never blocks the page ── */
+  const [moviesResult, labaResult, genresResult, vjsResult, yearsResult] = await Promise.allSettled([
     listMovies(apiParams),
+    shouldFetchLaba ? listLabaMovies(currentPage) : Promise.resolve({ movies: [], pagination: null }),
     getCachedListGenres(),
     getCachedListVJs(),
     getCachedListReleaseYears(),
   ]);
 
   const moviesData = moviesResult.status === "fulfilled" ? moviesResult.value : { data: [], pagination: undefined };
+  const labaData   = labaResult.status   === "fulfilled" ? labaResult.value   : { movies: [], pagination: null };
   const genresData = genresResult.status === "fulfilled" ? genresResult.value : { data: [] };
   const vjsData    = vjsResult.status    === "fulfilled" ? vjsResult.value    : { data: [] };
   const yearsData  = yearsResult.status  === "fulfilled" ? yearsResult.value  : { data: [] };
@@ -57,6 +62,15 @@ export default async function MoviesPage({
   const vjs    = vjsData.data    || [];
   const years  = yearsData.data  || [];
   const pagination = moviesData.pagination;
+
+  // Append LabaFilm movies not already in DB results
+  if (shouldFetchLaba && labaData.movies.length > 0) {
+    const dbExternalIds = new Set(movies.map((m) => m.externalId).filter(Boolean));
+    const labaExtras = labaData.movies
+      .filter((m) => !dbExternalIds.has(m._id))
+      .map(normalizeLabaMovie);
+    movies = [...movies, ...labaExtras];
+  }
 
   /* ── Client-side dubbed filter (VJ presence) ── */
   if (params.dubbed === "yes") {
@@ -70,7 +84,20 @@ export default async function MoviesPage({
     movies = [...movies].sort((a, b) => b.rating - a.rating);
   }
 
-  const totalPages = pagination?.totalPages ?? 1;
+  const dbTotalPages   = pagination?.totalPages ?? 1;
+  const labaTotalPages = labaData.pagination?.total_pages ?? 1;
+  const totalPages     = shouldFetchLaba ? Math.max(dbTotalPages, labaTotalPages) : dbTotalPages;
+
+  // Combined total: DB-migrated movies + LabaFilm CDN movies not yet in DB
+  const dbTotal   = pagination?.total ?? 0;
+  const labaTotal = shouldFetchLaba ? (labaData.pagination?.total ?? 0) : 0;
+  // LabaFilm total already includes movies we've migrated to DB (with externalId),
+  // so subtract DB movies that came from LabaFilm to avoid double-counting.
+  // As an approximation use the simpler of the two: prefer labaTotal when it's > dbTotal,
+  // otherwise add them (covers manually-uploaded movies not from LabaFilm).
+  const totalMoviesWithVideos = labaTotal > dbTotal
+    ? labaTotal
+    : dbTotal + labaTotal || movies.length;
 
   /* ── Active filter label for heading ── */
   const activeVJ    = vjs.find((v) => v.id === params.vj);
@@ -107,7 +134,7 @@ export default async function MoviesPage({
                   {heading}
                 </h1>
                 <p className="text-muted-foreground text-sm mt-1">
-                  {pagination?.total ?? movies.length} movie{(pagination?.total ?? movies.length) !== 1 ? "s" : ""}
+                  {totalMoviesWithVideos} movie{totalMoviesWithVideos !== 1 ? "s" : ""}
                   {activeVJ && (
                     <span className="ml-1">translated by <span className="text-orange-400 font-medium">{activeVJ.name}</span></span>
                   )}

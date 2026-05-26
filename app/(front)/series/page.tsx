@@ -60,6 +60,9 @@ export default async function SeriesPage({
   const years    = yearsData.data      || [];
   const pagination = seriesData.pagination;
 
+  /* ── Hide series with no seasons or no episodes (nothing to watch) ── */
+  series = series.filter((s) => (s.totalSeasons ?? 0) > 0 && (s.totalEpisodes ?? 0) > 0);
+
   /* ── Dubbed filter ── */
   if (params.dubbed === "yes") {
     series = series.filter((s) => !!s.vjId && !!s.vj?.name);

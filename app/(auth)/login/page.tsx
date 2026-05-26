@@ -31,6 +31,7 @@ export default async function LoginPage() {
               alt="FlickerPlay"
               width={160}
               height={40}
+              unoptimized
               className="h-14 w-56 object-contain mb-4"
             />
             <h2 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h2>

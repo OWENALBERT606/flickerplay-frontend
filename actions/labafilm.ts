@@ -47,14 +47,16 @@ export async function listLabaMovies(
     const pageData = json.data ?? {};
     const movies: LabaMovieListItem[] = pageData.movies ?? [];
     const hasMore: boolean = pageData.hasMore ?? false;
+    const total: number = pageData.total ?? json.total ?? 0;
+    const totalPages: number =
+      pageData.totalPages ?? pageData.total_pages ?? json.total_pages ?? (hasMore ? page + 1 : page);
     return {
       movies,
       pagination: {
         limit: movies.length,
         page,
-        total: 0,
-        // keep incrementing so infinite scroll continues while hasMore is true
-        total_pages: hasMore ? page + 1 : page,
+        total,
+        total_pages: totalPages || (hasMore ? page + 1 : page),
       },
     };
   } catch {
@@ -98,7 +100,8 @@ export function normalizeLabaMovie(m: LabaMovieListItem): Movie {
       : { id: "", name: "", avatarUrl: "" },
     genre: { id: "", name: "Movie", slug: "" },
     year: { id: "", value: year },
-    source: "tx",
+    source: "labafilm",
+    externalId: m._id,
   };
 }
 

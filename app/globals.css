@@ -6,6 +6,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Disable text selection and drag on all elements */
+* {
+  -webkit-user-drag: none;
+}
+
+img, video {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
 /* ==== Design tokens (CSS variables) ==== */
 /* :root {
   --radius: 0.625rem;
