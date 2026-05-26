@@ -40,7 +40,7 @@ export async function listLabaMovies(
   try {
     const res = await fetch(`${LABA_API}/movies/all?page=${page}`, {
       headers: LABA_HEADERS,
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
     if (!res.ok) return { movies: [], pagination: null };
     const json = await res.json();
@@ -110,7 +110,7 @@ export async function getLabaMovie(id: string): Promise<LabaMovie | null> {
   try {
     const res = await fetch(`${LABA_API}/movies/${id}`, {
       headers: LABA_HEADERS,
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
     if (!res.ok) return null;
     const json = await res.json();

@@ -88,16 +88,14 @@ export default async function MoviesPage({
   const labaTotalPages = labaData.pagination?.total_pages ?? 1;
   const totalPages     = shouldFetchLaba ? Math.max(dbTotalPages, labaTotalPages) : dbTotalPages;
 
-  // Combined total: DB-migrated movies + LabaFilm CDN movies not yet in DB
+  // Combined total: DB-migrated movies + LabaFilm CDN movies not yet in DB.
+  // LabaFilm API may not return a `total` field, so use movies.length as a floor.
   const dbTotal   = pagination?.total ?? 0;
   const labaTotal = shouldFetchLaba ? (labaData.pagination?.total ?? 0) : 0;
-  // LabaFilm total already includes movies we've migrated to DB (with externalId),
-  // so subtract DB movies that came from LabaFilm to avoid double-counting.
-  // As an approximation use the simpler of the two: prefer labaTotal when it's > dbTotal,
-  // otherwise add them (covers manually-uploaded movies not from LabaFilm).
-  const totalMoviesWithVideos = labaTotal > dbTotal
-    ? labaTotal
-    : dbTotal + labaTotal || movies.length;
+  const totalMoviesWithVideos = Math.max(
+    movies.length,
+    labaTotal > dbTotal ? labaTotal : dbTotal + labaTotal
+  );
 
   /* ── Active filter label for heading ── */
   const activeVJ    = vjs.find((v) => v.id === params.vj);
