@@ -25,6 +25,15 @@ interface MigrationStatus {
   };
 }
 
+const IDLE_RESUME_MS  = 5 * 60 * 1000; // 5 min idle → auto-resume
+const STUCK_SKIP_MS   = 5 * 60 * 1000; // 5 min no progress → auto-skip
+
+function formatCountdown(totalSecs: number): string {
+  const m = Math.floor(totalSecs / 60);
+  const s = totalSecs % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 function formatDuration(isoStart: string): string {
   const ms = Date.now() - new Date(isoStart).getTime();
   const s = Math.floor(ms / 1000);
@@ -58,13 +67,23 @@ export function LabaFilmMigrationPanel({
 }: {
   initial: MigrationStatus | null;
 }) {
-  const [status, setStatus] = useState<MigrationStatus | null>(initial);
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [elapsed, setElapsed] = useState<string>("");
-  const [isStuck, setIsStuck] = useState(false);
-  const lastMigratedRef = useRef(initial?.progress.migrated ?? 0);
-  const stuckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [status, setStatus]               = useState<MigrationStatus | null>(initial);
+  const [error, setError]                 = useState<string | null>(null);
+  const [isPending, startTransition]      = useTransition();
+  const [elapsed, setElapsed]             = useState<string>("");
+  const [isStuck, setIsStuck]             = useState(false);
+  const [idleSecondsLeft, setIdleSecondsLeft] = useState<number | null>(null);
+  const [stuckSecondsLeft, setStuckSecondsLeft] = useState<number | null>(null);
+
+  const lastMigratedRef    = useRef(initial?.progress.migrated ?? 0);
+  const stuckTimerRef      = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stuckCountdownRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+  const idleTimerRef       = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleCountdownRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isFirstRenderRef   = useRef(true);
+  // stable refs so timers always call the latest version of these functions
+  const handleStartRef     = useRef<() => void>(() => {});
+  const handleSkipRef      = useRef<() => void>(() => {});
 
   async function refresh() {
     const res = await getLabaFilmMigrationStatus();
@@ -90,47 +109,97 @@ export function LabaFilmMigrationPanel({
     });
   }
 
-  // Auto-start migration if there are pending movies on first load
+  // Keep refs pointing to latest implementations
+  handleStartRef.current = handleStart;
+  handleSkipRef.current  = handleSkip;
+
+  // Auto-start on first load if idle with pending items
   useEffect(() => {
     if (!status) return;
-    if (!status.running && status.pending > 0) {
-      handleStart();
-    }
+    if (!status.running && status.pending > 0) handleStart();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Poll every 5 s while running
   useEffect(() => {
     if (!status?.running) return;
     const id = setInterval(refresh, 5_000);
     return () => clearInterval(id);
   }, [status?.running]);
 
+  // Elapsed clock while running
   useEffect(() => {
-    if (!status?.running || !status.progress.startedAt) {
-      setElapsed("");
-      return;
-    }
+    if (!status?.running || !status.progress.startedAt) { setElapsed(""); return; }
     const tick = () => setElapsed(formatDuration(status.progress.startedAt!));
     tick();
     const id = setInterval(tick, 1_000);
     return () => clearInterval(id);
   }, [status?.running, status?.progress.startedAt]);
 
-  // Detect stuck migration: no new migrated count for 5 minutes while running
+  // ── Idle auto-resume: 5 min countdown when stopped with pending items ──────
   useEffect(() => {
-    if (!status?.running) {
+    // Clear on first render (initial auto-start already handled above)
+    if (isFirstRenderRef.current) { isFirstRenderRef.current = false; return; }
+
+    const clearIdle = () => {
+      if (idleTimerRef.current)    { clearTimeout(idleTimerRef.current);    idleTimerRef.current = null; }
+      if (idleCountdownRef.current){ clearInterval(idleCountdownRef.current); idleCountdownRef.current = null; }
+      setIdleSecondsLeft(null);
+    };
+
+    if (status?.running || !status?.pending || status.pending === 0) { clearIdle(); return; }
+
+    // Start visible countdown
+    let secs = Math.floor(IDLE_RESUME_MS / 1000);
+    setIdleSecondsLeft(secs);
+    idleCountdownRef.current = setInterval(() => {
+      secs -= 1;
+      setIdleSecondsLeft(secs);
+    }, 1_000);
+
+    idleTimerRef.current = setTimeout(() => {
+      clearIdle();
+      handleStartRef.current();
+    }, IDLE_RESUME_MS);
+
+    return clearIdle;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status?.running, status?.pending]);
+
+  // ── Stuck auto-skip: 5 min no progress → skip + restart ──────────────────
+  useEffect(() => {
+    const clearStuck = () => {
+      if (stuckTimerRef.current)    { clearTimeout(stuckTimerRef.current);    stuckTimerRef.current = null; }
+      if (stuckCountdownRef.current){ clearInterval(stuckCountdownRef.current); stuckCountdownRef.current = null; }
+      setStuckSecondsLeft(null);
       setIsStuck(false);
-      if (stuckTimerRef.current) clearTimeout(stuckTimerRef.current);
-      return;
-    }
+    };
+
+    if (!status?.running) { clearStuck(); return; }
+
     const current = status.progress.migrated;
     if (current !== lastMigratedRef.current) {
       lastMigratedRef.current = current;
-      setIsStuck(false);
-      if (stuckTimerRef.current) clearTimeout(stuckTimerRef.current);
+      clearStuck();
     }
-    stuckTimerRef.current = setTimeout(() => setIsStuck(true), 5 * 60 * 1000);
-    return () => { if (stuckTimerRef.current) clearTimeout(stuckTimerRef.current); };
+
+    let secs = Math.floor(STUCK_SKIP_MS / 1000);
+    setStuckSecondsLeft(secs);
+    stuckCountdownRef.current = setInterval(() => {
+      secs -= 1;
+      setStuckSecondsLeft(secs);
+    }, 1_000);
+
+    stuckTimerRef.current = setTimeout(() => {
+      setIsStuck(true);
+      clearStuck();
+      // Auto-skip the stuck movie, then restart
+      handleSkipRef.current();
+      setTimeout(() => handleStartRef.current(), 3_000);
+    }, STUCK_SKIP_MS);
+
+    return clearStuck;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status?.running, status?.progress.migrated]);
 
   if (!status) {
@@ -178,24 +247,49 @@ export function LabaFilmMigrationPanel({
         </div>
       </div>
 
-      {/* Stuck warning */}
+      {/* Idle auto-resume countdown */}
+      {!isRunning && status.pending > 0 && idleSecondsLeft !== null && (
+        <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2.5">
+          <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="flex-1">
+            Auto-resuming in <strong className="text-foreground tabular-nums">{formatCountdown(idleSecondsLeft)}</strong>
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 px-2 text-[10px] text-blue-400 hover:bg-blue-500/10"
+            onClick={handleStart}
+            disabled={isPending}
+          >
+            Resume now
+          </Button>
+        </div>
+      )}
+
+      {/* Stuck detection countdown */}
+      {isRunning && stuckSecondsLeft !== null && stuckSecondsLeft < 120 && !isStuck && (
+        <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2.5">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="flex-1">
+            No progress detected — auto-skipping in <strong className="text-foreground tabular-nums">{formatCountdown(stuckSecondsLeft)}</strong>
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 px-2 text-[10px] text-amber-400 hover:bg-amber-500/10"
+            onClick={handleSkip}
+            disabled={isPending}
+          >
+            Skip now
+          </Button>
+        </div>
+      )}
+
+      {/* Stuck — auto-skip just fired */}
       {isRunning && isStuck && (
-        <div className="flex items-start gap-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2.5">
-          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-          <div className="space-y-1.5">
-            <p className="font-medium">Migration appears stuck — no progress for 5+ minutes.</p>
-            <p className="text-muted-foreground">The download may have hung. Click <strong className="text-foreground">Skip Movie</strong> to kill it and move to the next one.</p>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 text-xs border-red-500/40 text-red-400 hover:bg-red-500/10 mt-1"
-              onClick={handleSkip}
-              disabled={isPending}
-            >
-              {isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <SkipForward className="w-3 h-3 mr-1" />}
-              Skip Movie
-            </Button>
-          </div>
+        <div className="flex items-center gap-2 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-2.5">
+          <Loader2 className="w-3.5 h-3.5 flex-shrink-0 animate-spin" />
+          <span>Stuck movie skipped — restarting migration…</span>
         </div>
       )}
 
