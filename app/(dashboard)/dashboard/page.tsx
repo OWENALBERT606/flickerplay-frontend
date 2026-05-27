@@ -11,6 +11,7 @@ import { TopContent } from "./components/top-component";
 import { RecentTransactions } from "./components/recent-transactions";
 import { RecentUsers } from "./components/recent-users";
 import { LabaFilmMigrationPanel } from "./components/labafilm-migration-panel";
+import { FixAllPostersPanel } from "./components/fix-all-posters-panel";
 import { DbToolsPanel } from "./components/db-tools-panel";
 
 export default async function DashboardPage() {
@@ -45,8 +46,11 @@ export default async function DashboardPage() {
       {/* Stats Cards */}
       <StatsCards stats={stats.data} />
 
-      {/* LabaFilm migration */}
+      {/* LabaFilm migration panel */}
       <LabaFilmMigrationPanel initial={migrationStatus.data ?? null} />
+
+      {/* Fix all broken posters */}
+      <FixAllPostersPanel />
 
       {/* Series sync + DB tools */}
       <DbToolsPanel />

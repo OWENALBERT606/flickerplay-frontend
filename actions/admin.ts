@@ -326,6 +326,15 @@ export async function triggerLabaFilmMigration() {
   }
 }
 
+export async function skipCurrentMigrationMovie() {
+  try {
+    const res = await api.post("/admin/sync/labafilm/migrate-r2/skip");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to skip") };
+  }
+}
+
 export async function syncLabaFilmMoviesToWaitlist() {
   try {
     const res = await api.post("/admin/sync/labafilm/incremental");
@@ -404,6 +413,172 @@ export async function probeEpisodeEndpointsAction() {
     return { success: true, data: res.data };
   } catch (e: any) {
     return { success: false, error: msg(e, "Probe failed"), data: null };
+  }
+}
+
+/* ─────────────── JTZ Magazine Sync ─────────────── */
+
+export async function getJtzSyncStatusAction() {
+  try {
+    const res = await api.get("/admin/sync/jtzmag/status");
+    return { success: true, data: res.data?.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to fetch JTZ status"), data: null };
+  }
+}
+
+export async function triggerJtzFullSync(maxId = 3500) {
+  try {
+    const res = await api.post(`/admin/sync/jtzmag?maxId=${maxId}`);
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start JTZ full sync") };
+  }
+}
+
+export async function triggerJtzIncrementalSync(maxId = 3500) {
+  try {
+    const res = await api.post(`/admin/sync/jtzmag/incremental?maxId=${maxId}`);
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start JTZ incremental sync") };
+  }
+}
+
+export async function skipCurrentJtzMovieAction() {
+  try {
+    const res = await api.post("/admin/sync/jtzmag/skip");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to skip") };
+  }
+}
+
+export async function fixJtzContentTypeAction() {
+  try {
+    const res = await api.post("/admin/sync/jtzmag/fix-content-type");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start fix") };
+  }
+}
+
+export async function getJtzFixProgressAction() {
+  try {
+    const res = await api.get("/admin/sync/jtzmag/fix-content-type/status");
+    return { success: true, data: res.data?.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to fetch fix progress"), data: null };
+  }
+}
+
+export async function deleteAllJtzMoviesAction() {
+  try {
+    const res = await api.delete("/admin/sync/jtzmag/all");
+    return { success: true, deleted: res.data?.deleted ?? 0, r2Deleted: res.data?.r2Deleted ?? 0 };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to delete JTZ movies") };
+  }
+}
+
+export async function redownloadBrokenJtzAction() {
+  try {
+    const res = await api.post("/admin/sync/jtzmag/redownload-broken");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start re-download") };
+  }
+}
+
+export async function getJtzRedownloadProgressAction() {
+  try {
+    const res = await api.get("/admin/sync/jtzmag/redownload-broken/status");
+    return { success: true, data: res.data?.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to fetch re-download progress"), data: null };
+  }
+}
+
+/* ─────────────── Tulabe Sync ─────────────── */
+
+export async function getTulabeSyncStatusAction() {
+  try {
+    const res = await api.get("/admin/sync/tulabe/status");
+    return { success: true, data: res.data?.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to fetch Tulabe status"), data: null };
+  }
+}
+
+export async function triggerTulabeFullSync() {
+  try {
+    const res = await api.post("/admin/sync/tulabe");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start Tulabe full sync") };
+  }
+}
+
+export async function triggerTulabeIncrementalSync() {
+  try {
+    const res = await api.post("/admin/sync/tulabe/incremental");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start Tulabe incremental sync") };
+  }
+}
+
+export async function skipCurrentTulabeMovieAction() {
+  try {
+    const res = await api.post("/admin/sync/tulabe/skip");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to skip") };
+  }
+}
+
+export async function fixTulabePostersAction() {
+  try {
+    const res = await api.post("/admin/sync/tulabe/fix-posters");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start poster fix") };
+  }
+}
+
+export async function getFixTulabePostersProgressAction() {
+  try {
+    const res = await api.get("/admin/sync/tulabe/fix-posters/status");
+    return { success: true, data: res.data?.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to fetch poster fix progress"), data: null };
+  }
+}
+
+export async function deleteAllTulabeMoviesAction() {
+  try {
+    const res = await api.delete("/admin/sync/tulabe/all");
+    return { success: true, deleted: res.data?.deleted ?? 0, r2Deleted: res.data?.r2Deleted ?? 0 };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to delete Tulabe movies") };
+  }
+}
+
+export async function fixAllPostersAction() {
+  try {
+    const res = await api.post("/admin/movies/fix-posters");
+    return { success: true, message: res.data?.message };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to start poster fix") };
+  }
+}
+
+export async function getFixAllPostersProgressAction() {
+  try {
+    const res = await api.get("/admin/movies/fix-posters/status");
+    return { success: true, data: res.data?.data };
+  } catch (e: any) {
+    return { success: false, error: msg(e, "Failed to fetch poster fix progress"), data: null };
   }
 }
 
