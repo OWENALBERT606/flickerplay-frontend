@@ -1,5 +1,14 @@
 export const dynamic = "force-dynamic";
 
+function pickRandom<T>(arr: T[], n: number): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
+}
+
 import { getSession } from "@/actions/auth";
 import {
   getCachedTrendingMovies,
@@ -233,9 +242,9 @@ export default async function HomePage({
     upcomingMoviesData,
     upcomingSeriesData,
   ] = await Promise.allSettled([
-    getCachedTrendingMovies(6),
+    getCachedTrendingMovies(50),
     getCachedListMovies({ limit: 36 }),
-    getCachedTrendingSeries(6),
+    getCachedTrendingSeries(50),
     getCachedListSeries({ limit: 36 }),
     getUpcomingMoviesFromTmdb(20),
     getUpcomingSeriesFromTmdb(20),
@@ -250,8 +259,8 @@ export default async function HomePage({
 
   const availableMovies  = allMovies;
   const availableSeries  = allSeries;
-  const availableTrendingMovies = trendingMovies.slice(0, 6);
-  const availableTrendingSeries = trendingSeries.slice(0, 6);
+  const availableTrendingMovies = pickRandom(trendingMovies, 9);
+  const availableTrendingSeries = pickRandom(trendingSeries, 9);
 
   const newMovies = [...availableMovies]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
