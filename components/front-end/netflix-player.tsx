@@ -107,14 +107,19 @@ export function NetflixPlayer({
   const [contrast, setContrast]         = useState(1);
   const [brightness, setBrightness]     = useState(1);
   const [showPicMenu, setShowPicMenu]   = useState(false);
+  const [videoError, setVideoError]     = useState<string | null>(null);
+  const [loadPct, setLoadPct]           = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   /* ── refs ── */
-  const containerRef   = useRef<HTMLDivElement>(null);
-  const seekBarRef     = useRef<HTMLDivElement>(null);
-  const uiTimerRef     = useRef<NodeJS.Timeout | null>(null);
-  const saveTimerRef   = useRef<number>(0);
-  const nextTimerRef   = useRef<NodeJS.Timeout | null>(null);
-  const skipAnimTimer  = useRef<NodeJS.Timeout | null>(null);
+  const containerRef      = useRef<HTMLDivElement>(null);
+  const seekBarRef        = useRef<HTMLDivElement>(null);
+  const uiTimerRef        = useRef<NodeJS.Timeout | null>(null);
+  const saveTimerRef      = useRef<number>(0);
+  const nextTimerRef      = useRef<NodeJS.Timeout | null>(null);
+  const skipAnimTimer     = useRef<NodeJS.Timeout | null>(null);
+  const fakeProgressRef   = useRef<NodeJS.Timeout | null>(null);
+  const loadPctRef        = useRef(0);
 
   /* ── HLS ── */
   const { videoRef, levels, currentLevel, setLevel } = useHls(src, subtitlesProp);
@@ -175,17 +180,95 @@ export function NetflixPlayer({
   }); // intentionally no deps — always fresh closures
 
   /* ─────────────────────────────────────────────────────────────────────────
+     Loading progress helpers
+  ───────────────────────────────────────────────────────────────────────── */
+  const getRealBufferPct = useCallback((): number => {
+    const v = videoRef.current;
+    if (!v || !v.duration || !isFinite(v.duration) || v.duration === 0) return 0;
+    if (!v.buffered.length) return 0;
+    return Math.round((v.buffered.end(v.buffered.length - 1) / v.duration) * 100);
+  }, [videoRef]);
+
+  const startLoadingProgress = useCallback(() => {
+    loadPctRef.current = 0;
+    setLoadPct(0);
+    setIsInitialLoad(true);
+    if (fakeProgressRef.current) clearInterval(fakeProgressRef.current);
+
+    fakeProgressRef.current = setInterval(() => {
+      const real = getRealBufferPct();
+      const cur  = loadPctRef.current;
+      // Ease-out: fast start, slows near 90 so user sees it moving without lying
+      const next = cur < 30 ? cur + 2.5
+                 : cur < 55 ? cur + 1.2
+                 : cur < 75 ? cur + 0.5
+                 : cur < 88 ? cur + 0.15
+                 : cur; // plateau — only real data or canplay pushes past 88
+      const clamped = Math.min(90, Math.max(next, real));
+      loadPctRef.current = clamped;
+      setLoadPct(Math.round(clamped));
+    }, 250);
+  }, [getRealBufferPct]);
+
+  const finishLoadingProgress = useCallback(() => {
+    if (fakeProgressRef.current) {
+      clearInterval(fakeProgressRef.current);
+      fakeProgressRef.current = null;
+    }
+    loadPctRef.current = 100;
+    setLoadPct(100);
+    setTimeout(() => setIsInitialLoad(false), 400);
+  }, []);
+
+  // Clean up on unmount
+  useEffect(() => () => {
+    if (fakeProgressRef.current) clearInterval(fakeProgressRef.current);
+  }, []);
+
+  /* ─────────────────────────────────────────────────────────────────────────
      Video event handlers
   ───────────────────────────────────────────────────────────────────────── */
+  const handleVideoError = () => {
+    const v = videoRef.current;
+    if (!v || !v.error) return;
+    const codes: Record<number, string> = {
+      1: "MEDIA_ERR_ABORTED",
+      2: "MEDIA_ERR_NETWORK",
+      3: "MEDIA_ERR_DECODE — unsupported codec or corrupt file",
+      4: "MEDIA_ERR_SRC_NOT_SUPPORTED — wrong format or access denied",
+    };
+    setVideoError(codes[v.error.code] ?? `Error ${v.error.code}`);
+    console.error("[NetflixPlayer] video error:", v.error.code, v.error.message, src);
+  };
+
+  const handleLoadStart = () => {
+    startLoadingProgress();
+  };
+
+  const handleProgress = () => {
+    if (!isInitialLoad) return;
+    const real = getRealBufferPct();
+    if (real > loadPctRef.current) {
+      loadPctRef.current = real;
+      setLoadPct(Math.round(real));
+    }
+  };
+
+  const handleCanPlay = () => {
+    setBuffering(false);
+    if (isInitialLoad) finishLoadingProgress();
+  };
+
   const handleLoadedMetadata = () => {
     const v = videoRef.current;
     if (!v) return;
+    setVideoError(null);
     setDuration(v.duration);
     if (initialProgress > 0 && initialProgress < 95) {
       v.currentTime = (initialProgress / 100) * v.duration;
     }
     if (autoPlay) {
-      v.muted = true; // must be muted for browsers to allow autoplay
+      v.muted = true;
       setMuted(true);
       v.play().catch(() => {});
     }
@@ -346,19 +429,58 @@ export function NetflixPlayer({
         poster={poster}
         preload="auto"
         playsInline
+        onLoadStart={handleLoadStart}
+        onProgress={handleProgress}
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onWaiting={() => setBuffering(true)}
-        onCanPlay={() => setBuffering(false)}
+        onCanPlay={handleCanPlay}
         onEnded={handleEnded}
+        onError={handleVideoError}
         onClick={togglePlay}
       />
 
-      {/* ── Buffering spinner ── */}
-      {buffering && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      {/* ── Video error overlay ── */}
+      {videoError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 pointer-events-none">
+          <p className="text-red-400 text-sm font-semibold">Video failed to load</p>
+          <p className="text-white/50 text-xs px-6 text-center">{videoError}</p>
+        </div>
+      )}
+
+      {/* ── Initial load overlay with percentage ── */}
+      {isInitialLoad && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 pointer-events-none">
+          <div className="flex flex-col items-center gap-4 px-8 text-center">
+            {/* Big percentage */}
+            <p className="text-white font-bold tabular-nums leading-none"
+               style={{ fontSize: "clamp(3.5rem, 12vw, 6rem)" }}>
+              {loadPct}%
+            </p>
+
+            {/* Thin progress bar */}
+            <div className="w-56 sm:w-72 h-1 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-red-500 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${loadPct}%` }}
+              />
+            </div>
+
+            <p className="text-white/60 text-sm">Loading video…</p>
+            {loadPct < 50 && (
+              <p className="text-white/35 text-xs max-w-xs">
+                High-quality video — this may take a moment
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Mid-playback buffering spinner ── */}
+      {buffering && !isInitialLoad && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           <Loader2 className="w-14 h-14 text-white animate-spin opacity-80" />
         </div>
       )}
