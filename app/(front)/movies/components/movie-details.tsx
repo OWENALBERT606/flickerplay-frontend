@@ -294,8 +294,14 @@ export function MovieDetails({ movie, userId, userName, userImage }: MovieDetail
         {/* VJ */}
         {movie.vj && (
           <div>
-            <h3 className="text-lg font-semibold mb-2 text-gray-400">VJ</h3>
-            <p className="text-white">{movie.vj.name}</p>
+            <h3 className="text-lg font-semibold mb-2 text-gray-400">
+              {movie.vj.name !== "Unknown VJ" && movie.vj.name !== "Translated" ? "VJ" : "Translation"}
+            </h3>
+            <p className="text-white">
+              {movie.vj.name !== "Unknown VJ" && movie.vj.name !== "Translated"
+                ? movie.vj.name
+                : "Translated"}
+            </p>
           </div>
         )}
       </div>

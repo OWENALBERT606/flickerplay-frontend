@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Play, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { cleanTitle } from "@/lib/utils";
 import type { Series } from "@/actions/series";
 
@@ -14,7 +14,7 @@ interface SeriesSectionProps {
   userId?: string | null;
 }
 
-export function SeriesSection({ title, series, userId }: SeriesSectionProps) {
+export function SeriesSection({ title, series }: SeriesSectionProps) {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hoveredSeries, setHoveredSeries] = useState<string | null>(null);
 
@@ -66,9 +66,10 @@ export function SeriesSection({ title, series, userId }: SeriesSectionProps) {
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {series.map((s) => (
-          <div
+          <Link
             key={s.id}
-            className="group cursor-pointer min-w-0"
+            href={s.isComingSoon ? "#" : `/series/${s.slug}`}
+            className="group cursor-pointer min-w-0 block"
             onMouseEnter={() => setHoveredSeries(s.id)}
             onMouseLeave={() => setHoveredSeries(null)}
           >
@@ -83,25 +84,14 @@ export function SeriesSection({ title, series, userId }: SeriesSectionProps) {
                 />
               </div>
 
-              {/* Hover Overlay */}
+              {/* Hover overlay — info only, whole card is already a link */}
               <div
                 className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent transition-opacity duration-300 ${
                   hoveredSeries === s.id ? "opacity-100" : "opacity-0"
                 }`}
               >
                 <div className="absolute bottom-0 left-0 right-0 p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        size="sm"
-                        className="bg-orange-500 hover:bg-orange-600 h-7 w-7 p-0"
-                        asChild
-                      >
-                        <Link href={`/series/${s.slug}`}>
-                          <Play className="w-3 h-3 fill-white" />
-                        </Link>
-                      </Button>
-                    </div>
+                  <div className="flex items-center justify-end gap-1">
                     <div className="flex items-center space-x-1 text-orange-500">
                       <Star className="w-3 h-3 fill-current" />
                       <span className="text-xs font-medium">{s.rating.toFixed(1)}</span>
@@ -153,7 +143,7 @@ export function SeriesSection({ title, series, userId }: SeriesSectionProps) {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

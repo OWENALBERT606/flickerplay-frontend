@@ -120,17 +120,21 @@ export default async function MovieDetailPage({
 
             <div className="bg-gray-900/50 backdrop-blur-sm rounded-lg p-6">
               <h3 className="text-sm font-semibold text-gray-400 mb-3">Translated By</h3>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                  {movie.vj.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+              {movie.vj.name !== "Unknown VJ" && movie.vj.name !== "Translated" ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                    {movie.vj.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{movie.vj.name}</p>
+                    {movie.vj.bio && (
+                      <p className="text-sm text-gray-400">{movie.vj.bio}</p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-white font-medium">{movie.vj.name}</p>
-                  {movie.vj.bio && (
-                    <p className="text-sm text-gray-400">{movie.vj.bio}</p>
-                  )}
-                </div>
-              </div>
+              ) : (
+                <p className="text-white font-medium">Translated</p>
+              )}
             </div>
           </div>
         </div>

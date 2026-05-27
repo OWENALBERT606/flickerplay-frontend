@@ -227,20 +227,26 @@ export function MovieInfo({ movie }: MovieInfoProps) {
       {/* VJ Info */}
       <div>
         <h2 className="text-2xl font-semibold mb-3">Video Jockey</h2>
-        <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
-          <Avatar className="h-14 w-14 ring-2 ring-background">
-            <AvatarImage src={movie.vj.avatarUrl} alt={movie.vj.name} />
-            <AvatarFallback>
-              {movie.vj.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="font-semibold text-lg">{movie.vj.name}</div>
-            {movie.vj.bio && (
-              <div className="text-sm text-muted-foreground">{movie.vj.bio}</div>
-            )}
+        {movie.vj.name !== "Unknown VJ" && movie.vj.name !== "Translated" ? (
+          <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+            <Avatar className="h-14 w-14 ring-2 ring-background">
+              <AvatarImage src={movie.vj.avatarUrl} alt={movie.vj.name} />
+              <AvatarFallback>
+                {movie.vj.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-semibold text-lg">{movie.vj.name}</div>
+              {movie.vj.bio && (
+                <div className="text-sm text-muted-foreground">{movie.vj.bio}</div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <span className="text-base font-medium">Translated</span>
+          </div>
+        )}
       </div>
 
       {/* Director */}

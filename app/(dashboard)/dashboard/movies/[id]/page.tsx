@@ -188,20 +188,26 @@ export default async function MovieDetailPage({
               {/* VJ */}
               <div>
                 <div className="text-sm font-medium text-muted-foreground mb-2">Video Jockey</div>
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <Avatar className="h-12 w-12 ring-2 ring-background">
-                    <AvatarImage src={movie.vj.avatarUrl} alt={movie.vj.name} />
-                    <AvatarFallback>
-                      {movie.vj.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-semibold">{movie.vj.name}</div>
-                    {movie.vj.bio && (
-                      <div className="text-sm text-muted-foreground line-clamp-1">{movie.vj.bio}</div>
-                    )}
+                {movie.vj.name !== "Unknown VJ" && movie.vj.name !== "Translated" ? (
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <Avatar className="h-12 w-12 ring-2 ring-background">
+                      <AvatarImage src={movie.vj.avatarUrl} alt={movie.vj.name} />
+                      <AvatarFallback>
+                        {movie.vj.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-semibold">{movie.vj.name}</div>
+                      {movie.vj.bio && (
+                        <div className="text-sm text-muted-foreground line-clamp-1">{movie.vj.bio}</div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <span className="font-semibold">Translated</span>
+                  </div>
+                )}
               </div>
 
               <Separator />

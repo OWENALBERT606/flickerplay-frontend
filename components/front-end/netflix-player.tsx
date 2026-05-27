@@ -110,16 +110,19 @@ export function NetflixPlayer({
   const [videoError, setVideoError]     = useState<string | null>(null);
   const [loadPct, setLoadPct]           = useState(0);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  // tracks whether the user has explicitly pressed play (vs. background autoplay)
+  const [userHasClickedPlay, setUserHasClickedPlay] = useState(false);
 
   /* ── refs ── */
-  const containerRef      = useRef<HTMLDivElement>(null);
-  const seekBarRef        = useRef<HTMLDivElement>(null);
-  const uiTimerRef        = useRef<NodeJS.Timeout | null>(null);
-  const saveTimerRef      = useRef<number>(0);
-  const nextTimerRef      = useRef<NodeJS.Timeout | null>(null);
-  const skipAnimTimer     = useRef<NodeJS.Timeout | null>(null);
-  const fakeProgressRef   = useRef<NodeJS.Timeout | null>(null);
-  const loadPctRef        = useRef(0);
+  const containerRef          = useRef<HTMLDivElement>(null);
+  const seekBarRef            = useRef<HTMLDivElement>(null);
+  const uiTimerRef            = useRef<NodeJS.Timeout | null>(null);
+  const saveTimerRef          = useRef<number>(0);
+  const nextTimerRef          = useRef<NodeJS.Timeout | null>(null);
+  const skipAnimTimer         = useRef<NodeJS.Timeout | null>(null);
+  const fakeProgressRef       = useRef<NodeJS.Timeout | null>(null);
+  const loadPctRef            = useRef(0);
+  const userHasClickedPlayRef = useRef(false); // ref so event handlers always see latest value
 
   /* ── HLS ── */
   const { videoRef, levels, currentLevel, setLevel } = useHls(src, subtitlesProp);
@@ -242,7 +245,9 @@ export function NetflixPlayer({
   };
 
   const handleLoadStart = () => {
-    startLoadingProgress();
+    // Only show the loading overlay if the user has already pressed play.
+    // On initial page load the video preloads silently in the background.
+    if (userHasClickedPlayRef.current) startLoadingProgress();
   };
 
   const handleProgress = () => {
@@ -320,11 +325,17 @@ export function NetflixPlayer({
     if (!v) return;
 
     if (v.paused) {
-      // Small delay before playing after ad (as requested)
-      setTimeout(() => {
-        v.play().catch(() => {});
-        setPlaying(true);
-      }, 300);
+      // Mark that the user has explicitly pressed play so loading UI becomes visible
+      if (!userHasClickedPlayRef.current) {
+        userHasClickedPlayRef.current = true;
+        setUserHasClickedPlay(true);
+        // If video hasn't finished loading yet, start the visible progress
+        if (isInitialLoad) startLoadingProgress();
+      }
+      v.muted = false;
+      setMuted(false);
+      v.play().catch(() => {});
+      setPlaying(true);
     } else {
       v.pause();
       setPlaying(false);
@@ -450,8 +461,8 @@ export function NetflixPlayer({
         </div>
       )}
 
-      {/* ── Initial load overlay with percentage ── */}
-      {isInitialLoad && (
+      {/* ── Initial load overlay with percentage — only after user explicitly taps play ── */}
+      {isInitialLoad && userHasClickedPlay && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 pointer-events-none">
           <div className="flex flex-col items-center gap-4 px-8 text-center">
             {/* Big percentage */}
@@ -485,8 +496,8 @@ export function NetflixPlayer({
         </div>
       )}
 
-      {/* ── Unmute nudge — shown when video autoplayed muted ── */}
-      {muted && playing && (
+      {/* ── Unmute nudge — only after user has clicked play ── */}
+      {muted && playing && userHasClickedPlay && (
         <div className="absolute bottom-20 left-4 z-50">
           <button
             onClick={toggleMute}

@@ -8,7 +8,7 @@ import {
   CloudUpload, RefreshCw, CheckCircle2, Loader2, AlertCircle,
   Film, Clock, Zap, XCircle, SkipForward,
 } from "lucide-react";
-import { getLabaFilmMigrationStatus, triggerLabaFilmMigration } from "@/actions/admin";
+import { getLabaFilmMigrationStatus, triggerLabaFilmMigration, skipCurrentMigrationMovie } from "@/actions/admin";
 
 interface MigrationStatus {
   migrated: number;
@@ -77,6 +77,15 @@ export function LabaFilmMigrationPanel({
     startTransition(async () => {
       const res = await triggerLabaFilmMigration();
       if (!res.success) setError(res.error ?? "Failed to start");
+      await refresh();
+    });
+  }
+
+  async function handleSkip() {
+    setError(null);
+    startTransition(async () => {
+      const res = await skipCurrentMigrationMovie();
+      if (!res.success) setError(res.error ?? "Failed to skip");
       await refresh();
     });
   }
@@ -175,16 +184,16 @@ export function LabaFilmMigrationPanel({
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
           <div className="space-y-1.5">
             <p className="font-medium">Migration appears stuck — no progress for 5+ minutes.</p>
-            <p className="text-muted-foreground">The current movie download may have hung. Click <strong className="text-foreground">Force Restart</strong> to skip it and resume from the next movie.</p>
+            <p className="text-muted-foreground">The download may have hung. Click <strong className="text-foreground">Skip Movie</strong> to kill it and move to the next one.</p>
             <Button
               size="sm"
               variant="outline"
               className="h-7 text-xs border-red-500/40 text-red-400 hover:bg-red-500/10 mt-1"
-              onClick={handleStart}
+              onClick={handleSkip}
               disabled={isPending}
             >
-              {isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
-              Force Restart
+              {isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <SkipForward className="w-3 h-3 mr-1" />}
+              Skip Movie
             </Button>
           </div>
         </div>
@@ -193,11 +202,24 @@ export function LabaFilmMigrationPanel({
       {/* Live activity block */}
       {isRunning && (
         <div className="bg-orange-500/5 border border-orange-500/20 rounded-lg px-4 py-3 space-y-2">
-          <div className="flex items-start gap-2 text-xs text-orange-400 font-medium">
-            <Film className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-            <span className="break-all leading-relaxed">
-              {p.currentMovie ? `Processing: ${p.currentMovie}` : "Starting…"}
-            </span>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2 text-xs text-orange-400 font-medium min-w-0">
+              <Film className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span className="break-all leading-relaxed">
+                {p.currentMovie ? `Processing: ${p.currentMovie}` : "Starting…"}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 px-2 text-[10px] text-orange-400 hover:bg-orange-500/10 flex-shrink-0"
+              onClick={handleSkip}
+              disabled={isPending}
+              title="Kill this download and move to next movie"
+            >
+              <SkipForward className="w-3 h-3 mr-1" />
+              Skip
+            </Button>
           </div>
           <div className="grid grid-cols-3 gap-3 text-[10px]">
             <div className="flex items-center gap-1 text-muted-foreground">
