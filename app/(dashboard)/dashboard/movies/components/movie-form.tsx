@@ -29,7 +29,9 @@ import { MetadataTitleSearch } from "@/components/dashboard/metadata-title-searc
 import {
   searchMovieMetadata,
   enrichMovieMetadata,
+  enrichMovieByImdbId,
   type EnrichedMovie,
+  type MetadataCandidate,
 } from "@/actions/metadata";
 
 interface MovieFormProps {
@@ -99,8 +101,13 @@ export function MovieForm({ movie }: MovieFormProps) {
   useEffect(() => { if (trailerFiles[0]?.publicUrl)       setFormData(p => ({ ...p, trailerUrl:    trailerFiles[0].publicUrl! })); }, [trailerFiles]);
 
   /* ── Auto-fill from metadata ── */
-  const handleMetadataSelect = async (tmdbId: number) => {
-    const data: EnrichedMovie | null = await enrichMovieMetadata(tmdbId);
+  const handleMetadataSelect = async (candidate: MetadataCandidate) => {
+    const data: EnrichedMovie | null =
+      candidate.source === "omdb" && candidate.imdbId
+        ? await enrichMovieByImdbId(candidate.imdbId)
+        : candidate.tmdbId
+        ? await enrichMovieMetadata(candidate.tmdbId)
+        : null;
     if (!data) throw new Error("No metadata returned");
 
     /* Reload genres/years in case new ones were created by the enrichment service */

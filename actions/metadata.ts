@@ -15,11 +15,13 @@ const api = axios.create({
 
 /* ── Types ── */
 export interface MetadataCandidate {
-  tmdbId: number;
+  tmdbId?: number | null;
+  imdbId?: string | null;
   title: string;
   year: string | null;
   poster: string | null;
   overview: string;
+  source?: "tmdb" | "omdb";
 }
 
 export interface EnrichedMovie {
@@ -46,7 +48,7 @@ export interface EnrichedMovie {
   downloadUrl: null;
   subtitles: null;
   _meta: {
-    tmdbId: number;
+    tmdbId: number | null;
     imdbId: string | null;
     posterOptions: string[];
     trailerSource: "imdb" | "tmdb" | "youtube" | "manual";
@@ -87,6 +89,16 @@ export async function enrichMovieMetadata(tmdbId: number): Promise<EnrichedMovie
     return res.data?.data || null;
   } catch (e: any) {
     console.error("enrichMovieMetadata error:", e?.message);
+    return null;
+  }
+}
+
+export async function enrichMovieByImdbId(imdbId: string): Promise<EnrichedMovie | null> {
+  try {
+    const res = await api.get(`/metadata/enrich/movie/imdb/${imdbId}`);
+    return res.data?.data || null;
+  } catch (e: any) {
+    console.error("enrichMovieByImdbId error:", e?.message);
     return null;
   }
 }

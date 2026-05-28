@@ -12,7 +12,7 @@ interface MetadataTitleSearchProps {
   value: string;
   onChange: (value: string) => void;
   onSearch: (title: string) => Promise<MetadataCandidate[]>;
-  onSelect: (tmdbId: number) => Promise<void>;
+  onSelect: (candidate: MetadataCandidate) => Promise<void>;
   disabled?: boolean;
   label?: string;
   placeholder?: string;
@@ -83,7 +83,7 @@ export function MetadataTitleSearch({
     toast.loading("Fetching metadata…", { id: "enrich" });
 
     try {
-      await onSelect(candidate.tmdbId);
+      await onSelect(candidate);
       toast.success("Form auto-filled from metadata!", { id: "enrich" });
     } catch {
       toast.error("Failed to fetch metadata", { id: "enrich" });
@@ -149,13 +149,13 @@ export function MetadataTitleSearch({
         <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-xl shadow-2xl overflow-hidden max-h-80 overflow-y-auto">
           <div className="px-3 py-2 border-b border-border bg-muted/30">
             <p className="text-xs text-muted-foreground font-medium">
-              {candidates.length} result{candidates.length !== 1 ? "s" : ""} from TMDB — click to auto-fill
+              {candidates.length} result{candidates.length !== 1 ? "s" : ""} from TMDB & OMDB — click to auto-fill
             </p>
           </div>
 
           {candidates.map((c) => (
             <button
-              key={c.tmdbId}
+              key={c.tmdbId ?? c.imdbId ?? c.title}
               type="button"
               onClick={() => handleSelect(c)}
               className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/60 transition-colors text-left"
@@ -179,9 +179,12 @@ export function MetadataTitleSearch({
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm line-clamp-1">{c.title}</p>
-                {c.year && (
-                  <Badge variant="secondary" className="text-xs mt-0.5">{c.year}</Badge>
-                )}
+                <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                  {c.year && <Badge variant="secondary" className="text-xs">{c.year}</Badge>}
+                  {c.source === "omdb" && (
+                    <Badge variant="outline" className="text-xs text-orange-500 border-orange-500/40">OMDB</Badge>
+                  )}
+                </div>
                 {c.overview && (
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{c.overview}</p>
                 )}
