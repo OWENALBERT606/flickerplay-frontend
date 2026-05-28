@@ -82,9 +82,9 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber = 1, ser
       setCandidates(results);
       const exact = results.find(r => r.title.toLowerCase() === seriesTitle.toLowerCase());
       if (exact) {
-        setTmdbSeriesId(exact.tmdbId);
+        setTmdbSeriesId(exact.tmdbId ?? null);
         setConfirmedTitle(exact.title);
-        localStorage.setItem(`series_tmdb_${seriesId}`, String(exact.tmdbId));
+        localStorage.setItem(`series_tmdb_${seriesId}`, String(exact.tmdbId ?? ""));
         localStorage.setItem(`series_tmdb_name_${seriesId}`, exact.title);
       }
     }).catch(() => {}).finally(() => setLoadingCandidates(false));
@@ -92,9 +92,9 @@ export function EpisodeForm({ seriesId, seasonId, episode, seasonNumber = 1, ser
 
   /* ── Select a candidate ── */
   const selectCandidate = (c: MetadataCandidate) => {
-    setTmdbSeriesId(c.tmdbId);
+    setTmdbSeriesId(c.tmdbId ?? null);
     setConfirmedTitle(c.title);
-    localStorage.setItem(`series_tmdb_${seriesId}`, String(c.tmdbId));
+    localStorage.setItem(`series_tmdb_${seriesId}`, String(c.tmdbId ?? ""));
     localStorage.setItem(`series_tmdb_name_${seriesId}`, c.title);
     setCandidates([]);
     setMetaFilled(false);

@@ -24,6 +24,7 @@ import {
   enrichSeriesMetadata,
   importSeriesFromTmdb,
   type EnrichedSeries,
+  type MetadataCandidate,
 } from "@/actions/metadata";
 
 interface SeriesFormProps {
@@ -85,8 +86,9 @@ export function SeriesForm({ series }: SeriesFormProps) {
   useEffect(() => { if (trailerFiles[0]?.publicUrl)       setFormData(p => ({ ...p, trailerUrl:    trailerFiles[0].publicUrl! })); }, [trailerFiles]);
 
   /* ── Auto-fill from metadata ── */
-  const handleMetadataSelect = async (tmdbId: number) => {
-    const data: EnrichedSeries | null = await enrichSeriesMetadata(tmdbId);
+  const handleMetadataSelect = async (candidate: MetadataCandidate) => {
+    if (!candidate.tmdbId) throw new Error("Series requires a TMDB ID");
+    const data: EnrichedSeries | null = await enrichSeriesMetadata(candidate.tmdbId);
     if (!data) throw new Error("No metadata returned");
 
     const [genresData, yearsData] = await Promise.all([listGenres(), listReleaseYears()]);

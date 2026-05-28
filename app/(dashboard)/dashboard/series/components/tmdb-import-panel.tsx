@@ -46,6 +46,7 @@ export function TmdbImportPanel({ seriesId, seriesTitle, seriesPoster }: TmdbImp
 
   const handleImport = async () => {
     if (!selected) { toast.error("Select a series first"); return; }
+    if (!selected.tmdbId) { toast.error("This series has no TMDB ID — import requires TMDB"); return; }
     setImporting(true);
     toast.loading(`Importing seasons & episodes for "${selected.title}"…`, { id: "import" });
     try {

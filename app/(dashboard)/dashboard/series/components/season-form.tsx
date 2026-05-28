@@ -93,13 +93,13 @@ export function SeasonForm({ seriesId, season, seriesPoster, seriesTrailerPoster
 
   /* ── Select a candidate from the list ── */
   const selectCandidate = (c: MetadataCandidate) => {
-    setTmdbSeriesId(c.tmdbId);
+    setTmdbSeriesId(c.tmdbId ?? null);
     setConfirmedTitle(c.title);
-    localStorage.setItem(`series_tmdb_${seriesId}`, String(c.tmdbId));
+    localStorage.setItem(`series_tmdb_${seriesId}`, String(c.tmdbId ?? ""));
     localStorage.setItem(`series_tmdb_name_${seriesId}`, c.title);
     setCandidates([]);
     setMetaFilled(false);
-    toast.success(`Using: ${c.title} (TMDB ID: ${c.tmdbId})`);
+    toast.success(`Using: ${c.title} (TMDB ID: ${c.tmdbId ?? "N/A"})`);
   };
 
   /* ── Fetch season metadata ── */
