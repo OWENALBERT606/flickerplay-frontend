@@ -5,7 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { Loader2, Upload, Video, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { getVideoResolution, getFFmpegResolution, compressVideo } from "@/lib/video-compress";
+
 import type { FileWithMetadata } from "@/components/ui/dropzone";
 
 interface VideoDropzoneProps {
@@ -15,7 +15,7 @@ interface VideoDropzoneProps {
   label?: string;
 }
 
-type Stage = "idle" | "checking" | "compressing" | "uploading" | "done" | "error";
+type Stage = "idle" | "uploading" | "done" | "error";
 
 export function VideoDropzone({
   onFilesChange,
@@ -28,8 +28,6 @@ export function VideoDropzone({
   const [statusMsg, setStatusMsg] = useState("");
   const [fileName, setFileName]   = useState("");
   const [origSize, setOrigSize]   = useState("");
-  const [finalSize, setFinalSize] = useState("");
-  const [wasCompressed, setWasCompressed] = useState(false);
 
   const fmt = (b: number) =>
     b >= 1e9 ? `${(b / 1e9).toFixed(2)} GB`
@@ -39,57 +37,16 @@ export function VideoDropzone({
   const processFile = useCallback(async (raw: File) => {
     setFileName(raw.name);
     setOrigSize(fmt(raw.size));
-    setWasCompressed(false);
-    setStage("checking");
-    setProgress(2);
-    setStatusMsg("Checking video resolution…");
 
     let fileToUpload = raw;
 
-    // ── Step 1: Check resolution ──────────────────────────────────
-    let res = await getVideoResolution(raw);
-    
-    // If browser probe fails (common for MKV/AVI), try FFmpeg probe
-    if (!res) {
-      setStatusMsg("Probing video format…");
-      res = await getFFmpegResolution(raw);
-    }
+    // ── Upload original file directly (no compression) ────────────
+    setProgress(10);
 
-    // If resolution is still unknown, but it's a large file, assume it needs compression
-    // to be safe and ensure it's a playable MP4.
-    const needsCompression = res ? res.height > 720 : raw.size > 50 * 1024 * 1024; // > 50MB
-    const heightLabel = res ? `${res.height}p` : "unknown format";
-
-    if (needsCompression) {
-      // ── Step 2: Compress ────────────────────────────────────────
-      setStage("compressing");
-      setStatusMsg(`Video is ${heightLabel} — compressing to 720p…`);
-      toast.info(`Processing ${heightLabel} video for streaming (720p)…`);
-
-      try {
-        fileToUpload = await compressVideo(raw, ({ ratio, message }) => {
-          setProgress(Math.round(2 + ratio * 55)); // 2–57%
-          setStatusMsg(message);
-        });
-        setFinalSize(fmt(fileToUpload.size));
-        setWasCompressed(true);
-        toast.success(`Compressed: ${fmt(raw.size)} → ${fmt(fileToUpload.size)}`);
-      } catch (err) {
-        console.error("Compression failed, uploading original:", err);
-        toast.warning("Compression failed — uploading original");
-        fileToUpload = raw;
-      }
-    } else {
-      // ── Skip compression — already ≤720p ─────────────────────────
-      const label = res ? `${res.height}p` : "unknown resolution";
-      setStatusMsg(`Video is ${label} — uploading directly…`);
-      setProgress(10);
-    }
-
-    // ── Step 3: Get presigned URL ─────────────────────────────────
+    // ── Step 2: Get presigned URL ─────────────────────────────────
     setStage("uploading");
     setStatusMsg("Getting upload URL…");
-    setProgress(wasCompressed ? 60 : 12);
+    setProgress(12);
 
     let presignedUrl = "";
     let key = "";
@@ -115,7 +72,7 @@ export function VideoDropzone({
     }
 
     // ── Step 4: Upload with XHR progress ─────────────────────────
-    const uploadStart = wasCompressed ? 62 : 14;
+    const uploadStart = 14;
 
     await new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -145,7 +102,6 @@ export function VideoDropzone({
     setProgress(100);
     setStage("done");
     setStatusMsg("Upload complete!");
-    setFinalSize(fmt(fileToUpload.size));
     toast.success("Video uploaded successfully!");
 
     onFilesChange?.([{
@@ -158,17 +114,17 @@ export function VideoDropzone({
       isDeleting: false,
       error:     false,
     }]);
-  }, [onFilesChange, wasCompressed]);
+  }, [onFilesChange]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (accepted) => { if (accepted[0]) processFile(accepted[0]); },
     maxFiles: 1,
     maxSize,
     accept: { "video/*": [".mp4", ".mov", ".avi", ".mkv", ".webm"] },
-    disabled: disabled || stage === "checking" || stage === "compressing" || stage === "uploading",
+    disabled: disabled || stage === "uploading",
   });
 
-  const busy = stage === "checking" || stage === "compressing" || stage === "uploading";
+  const busy = stage === "uploading";
 
   return (
     <div className="space-y-2">
@@ -194,7 +150,7 @@ export function VideoDropzone({
                 {isDragActive ? "Drop video here" : "Drag & drop video or click to select"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                MP4, MOV, AVI, MKV · Videos &gt;720p are compressed automatically
+                MP4, MOV, AVI, MKV · Uploaded at original quality
               </p>
             </div>
           </div>
@@ -217,9 +173,8 @@ export function VideoDropzone({
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Original: {origSize}</span>
-              {wasCompressed && finalSize && <span>Compressed: {finalSize}</span>}
+            <div className="text-xs text-muted-foreground">
+              <span>Size: {origSize}</span>
             </div>
           </div>
         )}
@@ -231,12 +186,7 @@ export function VideoDropzone({
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-green-600">Upload complete</p>
               <p className="text-xs text-muted-foreground truncate">{fileName}</p>
-              {wasCompressed && finalSize && (
-                <p className="text-xs text-muted-foreground">{origSize} → {finalSize} (720p)</p>
-              )}
-              {!wasCompressed && (
-                <p className="text-xs text-muted-foreground">Uploaded as-is (already ≤720p)</p>
-              )}
+              <p className="text-xs text-muted-foreground">Uploaded original ({origSize})</p>
             </div>
             <button
               type="button"
@@ -245,8 +195,6 @@ export function VideoDropzone({
                 setStage("idle");
                 setProgress(0);
                 setFileName("");
-                setFinalSize("");
-                setWasCompressed(false);
                 onFilesChange?.([]);
               }}
               className="text-xs text-muted-foreground hover:text-foreground underline shrink-0"

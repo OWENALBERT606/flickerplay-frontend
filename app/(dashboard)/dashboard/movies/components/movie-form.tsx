@@ -417,7 +417,7 @@ export function MovieForm({ movie }: MovieFormProps) {
         <p className="text-xs text-muted-foreground">Upload trailer video (max 100MB) — overrides URL above</p>
       </div>
 
-      {/* ── Full Movie Video — compressed to 720p before upload ── */}
+      {/* ── Full Movie Video — original quality upload ── */}
       <div className="space-y-2">
         <Label>Full Movie Video <span className="text-destructive">*</span></Label>
         <VideoDropzone
@@ -427,7 +427,7 @@ export function MovieForm({ movie }: MovieFormProps) {
           disabled={isLoading}
         />
         <p className="text-xs text-muted-foreground">
-          Video is automatically compressed to 720p in your browser before uploading — only the URL is stored.
+          Video is uploaded at original quality — only the URL is stored.
         </p>
       </div>
 
