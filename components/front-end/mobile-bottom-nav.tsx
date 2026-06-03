@@ -21,7 +21,8 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border">
+    /* Hidden on desktop (md+) and on Smart TVs via css: html[data-tv] .mobile-bottom-nav */
+    <nav className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border">
       <div className="flex items-center justify-around px-2 py-2 pb-safe">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);

@@ -90,68 +90,45 @@
 //   );
 // }
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
-import Script from "next/script";
-import RegisterSW from "@/components/RegisterSW";
 import { SecurityGuard } from "@/components/security-guard";
+import { TVSupport } from "@/components/pwa/tv-support";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: {
     default: "FlickerPlay | Every frame, your way.",
     template: "%s | FlickerPlay",
   },
-  description:
-    "Stream unlimited movies, TV series, and documentaries in HD quality.",
+  description: "Stream unlimited movies, TV series, and documentaries in HD quality.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",        // enables safe-area-inset-* for iOS notch + Android cutout
+  themeColor: "#000000",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* <Script
-          src="https://quge5.com/88/tag.min.js"
-          strategy="afterInteractive"
-          data-zone="238682"
-          data-cfasync="false"
-          async
-        /> */}
-        {/* Monetag Global Script */}
-        {/* <Script
-          id="monetag-script"
-          strategy="afterInteractive"
-          src="https://groleegni.net/88/tag.min.js"
-          data-zone="YOUR_ZONE_ID"
-        /> */}
-        <meta name="theme-color" content="#000000" />
         <meta name="mobile-web-app-capable" content="yes" />
-
+        {/* iOS PWA */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="FlickerPlay" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icons/icon-192x192.png" />
-        <link
-          rel="apple-touch-icon"
-          href="/icons/icon-192x192.png"
-        />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
 
       <body
@@ -159,14 +136,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <SecurityGuard />
+        <TVSupport />
         <Toaster position="top-center" richColors />
-
         {children}
-
-        {/* <RegisterSW /> */}
         <ServiceWorkerRegister />
-
-       
       </body>
     </html>
   );

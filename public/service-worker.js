@@ -17,8 +17,7 @@ self.addEventListener("install", (event) => {
       return cache.addAll(PRECACHE_ASSETS);
     })
   );
-  // Activate immediately without waiting for old tabs to close
-  self.skipWaiting();
+  // Do NOT call skipWaiting() — avoids forced mid-session reloads on iOS
 });
 
 // ── Activate: clean up old caches ────────────────────────────────
@@ -32,8 +31,7 @@ self.addEventListener("activate", (event) => {
       )
     )
   );
-  // Take control of all open clients immediately
-  self.clients.claim();
+  // Do NOT call clients.claim() — avoids triggering a controllerchange reload on iOS
 });
 
 // ── Fetch: cache-first for static, network-first for pages ───────

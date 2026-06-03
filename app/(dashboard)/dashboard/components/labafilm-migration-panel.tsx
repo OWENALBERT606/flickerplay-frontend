@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   CloudUpload, RefreshCw, CheckCircle2, Loader2, AlertCircle,
-  Film, Clock, Zap, XCircle, SkipForward,
+  Film, Clock, Zap, XCircle, SkipForward, PauseCircle,
 } from "lucide-react";
 import { getLabaFilmMigrationStatus, triggerLabaFilmMigration, skipCurrentMigrationMovie } from "@/actions/admin";
 
@@ -113,12 +113,12 @@ export function LabaFilmMigrationPanel({
   handleStartRef.current = handleStart;
   handleSkipRef.current  = handleSkip;
 
-  // Auto-start on first load if idle with pending items
-  useEffect(() => {
-    if (!status) return;
-    if (!status.running && status.pending > 0) handleStart();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // PAUSED — auto-start on first load disabled
+  // useEffect(() => {
+  //   if (!status) return;
+  //   if (!status.running && status.pending > 0) handleStart();
+  // // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   // Poll every 5 s while running
   useEffect(() => {
@@ -136,35 +136,12 @@ export function LabaFilmMigrationPanel({
     return () => clearInterval(id);
   }, [status?.running, status?.progress.startedAt]);
 
-  // ── Idle auto-resume: 5 min countdown when stopped with pending items ──────
-  useEffect(() => {
-    // Clear on first render (initial auto-start already handled above)
-    if (isFirstRenderRef.current) { isFirstRenderRef.current = false; return; }
-
-    const clearIdle = () => {
-      if (idleTimerRef.current)    { clearTimeout(idleTimerRef.current);    idleTimerRef.current = null; }
-      if (idleCountdownRef.current){ clearInterval(idleCountdownRef.current); idleCountdownRef.current = null; }
-      setIdleSecondsLeft(null);
-    };
-
-    if (status?.running || !status?.pending || status.pending === 0) { clearIdle(); return; }
-
-    // Start visible countdown
-    let secs = Math.floor(IDLE_RESUME_MS / 1000);
-    setIdleSecondsLeft(secs);
-    idleCountdownRef.current = setInterval(() => {
-      secs -= 1;
-      setIdleSecondsLeft(secs);
-    }, 1_000);
-
-    idleTimerRef.current = setTimeout(() => {
-      clearIdle();
-      handleStartRef.current();
-    }, IDLE_RESUME_MS);
-
-    return clearIdle;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status?.running, status?.pending]);
+  // PAUSED — idle auto-resume disabled
+  // useEffect(() => {
+  //   if (isFirstRenderRef.current) { isFirstRenderRef.current = false; return; }
+  //   const clearIdle = () => { ... };
+  //   ...
+  // }, [status?.running, status?.pending]);
 
   // ── Stuck auto-skip: 5 min no progress → skip + restart ──────────────────
   useEffect(() => {
@@ -218,6 +195,12 @@ export function LabaFilmMigrationPanel({
 
   return (
     <Card className="p-6 space-y-5">
+      {/* ── PAUSED banner ── */}
+      <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+        <PauseCircle className="w-4 h-4 shrink-0" />
+        <span className="font-medium">Migration paused — auto-start and auto-resume are disabled. Click "Start Migration" to run manually.</span>
+      </div>
+
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">

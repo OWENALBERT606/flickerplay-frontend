@@ -20,7 +20,7 @@ export function RelatedMovies({ movies }: RelatedMoviesProps) {
   return (
     <div className="mt-12">
       <h2 className="text-2xl font-semibold mb-6">Related Movies</h2>
-       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
   {movies.map((movie) => (
     <Link key={movie.id} href={`/movies/${movie.slug}`}>
       <Card className="group relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl border-0 bg-transparent p-0">

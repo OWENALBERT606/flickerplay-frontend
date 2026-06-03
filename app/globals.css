@@ -16,6 +16,54 @@ img, video {
   -webkit-user-drag: none;
 }
 
+/* ── Safe-area utilities (iOS notch, Android cutout, TV overscan) ── */
+@layer utilities {
+  .pb-safe  { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pt-safe  { padding-top:    env(safe-area-inset-top,    0px); }
+  .pl-safe  { padding-left:   env(safe-area-inset-left,   0px); }
+  .pr-safe  { padding-right:  env(safe-area-inset-right,  0px); }
+  .mb-safe  { margin-bottom:  env(safe-area-inset-bottom, 0px); }
+  .inset-safe {
+    padding-top:    env(safe-area-inset-top,    0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left:   env(safe-area-inset-left,   0px);
+    padding-right:  env(safe-area-inset-right,  0px);
+  }
+}
+
+/* ── Touch: remove 300ms tap delay and default highlight ── */
+a, button, [role="button"], input, label, select, textarea, summary {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── TV / D-pad focus ring ── */
+/* Applied only when html[data-tv] is set by TVSupport component */
+html[data-tv] :focus-visible,
+html[data-tv] :focus {
+  outline: 4px solid #f97316 !important; /* orange-500 */
+  outline-offset: 3px;
+  box-shadow: 0 0 0 7px rgba(249, 115, 22, 0.25);
+  border-radius: 6px;
+}
+
+/* Remove focus ring on mouse click (only show for keyboard/D-pad) */
+html:not([data-tv]) :focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── TV 10-foot UI: scale up text slightly on 1080p+ screens with no fine pointer ── */
+@media (min-width: 1920px) and (not (pointer: fine)) {
+  html[data-tv] {
+    font-size: 115%;
+  }
+}
+
+/* ── Hide mobile bottom nav on Smart TVs ── */
+html[data-tv] .mobile-bottom-nav {
+  display: none !important;
+}
+
 /* ==== Design tokens (CSS variables) ==== */
 /* :root {
   --radius: 0.625rem;

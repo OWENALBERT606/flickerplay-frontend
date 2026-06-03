@@ -9,9 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+} from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { createSeries, updateSeries, type Series } from "@/actions/series";
 import { listVJs } from "@/actions/vjs";
@@ -64,6 +68,7 @@ export function SeriesForm({ series }: SeriesFormProps) {
 
   /* Select options */
   const [vjs, setVjs]       = useState<any[]>([]);
+  const [vjOpen, setVjOpen] = useState(false);
   const [genres, setGenres] = useState<any[]>([]);
   const [years, setYears]   = useState<any[]>([]);
 
@@ -291,10 +296,43 @@ export function SeriesForm({ series }: SeriesFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label>VJ <span className="text-destructive">*</span></Label>
-          <Select value={formData.vjId} onValueChange={v => setFormData(p => ({ ...p, vjId: v }))} disabled={isLoading}>
-            <SelectTrigger><SelectValue placeholder="Select VJ" /></SelectTrigger>
-            <SelectContent>{vjs.map(vj => <SelectItem key={vj.id} value={vj.id}>{vj.name}</SelectItem>)}</SelectContent>
-          </Select>
+          <Popover open={vjOpen} onOpenChange={setVjOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={isLoading}
+                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className={formData.vjId ? "text-foreground" : "text-muted-foreground"}>
+                  {formData.vjId ? (vjs.find(v => v.id === formData.vjId)?.name ?? "Select VJ") : "Select VJ"}
+                </span>
+                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+              <Command>
+                <CommandInput placeholder="Search VJ…" />
+                <CommandList>
+                  <CommandEmpty>No VJ found.</CommandEmpty>
+                  <CommandGroup>
+                    {vjs.map(vj => (
+                      <CommandItem
+                        key={vj.id}
+                        value={vj.name}
+                        onSelect={() => {
+                          setFormData(p => ({ ...p, vjId: vj.id }));
+                          setVjOpen(false);
+                        }}
+                      >
+                        <Check className={`mr-2 h-4 w-4 ${formData.vjId === vj.id ? "opacity-100" : "opacity-0"}`} />
+                        {vj.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="space-y-2">
           <Label>Genre <span className="text-destructive">*</span>

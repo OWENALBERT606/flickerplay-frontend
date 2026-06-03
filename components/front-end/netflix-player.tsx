@@ -125,7 +125,7 @@ export function NetflixPlayer({
   const userHasClickedPlayRef = useRef(false); // ref so event handlers always see latest value
 
   /* ── HLS ── */
-  const { videoRef, levels, currentLevel, setLevel } = useHls(src, subtitlesProp);
+  const { videoRef, levels, selectedLevel, currentLevel, setLevel } = useHls(src, subtitlesProp);
 
   /* ─────────────────────────────────────────────────────────────────────────
      Progress save
@@ -153,11 +153,18 @@ export function NetflixPlayer({
   }, [videoRef]);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     Fullscreen listener
+     Fullscreen listener + TV auto-fullscreen
   ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     const handler = () => setFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", handler);
+
+    // Auto-enter fullscreen on Smart TVs so the player fills the screen
+    const isTV = document.documentElement.getAttribute("data-tv") === "true";
+    if (isTV && containerRef.current && !document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(() => {});
+    }
+
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
@@ -165,17 +172,22 @@ export function NetflixPlayer({
      Keyboard shortcuts
   ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
+    const isTV = document.documentElement.getAttribute("data-tv") === "true";
+    const skipSecs = isTV ? 30 : 10; // TV remote: 30 s jumps; keyboard: 10 s
+
     const handler = (e: globalThis.KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       switch (e.code) {
-        case "Space": case "KeyK": e.preventDefault(); togglePlay(); break;
-        case "ArrowLeft":  case "KeyJ": e.preventDefault(); skip(-10); break;
-        case "ArrowRight": case "KeyL": e.preventDefault(); skip(10);  break;
+        case "Space": case "KeyK":
+        case "Enter":              // TV OK / remote centre button
+          e.preventDefault(); togglePlay(); break;
+        case "ArrowLeft":  case "KeyJ": e.preventDefault(); skip(-skipSecs); break;
+        case "ArrowRight": case "KeyL": e.preventDefault(); skip(skipSecs);  break;
         case "ArrowUp":   e.preventDefault(); changeVolume(Math.min(1, volume + 0.1)); break;
         case "ArrowDown": e.preventDefault(); changeVolume(Math.max(0, volume - 0.1)); break;
         case "KeyM": toggleMute(); break;
-        case "KeyF": toggleFullscreen(); break;
+        case "KeyF": case "Escape": if (!isTV) break; toggleFullscreen(); break;
       }
     };
     window.addEventListener("keydown", handler);
@@ -633,7 +645,7 @@ export function NetflixPlayer({
             {/* Left controls */}
             <div className="flex items-center gap-1 md:gap-2">
               {/* Play/Pause */}
-              <button onClick={togglePlay}
+              <button onClick={togglePlay} tabIndex={0}
                 className="text-white hover:text-white/80 transition-colors p-2">
                 {playing
                   ? <Pause className="w-6 h-6 fill-white" />
@@ -641,14 +653,14 @@ export function NetflixPlayer({
               </button>
 
               {/* Skip back */}
-              <button onClick={() => skip(-10)}
+              <button onClick={() => skip(-10)} tabIndex={0}
                 className="text-white hover:text-white/80 transition-colors p-2 hidden sm:block"
                 title="−10s (J)">
                 <SkipBack className="w-5 h-5" />
               </button>
 
               {/* Skip forward */}
-              <button onClick={() => skip(10)}
+              <button onClick={() => skip(10)} tabIndex={0}
                 className="text-white hover:text-white/80 transition-colors p-2 hidden sm:block"
                 title="+10s (L)">
                 <SkipForward className="w-5 h-5" />
@@ -656,7 +668,7 @@ export function NetflixPlayer({
 
               {/* Volume */}
               <div className="flex items-center gap-1">
-                <button onClick={toggleMute}
+                <button onClick={toggleMute} tabIndex={0}
                   className="text-white hover:text-white/80 transition-colors p-2 flex-shrink-0">
                   <VolumeIcon className="w-5 h-5" />
                 </button>
@@ -712,7 +724,7 @@ export function NetflixPlayer({
               )}
 
               {/* Quality */}
-              <QualitySelector levels={levels} currentLevel={currentLevel} onSelect={setLevel} />
+              <QualitySelector levels={levels} selectedLevel={selectedLevel} currentLevel={currentLevel} onSelect={setLevel} />
 
               {/* Next episode button */}
               {nextItem && (
@@ -768,7 +780,7 @@ export function NetflixPlayer({
               </div>
 
               {/* Fullscreen */}
-              <button onClick={toggleFullscreen}
+              <button onClick={toggleFullscreen} tabIndex={0}
                 className="text-white hover:text-white/80 transition-colors p-2"
                 title={fullscreen ? "Exit fullscreen (F)" : "Fullscreen (F)"}>
                 {fullscreen

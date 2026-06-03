@@ -69,11 +69,14 @@ export function SeriesSection({ title, series }: SeriesSectionProps) {
           <Link
             key={s.id}
             href={s.isComingSoon ? "#" : `/series/${s.slug}`}
-            className="group cursor-pointer min-w-0 block"
+            className="group cursor-pointer min-w-0 block focus-visible:outline-none"
+            tabIndex={0}
             onMouseEnter={() => setHoveredSeries(s.id)}
             onMouseLeave={() => setHoveredSeries(null)}
+            onFocus={() => setHoveredSeries(s.id)}
+            onBlur={() => setHoveredSeries(null)}
           >
-            <div className="relative overflow-hidden rounded-lg bg-card transition-transform duration-300 group-hover:scale-105 group-hover:z-10">
+            <div className="relative overflow-hidden rounded-lg bg-card transition-transform duration-300 group-hover:scale-105 group-focus-within:scale-105 group-hover:z-10 group-focus-within:z-10 group-focus-within:ring-2 group-focus-within:ring-orange-500">
               <div className="relative aspect-[2/3] w-full">
                 <Image
                   src={s.poster}

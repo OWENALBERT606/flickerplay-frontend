@@ -1,14 +1,19 @@
 {
+  "id": "/",
   "name": "FlickerPlay",
   "short_name": "FlickerPlay",
   "description": "Stream unlimited movies, TV series, and documentaries in HD quality.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
   "orientation": "any",
   "theme_color": "#000000",
   "background_color": "#000000",
   "categories": ["entertainment", "video"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -27,5 +32,7 @@
     { "name": "Movies",  "url": "/movies", "description": "Browse all movies" },
     { "name": "Series",  "url": "/series", "description": "Browse all TV series" },
     { "name": "My List", "url": "/list",   "description": "Your saved content" }
-  ]
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
