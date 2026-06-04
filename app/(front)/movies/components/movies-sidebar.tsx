@@ -6,10 +6,13 @@ import {
   Film, Flame, Clock, Languages, Globe, Star, X, Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
-interface VJ    { id: string; name: string; avatarUrl?: string; bio?: string | null }
+interface VJ    { id: string; name: string; avatarUrl?: string }
 interface Genre { id: string; name: string }
 interface Year  { id: string; value: number }
 
@@ -27,8 +30,7 @@ export function MoviesSidebar({ genres, vjs, years }: MoviesSidebarProps) {
   const router       = useRouter();
   const searchParams = useSearchParams();
 
-  const get  = (key: string) => searchParams.get(key) ?? "all";
-  const getS = (key: string) => searchParams.get(key) ?? "";
+  const get  = (key: string) => searchParams.get(key) ?? "";
 
   const push = useCallback(
     (updates: Record<string, string>) => {
@@ -46,69 +48,117 @@ export function MoviesSidebar({ genres, vjs, years }: MoviesSidebarProps) {
   const activeGenre  = get("genre");
   const activeVJ     = get("vj");
   const activeYear   = get("year");
-  const activeSearch = getS("search");
-  const activeTrend  = searchParams.get("trending");
-  const activeSoon   = searchParams.get("coming_soon");
-  const activeDubbed = searchParams.get("dubbed");
+  const activeSearch = get("search");
+  const activeTrend  = get("trending");
+  const activeSoon   = get("coming_soon");
+  const activeDubbed = get("dubbed");
+  const activeSort   = get("sort");
 
   const clearAll = () => router.push("/movies");
   const hasFilters =
-    activeGenre !== "all" || activeVJ !== "all" || activeYear !== "all" ||
-    activeSearch || activeTrend || activeSoon || activeDubbed;
+    activeGenre || activeVJ || activeYear || activeSearch ||
+    activeTrend || activeSoon || activeDubbed || activeSort;
+
+  const sortedYears = [...years].sort((a, b) => b.value - a.value);
 
   return (
     <div className="w-full space-y-3 pb-4 border-b border-border/40">
 
-      {/* ── Row 1: Search + quick browse + language ── */}
+      {/* ── Row 1: Search (full width) ── */}
+      <div className="relative w-full">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <Input
+          placeholder="Search movies…"
+          defaultValue={activeSearch}
+          className="pl-10 h-10 text-sm w-full"
+          onChange={(e) => push({ search: e.target.value })}
+        />
+      </div>
+
+      {/* ── Row 2: Dropdowns + Clear ── */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative shrink-0 w-44">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search movies…"
-            defaultValue={activeSearch}
-            className="pl-8 h-8 text-sm"
-            onChange={(e) => push({ search: e.target.value })}
-          />
-        </div>
+        {/* Genre dropdown */}
+        <Select
+          value={activeGenre || "all"}
+          onValueChange={(v) => push({ genre: v })}
+        >
+          <SelectTrigger className="h-9 w-40 text-sm">
+            <SelectValue placeholder="Genre" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Genres</SelectItem>
+            {genres.map((g) => (
+              <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <div className="h-5 w-px bg-border/60 mx-0.5" />
+        {/* Year dropdown */}
+        <Select
+          value={activeYear || "all"}
+          onValueChange={(v) => push({ year: v })}
+        >
+          <SelectTrigger className="h-9 w-32 text-sm">
+            <SelectValue placeholder="Year" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Years</SelectItem>
+            {sortedYears.map((y) => (
+              <SelectItem key={y.id} value={y.id}>{y.value}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <Pill label="All" active={!hasFilters} onClick={clearAll} icon={Film} />
-        <Pill label="Trending" active={activeTrend === "1"} icon={Flame}
-          onClick={() => push({ trending: activeTrend === "1" ? "" : "1" })} />
-        <Pill label="Coming Soon" active={activeSoon === "1"} icon={Clock}
-          onClick={() => push({ coming_soon: activeSoon === "1" ? "" : "1" })} />
-        <Pill label="Top Rated" active={searchParams.get("sort") === "rating"} icon={Star}
-          onClick={() => push({ sort: searchParams.get("sort") === "rating" ? "" : "rating" })} />
-
-        <div className="h-5 w-px bg-border/60 mx-0.5" />
-
-        <Pill label="VJ Translated" active={activeDubbed === "yes"} icon={Languages}
-          onClick={() => push({ dubbed: activeDubbed === "yes" ? "" : "yes" })} />
-        <Pill label="Original" active={activeDubbed === "no"} icon={Globe}
-          onClick={() => push({ dubbed: activeDubbed === "no" ? "" : "no" })} />
+        {/* Sort dropdown */}
+        <Select
+          value={activeSort || "default"}
+          onValueChange={(v) => push({ sort: v === "default" ? "" : v })}
+        >
+          <SelectTrigger className="h-9 w-40 text-sm">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Default order</SelectItem>
+            <SelectItem value="rating">Top Rated</SelectItem>
+            <SelectItem value="views">Most Viewed</SelectItem>
+            <SelectItem value="newest">Newest First</SelectItem>
+          </SelectContent>
+        </Select>
 
         {hasFilters && (
           <button
             onClick={clearAll}
-            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-red-400 border border-red-500/30 hover:bg-red-500/10 transition-colors"
+            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-red-400 border border-red-500/30 hover:bg-red-500/10 transition-colors shrink-0"
           >
-            <X className="w-3 h-3" /> Clear
+            <X className="w-3 h-3" /> Clear filters
           </button>
         )}
       </div>
 
-      {/* ── Row 2: VJ avatars ── */}
+      {/* ── Row 3: Quick browse + Language ── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Pill label="All" icon={Film}       active={!hasFilters}          onClick={clearAll} />
+        <Pill label="Trending" icon={Flame} active={activeTrend === "1"}  onClick={() => push({ trending: activeTrend === "1" ? "" : "1" })} />
+        <Pill label="Coming Soon" icon={Clock} active={activeSoon === "1"} onClick={() => push({ coming_soon: activeSoon === "1" ? "" : "1" })} />
+        <Pill label="Top Rated" icon={Star} active={activeSort === "rating"} onClick={() => push({ sort: activeSort === "rating" ? "" : "rating" })} />
+
+        <div className="h-5 w-px bg-border/60 mx-1 hidden sm:block" />
+
+        <Pill label="VJ Dubbed" icon={Languages} active={activeDubbed === "yes"} onClick={() => push({ dubbed: activeDubbed === "yes" ? "" : "yes" })} />
+        <Pill label="Original"  icon={Globe}     active={activeDubbed === "no"}  onClick={() => push({ dubbed: activeDubbed === "no"  ? "" : "no" })} />
+      </div>
+
+      {/* ── Row 4: VJ filter ── */}
       {vjs.length > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0 w-10">VJ</span>
-          <div className="overflow-x-auto pb-1 flex-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0 w-6">VJ</span>
+          <div className="overflow-x-auto pb-1 flex-1 scrollbar-none">
             <div className="flex items-center gap-2 w-max">
               <button
                 onClick={() => push({ vj: "all" })}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors shrink-0",
-                  activeVJ === "all"
+                  !activeVJ
                     ? "bg-orange-500 border-orange-500 text-white"
                     : "border-border text-muted-foreground hover:border-orange-400 hover:text-foreground",
                 )}
@@ -118,7 +168,7 @@ export function MoviesSidebar({ genres, vjs, years }: MoviesSidebarProps) {
               {vjs.map((vj) => (
                 <button
                   key={vj.id}
-                  onClick={() => push({ vj: activeVJ === vj.id ? "all" : vj.id })}
+                  onClick={() => push({ vj: activeVJ === vj.id ? "" : vj.id })}
                   className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors shrink-0",
                     activeVJ === vj.id
@@ -135,46 +185,6 @@ export function MoviesSidebar({ genres, vjs, years }: MoviesSidebarProps) {
                   </div>
                   {vj.name}
                 </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Row 3: Genres ── */}
-      {genres.length > 0 && (
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0 w-10">Genre</span>
-          <div className="overflow-x-auto pb-1 flex-1">
-            <div className="flex items-center gap-2 w-max">
-              <Pill label="All" active={activeGenre === "all"} onClick={() => push({ genre: "all" })} />
-              {genres.map((g) => (
-                <Pill
-                  key={g.id}
-                  label={g.name}
-                  active={activeGenre === g.id}
-                  onClick={() => push({ genre: activeGenre === g.id ? "all" : g.id })}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Row 4: Years ── */}
-      {years.length > 0 && (
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0 w-10">Year</span>
-          <div className="overflow-x-auto pb-1 flex-1">
-            <div className="flex items-center gap-2 w-max">
-              <Pill label="All" active={activeYear === "all"} onClick={() => push({ year: "all" })} />
-              {[...years].sort((a, b) => b.value - a.value).map((y) => (
-                <Pill
-                  key={y.id}
-                  label={String(y.value)}
-                  active={activeYear === y.id}
-                  onClick={() => push({ year: activeYear === y.id ? "all" : y.id })}
-                />
               ))}
             </div>
           </div>

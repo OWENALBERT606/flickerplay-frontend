@@ -68,6 +68,10 @@ export default async function MoviesPage({
   /* ── Client-side sort ── */
   if (params.sort === "rating") {
     movies = [...movies].sort((a, b) => b.rating - a.rating);
+  } else if (params.sort === "views") {
+    movies = [...movies].sort((a, b) => Number(b.viewsCount ?? 0) - Number(a.viewsCount ?? 0));
+  } else if (params.sort === "newest") {
+    movies = [...movies].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   const totalPages = pagination?.totalPages ?? 1;
@@ -81,16 +85,18 @@ export default async function MoviesPage({
     ? `${activeVJ.name} Movies`
     : activeGenre
     ? `${activeGenre.name} Movies`
-    : params.trending    === "1" ? "🔥 Trending Movies"
-    : params.coming_soon === "1" ? "⏳ Coming Soon"
-    : params.dubbed      === "yes" ? "🎙 Translated (VJ) Movies"
-    : params.dubbed      === "no"  ? "🌐 Original Movies"
+    : params.trending    === "1"      ? "🔥 Trending Movies"
+    : params.coming_soon === "1"      ? "⏳ Coming Soon"
+    : params.dubbed      === "yes"    ? "🎙 Translated (VJ) Movies"
+    : params.dubbed      === "no"     ? "🌐 Original Movies"
     : params.sort        === "rating" ? "⭐ Top Rated Movies"
+    : params.sort        === "views"  ? "👁 Most Viewed Movies"
+    : params.sort        === "newest" ? "🆕 New Releases"
     : "All Movies";
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="pt-20 px-4 md:px-8 lg:px-12 pb-12">
+      <main className="px-4 md:px-8 lg:px-12 pb-12">
         <div className="flex flex-col gap-6">
 
           {/* ── Top filter bar ── */}

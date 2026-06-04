@@ -134,51 +134,53 @@ export function HeroCarousel({ items, userId }: HeroCarouselProps) {
   const poster = (current.trailerPoster || current.poster || "").trim();
 
   return (
-    <div className="relative h-[55vh] md:h-[85vh] w-full overflow-hidden">
+    <div className="relative h-[360px] md:h-[460px] w-full overflow-hidden bg-zinc-900">
       {/* Background */}
       <div
         className={`absolute inset-0 transition-opacity duration-500 ${
           isTransitioning ? "opacity-0" : "opacity-100"
         }`}
       >
-        <Image
-          src={poster}
-          alt={current.title}
-          fill
-          sizes="100vw"
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/30" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent" />
+        {poster && (
+          <Image
+            src={poster}
+            alt={current.title}
+            fill
+            sizes="100vw"
+            className="object-cover object-top"
+            priority
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
       </div>
 
       {/* Content */}
       <div
-        className={`relative h-full flex items-end md:items-center pb-28 md:pb-0 transition-opacity duration-500 ${
+        className={`relative h-full flex items-end md:items-center pb-14 md:pb-0 transition-opacity duration-500 ${
           isTransitioning ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="container mx-auto px-4 md:px-12 lg:px-24">
-          <div className="max-w-2xl space-y-3 md:space-y-6">
+        <div className="px-6 md:px-10 lg:px-14">
+          <div className="max-w-xl space-y-2 md:space-y-4">
             {/* Type badge */}
-            <Badge variant="outline" className="w-fit">
+            <Badge variant="outline" className="w-fit text-xs">
               {movie ? (
-                <><Film className="w-4 h-4 mr-2" />Movie</>
+                <><Film className="w-3 h-3 mr-1.5" />Movie</>
               ) : (
-                <><Tv className="w-4 h-4 mr-2" />TV Series</>
+                <><Tv className="w-3 h-3 mr-1.5" />TV Series</>
               )}
             </Badge>
 
             {/* Title */}
-            <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold text-white drop-shadow-lg leading-tight">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg leading-tight">
               {cleanTitle(current.title)}
             </h1>
 
             {/* Meta */}
-            <div className="flex flex-wrap items-center gap-3 md:gap-6 text-white/90 text-sm md:text-base">
-              <div className="flex items-center gap-1.5">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 text-white/90 text-xs md:text-sm">
+              <div className="flex items-center gap-1">
+                <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                 <span className="font-medium">{current.rating.toFixed(1)}</span>
               </div>
               <span>{current.year.value}</span>
@@ -191,20 +193,20 @@ export function HeroCarousel({ items, userId }: HeroCarouselProps) {
               )}
             </div>
 
-            {/* Description — hidden on mobile to save space */}
-            <p className="hidden md:block text-lg text-white/90 line-clamp-3 leading-relaxed">
+            {/* Description */}
+            <p className="hidden md:block text-sm text-white/80 line-clamp-2 leading-relaxed">
               {current.description}
             </p>
 
             {/* Buttons */}
-            <div className="flex items-center gap-3 pt-1 md:pt-4">
+            <div className="flex items-center gap-3 pt-1">
               <Button
                 size="sm"
-                className="bg-orange-500 hover:bg-orange-600 text-white md:text-lg md:px-8 md:py-6"
+                className="bg-orange-500 hover:bg-orange-600 text-white"
                 asChild
               >
                 <Link href={link}>
-                  <Play className="w-4 h-4 mr-1.5 fill-white" />
+                  <Play className="w-3.5 h-3.5 mr-1.5 fill-white" />
                   {current.isComingSoon ? "View Details" : "Watch Now"}
                 </Link>
               </Button>
@@ -217,35 +219,35 @@ export function HeroCarousel({ items, userId }: HeroCarouselProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-9 h-9 md:w-12 md:h-12"
+        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-8 h-8 md:w-10 md:h-10"
         onClick={() => { prev(); resetInterval(); }}
       >
-        <ChevronLeft className="w-5 h-5 md:w-8 md:h-8" />
+        <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
       </Button>
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-9 h-9 md:w-12 md:h-12"
+        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-8 h-8 md:w-10 md:h-10"
         onClick={() => { next(); resetInterval(); }}
       >
-        <ChevronRight className="w-5 h-5 md:w-8 md:h-8" />
+        <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
       </Button>
 
-      {/* Desktop dots */}
-      <div className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 gap-2">
+      {/* Dots */}
+      <div className="flex absolute bottom-3 left-1/2 -translate-x-1/2 gap-1.5">
         {shuffled.slice(0, 10).map((_, i) => (
           <button
             key={i}
             onClick={() => { goTo(i); resetInterval(); }}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              i === currentIndex ? "bg-orange-500 w-8" : "bg-white/40 w-2 hover:bg-white/70"
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === currentIndex ? "bg-orange-500 w-6" : "bg-white/40 w-1.5 hover:bg-white/70"
             }`}
           />
         ))}
       </div>
 
       {/* Mobile mini-cards row */}
-      <div className="md:hidden absolute bottom-0 left-0 right-0 flex gap-2 px-3 pb-3 pt-8 bg-gradient-to-t from-background via-background/95 to-transparent">
+      <div className="md:hidden absolute bottom-8 left-0 right-0 flex gap-2 px-3">
         <MiniCard
           item={current}
           isActive

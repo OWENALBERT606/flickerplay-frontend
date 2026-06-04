@@ -14,7 +14,12 @@ export default async function FrontLayout({ children }: { children: React.ReactN
   return (
     <>
       <Header user={user}/>
-      <div className="pb-16 md:pb-0">
+      {/*
+        pt-32 on mobile  = ~128px  — covers the 2-row mobile header (main row + search bar)
+        pt-20 on desktop = ~80px   — covers the single desktop header row
+        pb-20 on mobile  = 80px    — space for the bottom nav
+      */}
+      <div className="pt-32 md:pt-20 pb-20 md:pb-0">
         {children}
       </div>
       <Footer />

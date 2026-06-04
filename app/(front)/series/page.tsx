@@ -70,9 +70,11 @@ export default async function SeriesPage({
     series = series.filter((s) => !s.vjId || !s.vj?.name);
   }
 
-  /* ── Sort ── */
+  /* ── Sort — default ascending by title, override if explicit sort param ── */
   if (params.sort === "rating") {
     series = [...series].sort((a, b) => b.rating - a.rating);
+  } else {
+    series = [...series].sort((a, b) => a.title.localeCompare(b.title));
   }
 
   /* ── Heading ── */
@@ -92,7 +94,7 @@ export default async function SeriesPage({
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="pt-20 px-4 md:px-8 lg:px-12 pb-12">
+      <main className="px-4 md:px-8 lg:px-12 pb-12">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
 
           {/* Sidebar */}

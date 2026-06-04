@@ -273,9 +273,8 @@ export default async function HomePage({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── Hero row: sidebar left + carousel right ── */}
-      {/* mt-32 on mobile = header (~56px) + search row (~44px) + gap; md:mt-20 = header only */}
-      <div className="flex mt-32 md:mt-20">
+      {/* ── Hero row: pull flush with header by canceling layout top padding ── */}
+      <div className="flex md:-mt-20">
         <Suspense>
           <HomeSidebar mode="hero" />
         </Suspense>
@@ -328,7 +327,7 @@ function PageShell({
 }) {
   return (
     <div className="min-h-screen bg-background">
-      <main className="px-4 md:px-8 lg:px-12 py-8 mt-32 md:mt-16">
+      <main className="px-4 md:px-8 lg:px-12 py-8">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           <Suspense>
             <HomeSidebar />

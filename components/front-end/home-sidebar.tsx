@@ -64,10 +64,10 @@ export function HomeSidebar({ mode = "both" }: { mode?: "both" | "hero" | "mobil
         <aside className={cn(
           "hidden lg:flex flex-col w-52 shrink-0 overflow-y-auto border-r border-border/40",
           mode === "hero"
-            ? "h-[85vh] bg-background/95 backdrop-blur-sm"
+            ? "h-[360px] md:h-[460px] bg-background/95 backdrop-blur-sm"
             : "sticky top-20 self-start h-[calc(100vh-5rem)]",
         )}>
-          <nav className="flex flex-col gap-1 py-4">
+          <nav className={cn("flex flex-col gap-1 py-4", mode === "hero" && "pt-24")}>
             {NAV_ITEMS.map(({ label, href, icon: Icon, param }) => (
               <Link
                 key={label}

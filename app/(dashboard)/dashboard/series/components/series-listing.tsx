@@ -201,12 +201,14 @@
 
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Pencil, Plus, Star, Calendar } from "lucide-react";
+import { Eye, Pencil, Plus, Star, Calendar, Search } from "lucide-react";
 import type { Series } from "@/actions/series";
 import { DeleteSeriesButton } from "./delete-series-button";
 
@@ -215,6 +217,14 @@ interface SeriesListingProps {
 }
 
 export default function SeriesListing({ series }: SeriesListingProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredSeries = series.filter((s) =>
+    s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.vj.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.genre.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const totalSeries = series.length;
   const trendingCount = series.filter((s) => s.isTrending).length;
   const comingSoonCount = series.filter((s) => s.isComingSoon).length;
@@ -271,14 +281,25 @@ export default function SeriesListing({ series }: SeriesListingProps) {
 
       {/* Series Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <CardTitle>All Series</CardTitle>
-          <Link href="/dashboard/series/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Series
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search series, VJs, or genres..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Link href="/dashboard/series/new">
+              <Button className="shrink-0">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Series
+              </Button>
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           {series.length === 0 ? (
@@ -292,6 +313,16 @@ export default function SeriesListing({ series }: SeriesListingProps) {
                     Create your first series
                   </Button>
                 </Link>
+              </div>
+            </div>
+          ) : filteredSeries.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-4xl mb-2">🔍</span>
+                <p className="text-muted-foreground">No series matching &ldquo;{searchQuery}&rdquo;</p>
+                <Button variant="outline" size="sm" className="mt-2" onClick={() => setSearchQuery("")}>
+                  Clear search
+                </Button>
               </div>
             </div>
           ) : (
@@ -314,7 +345,7 @@ export default function SeriesListing({ series }: SeriesListingProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {series.map((s) => (
+                  {filteredSeries.map((s) => (
                     <SeriesRow key={s.id} series={s} />
                   ))}
                 </tbody>

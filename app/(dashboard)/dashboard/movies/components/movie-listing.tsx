@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Pencil, Plus, Play, Star, Search } from "lucide-react";
+import { Eye, Pencil, Plus, Star, Search } from "lucide-react";
 import type { Movie } from "@/actions/movies";
 import { DeleteMovieButton } from "./delete-movie-button";
 
@@ -88,16 +88,24 @@ export default function MovieListing({ movies }: MovieListingProps) {
 
       {/* Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <CardTitle>All Movies</CardTitle>
-          <div className="relative w-72">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search movies, VJs, or genres..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8"
-            />
+          <div className="flex items-center gap-3">
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search movies, VJs, or genres..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Link href="/dashboard/movies/new">
+              <Button className="shrink-0">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Movie
+              </Button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent>
@@ -121,11 +129,15 @@ export default function MovieListing({ movies }: MovieListingProps) {
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-12">
                     <div className="flex flex-col items-center gap-2">
-                      <span className="text-4xl mb-2">🎬</span>
+                      <span className="text-4xl mb-2">{searchQuery ? "🔍" : "🎬"}</span>
                       <p className="text-muted-foreground">
                         {searchQuery ? `No movies matching "${searchQuery}"` : "No movies found"}
                       </p>
-                      {!searchQuery && (
+                      {searchQuery ? (
+                        <Button variant="outline" size="sm" className="mt-2" onClick={() => setSearchQuery("")}>
+                          Clear search
+                        </Button>
+                      ) : (
                         <Link href="/dashboard/movies/new">
                           <Button variant="outline" size="sm" className="mt-2">
                             <Plus className="mr-2 h-4 w-4" />

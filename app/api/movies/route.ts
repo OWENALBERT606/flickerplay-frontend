@@ -36,6 +36,8 @@ export async function GET(req: NextRequest) {
     else if (dubbed === "no") movies = movies.filter((m) => !m.vjId || !m.vj?.name);
 
     if (sort === "rating") movies = [...movies].sort((a, b) => b.rating - a.rating);
+    else if (sort === "views")  movies = [...movies].sort((a, b) => Number(b.viewsCount ?? 0) - Number(a.viewsCount ?? 0));
+    else if (sort === "newest") movies = [...movies].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({
       movies,
