@@ -3,7 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 
 export function isHlsUrl(url: string): boolean {
-  return url.includes(".m3u8");
+  return url.includes(".m3u8") || url.includes(".ts");
+}
+
+/**
+ * Browsers can't play raw .ts files natively.
+ * Wrap a standalone .ts URL in a minimal HLS manifest so hls.js
+ * handles the MPEG-TS demuxing — no server-side changes needed.
+ */
+function syntheticM3u8ForTs(tsUrl: string): string {
+  const manifest = [
+    "#EXTM3U",
+    "#EXT-X-VERSION:3",
+    "#EXT-X-TARGETDURATION:99999",
+    "#EXT-X-MEDIA-SEQUENCE:0",
+    "#EXTINF:99999.0,",
+    tsUrl,
+    "#EXT-X-ENDLIST",
+  ].join("\n");
+  return `data:application/vnd.apple.mpegurl;base64,${btoa(manifest)}`;
 }
 
 export interface HlsLevel {
@@ -81,6 +99,11 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
       return;
     }
 
+    // Raw .ts files need a synthetic m3u8 wrapper — hls.js handles the TS demux
+    const hlsSrc = src.includes(".ts") && !src.includes(".m3u8")
+      ? syntheticM3u8ForTs(src)
+      : src;
+
     import("hls.js").then(({ default: Hls }) => {
       if (Hls.isSupported()) {
         const hls = new Hls({
@@ -101,7 +124,7 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
           maxBufferHole:    0.5,
         });
 
-        hls.loadSource(src);
+        hls.loadSource(hlsSrc);
         hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => {
@@ -125,7 +148,7 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
 
         hlsRef.current = hls;
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        // iOS Safari — native HLS, no level data available
+        // iOS Safari — native HLS. Use original src (TS files play natively on iOS).
         video.src = src;
         setNativeHls(true);
         setHlsReady(true);
