@@ -2,18 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { convertTsToMp4 } from "@/lib/convertVideo";
 
-// ── R2 client ──────────────────────────────────────────────────────────────────
+// ── R2 client — supports both naming conventions ───────────────────────────────
+const endpoint   = process.env.CLOUDFLARE_R2_ENDPOINT   ?? process.env.R2_ENDPOINT   ?? "";
+const accessKey  = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID  ?? process.env.R2_ACCESS_KEY  ?? "";
+const secretKey  = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY ?? process.env.R2_SECRET_KEY ?? "";
+const BUCKET     = process.env.CLOUDFLARE_R2_BUCKET_NAME ?? process.env.R2_BUCKET    ?? "";
+const PUBLIC_URL = (process.env.CLOUDFLARE_R2_PUBLIC_URL ?? process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, "");
+
 const r2 = new S3Client({
   region: "auto",
-  endpoint: process.env.R2_ENDPOINT!,
-  credentials: {
-    accessKeyId:     process.env.R2_ACCESS_KEY!,
-    secretAccessKey: process.env.R2_SECRET_KEY!,
-  },
+  endpoint,
+  credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
 });
-
-const BUCKET     = process.env.R2_BUCKET!;
-const PUBLIC_URL = (process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, "");
 
 // ── MIME helper ────────────────────────────────────────────────────────────────
 function mimeFor(ext: string): string {
@@ -30,6 +30,21 @@ function mimeFor(ext: string): string {
 
 // ── POST /api/upload ───────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  // Guard: fail fast with a clear message if credentials are missing
+  if (!endpoint || !accessKey || !secretKey || !BUCKET) {
+    const missing = [
+      !endpoint   && "CLOUDFLARE_R2_ENDPOINT",
+      !accessKey  && "CLOUDFLARE_R2_ACCESS_KEY_ID",
+      !secretKey  && "CLOUDFLARE_R2_SECRET_ACCESS_KEY",
+      !BUCKET     && "CLOUDFLARE_R2_BUCKET_NAME",
+    ].filter(Boolean).join(", ");
+    console.error("[upload] Missing env vars:", missing);
+    return NextResponse.json(
+      { error: `Server misconfiguration — missing env vars: ${missing}` },
+      { status: 500 }
+    );
+  }
+
   try {
     const form = await req.formData();
     const file = form.get("file");
