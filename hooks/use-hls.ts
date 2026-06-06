@@ -3,25 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 
 export function isHlsUrl(url: string): boolean {
-  return url.includes(".m3u8") || url.includes(".ts");
+  return url.includes(".m3u8");
 }
 
-/**
- * Browsers can't play raw .ts files natively.
- * Wrap a standalone .ts URL in a minimal HLS manifest so hls.js
- * handles the MPEG-TS demuxing — no server-side changes needed.
- */
-function syntheticM3u8ForTs(tsUrl: string): string {
-  const manifest = [
-    "#EXTM3U",
-    "#EXT-X-VERSION:3",
-    "#EXT-X-TARGETDURATION:99999",
-    "#EXT-X-MEDIA-SEQUENCE:0",
-    "#EXTINF:99999.0,",
-    tsUrl,
-    "#EXT-X-ENDLIST",
-  ].join("\n");
-  return `data:application/vnd.apple.mpegurl;base64,${btoa(manifest)}`;
+export function isTsUrl(url: string): boolean {
+  // Match .ts at end of path or before query string
+  return /\.ts(\?|$)/.test(url);
 }
 
 export interface HlsLevel {
@@ -41,9 +28,7 @@ export interface UseHlsReturn {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   hlsReady: boolean;
   levels: HlsLevel[];
-  /** Index the user has selected. -1 = Auto (ABR). */
   selectedLevel: number;
-  /** Index that is actually playing right now (updated on every level switch). */
   currentLevel: number;
   setLevel: (index: number) => void;
   subtitles: Subtitle[];
@@ -53,17 +38,16 @@ export interface UseHlsReturn {
 }
 
 export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
-  const videoRef       = useRef<HTMLVideoElement>(null);
-  const hlsRef         = useRef<import("hls.js").default | null>(null);
-  const subtitlesRef   = useRef<Subtitle[]>(subtitles);
+  const videoRef     = useRef<HTMLVideoElement>(null);
+  const hlsRef       = useRef<import("hls.js").default | null>(null);
+  const mpegtsRef    = useRef<any>(null);
+  const subtitlesRef = useRef<Subtitle[]>(subtitles);
 
-  const [hlsReady, setHlsReady]         = useState(false);
-  const [levels, setLevels]             = useState<HlsLevel[]>([]);
-  /** What the user explicitly chose. -1 = Auto. */
-  const [selectedLevel, setSelectedLevel] = useState(-1);
-  /** What is actually playing right now (from LEVEL_SWITCHED event). */
-  const [currentLevel, setCurrentLevel] = useState(-1);
-  const [nativeHls, setNativeHls]       = useState(false);
+  const [hlsReady, setHlsReady]             = useState(false);
+  const [levels, setLevels]                 = useState<HlsLevel[]>([]);
+  const [selectedLevel, setSelectedLevel]   = useState(-1);
+  const [currentLevel, setCurrentLevel]     = useState(-1);
+  const [nativeHls, setNativeHls]           = useState(false);
   const [currentSubtitle, setCurrentSubtitle] = useState(-1);
 
   subtitlesRef.current = subtitles;
@@ -73,16 +57,23 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
     const video = videoRef.current;
     if (!video) return;
 
+    // ── Teardown any previous player ──────────────────────────────────────────
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
-      setHlsReady(false);
-      setLevels([]);
-      setSelectedLevel(-1);
-      setCurrentLevel(-1);
     }
+    if (mpegtsRef.current) {
+      mpegtsRef.current.destroy();
+      mpegtsRef.current = null;
+    }
+    video.removeAttribute("src");
+    video.load();
+    setHlsReady(false);
+    setLevels([]);
+    setSelectedLevel(-1);
+    setCurrentLevel(-1);
 
-    // Attach subtitle tracks
+    // ── Subtitle tracks ───────────────────────────────────────────────────────
     video.querySelectorAll("track").forEach((t) => t.remove());
     subtitlesRef.current.forEach((sub, i) => {
       const track = document.createElement("track");
@@ -94,91 +85,112 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
       video.appendChild(track);
     });
 
-    if (!isHlsUrl(src)) {
-      video.src = src;
-      return;
-    }
+    // ── .ts file → mpegts.js ─────────────────────────────────────────────────
+    if (isTsUrl(src)) {
+      import("mpegts.js").then(({ default: mpegts }) => {
+        if (!mpegts.isSupported()) {
+          // MSE not available — try direct src as last resort
+          video.src = src;
+          return;
+        }
 
-    // Raw .ts files need a synthetic m3u8 wrapper — hls.js handles the TS demux
-    const hlsSrc = src.includes(".ts") && !src.includes(".m3u8")
-      ? syntheticM3u8ForTs(src)
-      : src;
+        const player = mpegts.createPlayer(
+          {
+            type: "mpegts",
+            url: src,
+            isLive: false,
+            cors: true,
+          },
+          {
+            enableWorker: true,
+            lazyLoad: false,
+            lazyLoadMaxDuration: 3 * 60,
+            seekType: "range",
+            reuseRedirectedURL: true,
+          }
+        );
 
-    import("hls.js").then(({ default: Hls }) => {
-      if (Hls.isSupported()) {
-        const hls = new Hls({
-          enableWorker:    true,
-          lowLatencyMode:  false,
-          backBufferLength: 90,
+        player.attachMediaElement(video);
+        player.load();
 
-          // ── ABR (adaptive bitrate) settings ──────────────────────────
-          startLevel:              -1,     // Auto on first load
-          abrEwmaDefaultEstimate:  1_500_000, // 1.5 Mbps initial guess
-          abrBandWidthFactor:      0.95,   // Use 95% of measured bandwidth
-          abrBandWidthUpFactor:    0.7,    // Conservative quality upgrade
-          abrEwmaFastLive:         3.0,    // Fast bandwidth estimator weight
-          abrEwmaSlowLive:         9.0,    // Slow bandwidth estimator weight
-          // ─────────────────────────────────────────────────────────────
-
-          maxLoadingDelay:  4,
-          maxBufferHole:    0.5,
-        });
-
-        hls.loadSource(hlsSrc);
-        hls.attachMedia(video);
-
-        hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => {
-          setLevels(data.levels.map((l, i) => ({ height: l.height, bitrate: l.bitrate, index: i })));
-          setSelectedLevel(-1);
-          setCurrentLevel(-1);
+        player.on(mpegts.Events.MEDIA_INFO, () => {
           setHlsReady(true);
         });
 
-        // For .ts files loaded as a single large HLS segment, the browser's native
-        // `canplay` event may not fire until the whole file is downloaded.
-        // hls.js FRAG_BUFFERED fires as soon as the first decoded chunk is appended
-        // to the MSE buffer — dispatch canplay manually so the loading overlay clears.
-        let firstFragBuffered = false;
-        hls.on(Hls.Events.FRAG_BUFFERED, () => {
-          if (firstFragBuffered) return;
-          firstFragBuffered = true;
-          video.dispatchEvent(new Event("canplay"));
+        player.on(mpegts.Events.ERROR, (errType: any, errDetail: any) => {
+          console.error("[mpegts] error:", errType, errDetail);
         });
 
-        // Fires every time the actual quality changes (including auto switches)
-        hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => {
-          setCurrentLevel(data.level);
-        });
+        mpegtsRef.current = player;
+      });
 
-        hls.on(Hls.Events.ERROR, (_e, data) => {
-          if (!data.fatal) return;
-          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-          else hls.destroy();
-        });
+      return () => {
+        if (mpegtsRef.current) {
+          mpegtsRef.current.destroy();
+          mpegtsRef.current = null;
+        }
+      };
+    }
 
-        hlsRef.current = hls;
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        // iOS Safari — native HLS. Use original src (TS files play natively on iOS).
-        video.src = src;
-        setNativeHls(true);
-        setHlsReady(true);
-      }
-    });
+    // ── .m3u8 → hls.js ───────────────────────────────────────────────────────
+    if (isHlsUrl(src)) {
+      import("hls.js").then(({ default: Hls }) => {
+        if (Hls.isSupported()) {
+          const hls = new Hls({
+            enableWorker:          true,
+            lowLatencyMode:        false,
+            backBufferLength:      90,
+            startLevel:            -1,
+            abrEwmaDefaultEstimate: 1_500_000,
+            abrBandWidthFactor:    0.95,
+            abrBandWidthUpFactor:  0.7,
+            maxLoadingDelay:       4,
+            maxBufferHole:         0.5,
+          });
 
-    return () => {
-      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-    };
+          hls.loadSource(src);
+          hls.attachMedia(video);
+
+          hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => {
+            setLevels(data.levels.map((l, i) => ({ height: l.height, bitrate: l.bitrate, index: i })));
+            setSelectedLevel(-1);
+            setCurrentLevel(-1);
+            setHlsReady(true);
+          });
+
+          hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => {
+            setCurrentLevel(data.level);
+          });
+
+          hls.on(Hls.Events.ERROR, (_e, data) => {
+            if (!data.fatal) return;
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+            else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+            else hls.destroy();
+          });
+
+          hlsRef.current = hls;
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = src;
+          setNativeHls(true);
+          setHlsReady(true);
+        }
+      });
+
+      return () => {
+        if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      };
+    }
+
+    // ── Plain file (.mp4, .webm, etc.) ────────────────────────────────────────
+    video.src = src;
   }, [src]);
 
   const setLevel = (index: number) => {
     if (!hlsRef.current) return;
-    // index -1 = hand control back to ABR
     hlsRef.current.currentLevel = index;
-    // When switching to auto, also reset nextLevel so ABR takes over immediately
     if (index === -1) hlsRef.current.nextLevel = -1;
     setSelectedLevel(index);
-    // For manual selection also update currentLevel immediately for responsive UI
     if (index >= 0) setCurrentLevel(index);
   };
 

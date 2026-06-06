@@ -218,10 +218,9 @@ export function NetflixPlayer({
       const next = cur < 30 ? cur + 2.5
                  : cur < 55 ? cur + 1.2
                  : cur < 75 ? cur + 0.5
-                 : cur < 88 ? cur + 0.15
-                 : cur < 95 ? cur + 0.04  // slow creep — still shows progress
-                 : cur;                    // true plateau only at 95
-      const clamped = Math.min(95, Math.max(next, real));
+                 : cur < 90 ? cur + 0.15
+                 : cur;                    // plateau at 90 — canplay pushes to 100
+      const clamped = Math.min(90, Math.max(next, real));
       loadPctRef.current = clamped;
       setLoadPct(Math.round(clamped));
     }, 250);
