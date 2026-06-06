@@ -134,6 +134,17 @@ export function useHls(src: string, subtitles: Subtitle[] = []): UseHlsReturn {
           setHlsReady(true);
         });
 
+        // For .ts files loaded as a single large HLS segment, the browser's native
+        // `canplay` event may not fire until the whole file is downloaded.
+        // hls.js FRAG_BUFFERED fires as soon as the first decoded chunk is appended
+        // to the MSE buffer — dispatch canplay manually so the loading overlay clears.
+        let firstFragBuffered = false;
+        hls.on(Hls.Events.FRAG_BUFFERED, () => {
+          if (firstFragBuffered) return;
+          firstFragBuffered = true;
+          video.dispatchEvent(new Event("canplay"));
+        });
+
         // Fires every time the actual quality changes (including auto switches)
         hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => {
           setCurrentLevel(data.level);

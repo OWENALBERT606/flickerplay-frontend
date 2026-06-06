@@ -213,13 +213,15 @@ export function NetflixPlayer({
     fakeProgressRef.current = setInterval(() => {
       const real = getRealBufferPct();
       const cur  = loadPctRef.current;
-      // Ease-out: fast start, slows near 90 so user sees it moving without lying
+      // Ease-out: fast at first, slows heavily near 95 — never hard-plateaus
+      // so .ts files (which take longer) still show visible movement
       const next = cur < 30 ? cur + 2.5
                  : cur < 55 ? cur + 1.2
                  : cur < 75 ? cur + 0.5
                  : cur < 88 ? cur + 0.15
-                 : cur; // plateau — only real data or canplay pushes past 88
-      const clamped = Math.min(90, Math.max(next, real));
+                 : cur < 95 ? cur + 0.04  // slow creep — still shows progress
+                 : cur;                    // true plateau only at 95
+      const clamped = Math.min(95, Math.max(next, real));
       loadPctRef.current = clamped;
       setLoadPct(Math.round(clamped));
     }, 250);
