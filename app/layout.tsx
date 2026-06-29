@@ -129,6 +129,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        {/* Capture beforeinstallprompt before React hydrates so it is never missed */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.__pwaInstallPrompt = null;
+          window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            window.__pwaInstallPrompt = e;
+            document.dispatchEvent(new CustomEvent('pwa-prompt-ready'));
+          });
+          window.addEventListener('appinstalled', function() {
+            window.__pwaInstallPrompt = null;
+            document.dispatchEvent(new CustomEvent('pwa-installed'));
+          });
+        ` }} />
       </head>
 
       <body
