@@ -318,7 +318,7 @@ export default async function HomePage({
             <MovieSection userId={userId} title="🔥 Trending Movies" movies={availableTrendingMovies} />
           )}
           {availableTrendingSeries.length > 0 && (
-            <SeriesSection userId={userId} title="🔥 Trending TV Series" series={availableTrendingSeries} />
+            <SeriesSection userId={userId} title="🔥 Trending TV Series" series={availableTrendingSeries} viewAllHref="/?type=trending" />
           )}
           {popularMovies.length > 0 && (
             <MovieSection
@@ -332,7 +332,7 @@ export default async function HomePage({
             <MovieSection userId={userId} title="🆕 New Releases" movies={newMovies} />
           )}
           {newSeries.length > 0 && (
-            <SeriesSection userId={userId} title="🆕 New TV Series" series={newSeries} />
+            <SeriesSection userId={userId} title="🆕 New TV Series" series={newSeries} viewAllHref="/series" rows={2} />
           )}
           {/* Coming Soon — from TMDB/OMDB/YouTube only, not internal DB */}
           <ExternalComingSoon movies={upcomingMovies} series={upcomingSeries} />

@@ -71,7 +71,7 @@ export function MovieSection({ title, movies, viewAllHref = "/movies" }: MovieSe
         {movies.map((movie) => (
           <Link
             key={movie.id}
-            href={movie.isComingSoon ? "#" : `/movies/${movie.slug}`}
+            href={`/movies/${movie.slug}`}
             className="group cursor-pointer min-w-0 block focus-visible:outline-none"
             tabIndex={0}
             onMouseEnter={() => setHoveredMovie(movie.id)}
@@ -122,15 +122,6 @@ export function MovieSection({ title, movies, viewAllHref = "/movies" }: MovieSe
                 <div className="absolute top-2 left-2 z-10">
                   <span className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-semibold rounded">
                     🔥 Trending
-                  </span>
-                </div>
-              )}
-
-              {/* Coming Soon Badge */}
-              {movie.isComingSoon && (
-                <div className="absolute top-2 left-2 z-10">
-                  <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[10px] font-semibold rounded">
-                    Coming Soon
                   </span>
                 </div>
               )}

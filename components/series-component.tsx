@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, ArrowRight } from "lucide-react";
 import { cleanTitle } from "@/lib/utils";
 import type { Series } from "@/actions/series";
 
@@ -12,9 +12,11 @@ interface SeriesSectionProps {
   title: string;
   series: Series[];
   userId?: string | null;
+  viewAllHref?: string;
+  rows?: 1 | 2;
 }
 
-export function SeriesSection({ title, series }: SeriesSectionProps) {
+export function SeriesSection({ title, series, viewAllHref = "/series", rows = 1 }: SeriesSectionProps) {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hoveredSeries, setHoveredSeries] = useState<string | null>(null);
 
@@ -36,40 +38,57 @@ export function SeriesSection({ title, series }: SeriesSectionProps) {
     return null;
   }
 
+  const gridClass =
+    rows === 2
+      ? "grid grid-flow-col grid-rows-2 gap-3 overflow-x-auto scrollbar-hide pb-4"
+      : "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3 overflow-x-auto scrollbar-hide pb-4";
+
   return (
     <section className="relative">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-foreground">{title}</h2>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            size="icon"
-            onClick={() => scroll("left")}
-            className="hover:bg-secondary"
+            className="text-orange-500 hover:text-orange-600 hover:bg-orange-500/10"
+            asChild
           >
-            <ChevronLeft className="w-5 h-5" />
+            <Link href={viewAllHref}>
+              View All
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => scroll("right")}
-            className="hover:bg-secondary"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => scroll("left")}
+              className="hover:bg-secondary"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => scroll("right")}
+              className="hover:bg-secondary"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </div>
 
       <div
         id={`scroll-${title.replace(/\s+/g, "-")}`}
-        className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3 overflow-x-auto scrollbar-hide pb-4"
+        className={gridClass}
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {series.map((s) => (
           <Link
             key={s.id}
-            href={s.isComingSoon ? "#" : `/series/${s.slug}`}
-            className="group cursor-pointer min-w-0 block focus-visible:outline-none"
+            href={`/series/${s.slug}`}
+            className={`group cursor-pointer min-w-0 block focus-visible:outline-none${rows === 2 ? " w-28 sm:w-32 md:w-36" : ""}`}
             tabIndex={0}
             onMouseEnter={() => setHoveredSeries(s.id)}
             onMouseLeave={() => setHoveredSeries(null)}
@@ -87,7 +106,7 @@ export function SeriesSection({ title, series }: SeriesSectionProps) {
                 />
               </div>
 
-              {/* Hover overlay — info only, whole card is already a link */}
+              {/* Hover overlay */}
               <div
                 className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent transition-opacity duration-300 ${
                   hoveredSeries === s.id ? "opacity-100" : "opacity-0"
@@ -123,15 +142,6 @@ export function SeriesSection({ title, series }: SeriesSectionProps) {
                 <div className="absolute top-2 left-2 z-10">
                   <span className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-semibold rounded">
                     🔥 Trending
-                  </span>
-                </div>
-              )}
-
-              {/* Coming Soon Badge */}
-              {s.isComingSoon && (
-                <div className="absolute top-2 left-2 z-10">
-                  <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[10px] font-semibold rounded">
-                    Coming Soon
                   </span>
                 </div>
               )}
