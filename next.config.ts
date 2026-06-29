@@ -23,6 +23,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Exclude Node.js-only packages from webpack bundling — they use dynamic
+  // require() for platform binaries that webpack cannot resolve at build time.
+  serverExternalPackages: ["fluent-ffmpeg", "@ffmpeg-installer/ffmpeg"],
+
   // Allow up to 500 MB uploads to /api/upload (fluent-ffmpeg runs server-side)
   experimental: {
     serverActions: {
