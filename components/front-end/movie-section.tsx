@@ -36,6 +36,10 @@ export function MovieSection({ title, movies, viewAllHref = "/movies", rows = 1 
     return null
   }
 
+  // 2-row mode: show exactly 2 rows of 9 = 18 items using the same responsive
+  // grid as single-row sections so card size and density match perfectly.
+  const displayMovies = rows === 2 ? movies.slice(0, 18) : movies
+
   return (
     <section className="relative">
       <div className="flex items-center justify-between mb-6">
@@ -53,31 +57,29 @@ export function MovieSection({ title, movies, viewAllHref = "/movies", rows = 1 
             </Link>
           </Button>
 
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" onClick={() => scroll("left")} className="hover:bg-secondary">
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => scroll("right")} className="hover:bg-secondary">
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          </div>
+          {rows === 1 && (
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="icon" onClick={() => scroll("left")} className="hover:bg-secondary">
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => scroll("right")} className="hover:bg-secondary">
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
       <div
         id={`scroll-${title.replace(/\s+/g, "-")}`}
-        className={
-          rows === 2
-            ? "grid grid-flow-col grid-rows-2 gap-3 overflow-x-auto scrollbar-hide pb-4"
-            : "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3 overflow-x-auto scrollbar-hide pb-4"
-        }
+        className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3 overflow-x-auto scrollbar-hide pb-4"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {movies.map((movie) => (
+        {displayMovies.map((movie) => (
           <Link
             key={movie.id}
             href={`/movies/${movie.slug}`}
-            className={`group cursor-pointer min-w-0 block focus-visible:outline-none${rows === 2 ? " w-28 sm:w-32 md:w-36" : ""}`}
+            className="group cursor-pointer min-w-0 block focus-visible:outline-none"
             tabIndex={0}
             onMouseEnter={() => setHoveredMovie(movie.id)}
             onMouseLeave={() => setHoveredMovie(null)}
