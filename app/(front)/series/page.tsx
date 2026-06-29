@@ -30,6 +30,11 @@ export default async function SeriesPage({
   const currentPage = parseInt(params.page || "1");
 
   /* ── Build API params ── */
+  const apiSortBy =
+    params.sort === "rating" ? "rating" :
+    params.sort === "views"  ? "views"  :
+    "year"; // default: release year desc, then updatedAt desc
+
   const apiParams: Parameters<typeof listSeries>[0] = {
     page:  currentPage,
     limit: 24,
@@ -39,6 +44,7 @@ export default async function SeriesPage({
     search:       params.search      || undefined,
     isTrending:   params.trending    === "1"  ? true  : undefined,
     isComingSoon: params.coming_soon === "1"  ? true  : undefined,
+    sortBy:       apiSortBy,
   };
 
   /* ── Fetch in parallel — use allSettled so a failing sidebar call never blocks the page ── */
@@ -70,15 +76,18 @@ export default async function SeriesPage({
     series = series.filter((s) => !s.vjId || !s.vj?.name);
   }
 
-  /* ── Sort — default ascending by updatedAt, override if explicit sort param ── */
+  /* ── Client-side sort (applied after API + dubbed filter) ── */
   if (params.sort === "rating") {
     series = [...series].sort((a, b) => b.rating - a.rating);
   } else if (params.sort === "title") {
     series = [...series].sort((a, b) => a.title.localeCompare(b.title));
   } else {
-    series = [...series].sort(
-      (a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-    );
+    // Default: year desc, then updatedAt desc (mirrors API orderBy)
+    series = [...series].sort((a, b) => {
+      const yearDiff = Number(b.year?.value ?? 0) - Number(a.year?.value ?? 0);
+      if (yearDiff !== 0) return yearDiff;
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
   }
 
   /* ── Heading ── */

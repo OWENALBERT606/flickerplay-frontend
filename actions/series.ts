@@ -172,6 +172,7 @@ export interface SeriesListParams {
   isTrending?: boolean;
   isComingSoon?: boolean;
   search?: string;
+  sortBy?: "year" | "rating" | "views";
 }
 
 /* ------------------------------- SERIES ACTIONS ---------------------------- */
