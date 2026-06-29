@@ -13,6 +13,7 @@ import { getSession } from "@/actions/auth";
 import {
   getCachedTrendingMovies,
   getCachedListMovies,
+  getCachedPopularMovies,
   getCachedComingSoonMovies,
   getCachedTrendingSeries,
   getCachedListSeries,
@@ -162,6 +163,23 @@ export default async function HomePage({
     );
   }
 
+  // ── popular filter ─────────────────────────────────────────────────
+  if (type === "popular") {
+    const popularData = await getCachedPopularMovies(50);
+    const popularMovies = popularData.data || [];
+
+    return (
+      <PageShell type={type} userId={userId}>
+        <MovieSection
+          userId={userId}
+          title="👁 Popular Movies"
+          movies={popularMovies}
+          viewAllHref="/movies?sort=views"
+        />
+      </PageShell>
+    );
+  }
+
   // ── most-watched filter ────────────────────────────────────────────
   if (type === "most-watched") {
     const [allMoviesData, allSeriesData] = await Promise.all([
@@ -237,6 +255,7 @@ export default async function HomePage({
   const [
     trendingMoviesData,
     allMoviesData,
+    popularMoviesData,
     trendingSeriesData,
     allSeriesData,
     upcomingMoviesData,
@@ -244,6 +263,7 @@ export default async function HomePage({
   ] = await Promise.allSettled([
     getCachedTrendingMovies(50),
     getCachedListMovies({ limit: 36 }),
+    getCachedPopularMovies(12),
     getCachedTrendingSeries(50),
     getCachedListSeries({ limit: 36 }),
     getUpcomingMoviesFromTmdb(20),
@@ -252,6 +272,7 @@ export default async function HomePage({
 
   const trendingMovies = trendingMoviesData.status === "fulfilled" ? trendingMoviesData.value.data || [] : [];
   const allMovies      = allMoviesData.status      === "fulfilled" ? allMoviesData.value.data      || [] : [];
+  const popularMovies  = popularMoviesData.status  === "fulfilled" ? popularMoviesData.value.data  || [] : [];
   const trendingSeries = trendingSeriesData.status === "fulfilled" ? trendingSeriesData.value.data || [] : [];
   const allSeries      = allSeriesData.status      === "fulfilled" ? allSeriesData.value.data      || [] : [];
   const upcomingMovies = upcomingMoviesData.status === "fulfilled" ? upcomingMoviesData.value       || [] : [];
@@ -298,6 +319,14 @@ export default async function HomePage({
           )}
           {availableTrendingSeries.length > 0 && (
             <SeriesSection userId={userId} title="🔥 Trending TV Series" series={availableTrendingSeries} />
+          )}
+          {popularMovies.length > 0 && (
+            <MovieSection
+              userId={userId}
+              title="👁 Popular Movies"
+              movies={popularMovies}
+              viewAllHref="/?type=popular"
+            />
           )}
           {newMovies.length > 0 && (
             <MovieSection userId={userId} title="🆕 New Releases" movies={newMovies} />

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  Home, Tv, Film, Flame, Eye, Clock, Star, Clapperboard,
+  Home, Tv, Film, Flame, Eye, Clock, Star, Clapperboard, TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: "TV Series",    href: "/?type=series",       icon: Tv,           param: "series"       },
   { label: "Movies",       href: "/?type=movies",       icon: Film,         param: "movies"       },
   { label: "Trending",     href: "/?type=trending",     icon: Flame,        param: "trending"     },
+  { label: "Popular",      href: "/?type=popular",      icon: TrendingUp,   param: "popular"      },
   { label: "Most Watched", href: "/?type=most-watched", icon: Eye,          param: "most-watched" },
   { label: "Coming Soon",  href: "/?type=coming-soon",  icon: Clock,        param: "coming-soon"  },
   { label: "Top Rated",    href: "/?type=top-rated",    icon: Star,         param: "top-rated"    },

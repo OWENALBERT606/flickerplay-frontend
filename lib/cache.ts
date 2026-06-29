@@ -13,6 +13,12 @@ export const getCachedListMovies = unstable_cache(
   { revalidate: 120, tags: ["movies"] }
 );
 
+export const getCachedPopularMovies = unstable_cache(
+  (limit = 12) => listMovies({ limit, sortBy: "views" }),
+  ["popular-movies"],
+  { revalidate: 300, tags: ["movies"] }
+);
+
 export const getCachedTrendingMovies = unstable_cache(
   (limit = 10) => getTrendingMovies(limit),
   ["trending-movies"],
