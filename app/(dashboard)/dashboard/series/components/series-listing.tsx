@@ -208,7 +208,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Pencil, Plus, Star, Calendar, Search } from "lucide-react";
+import { Eye, Pencil, Plus, Star, Calendar, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Series } from "@/actions/series";
 import { DeleteSeriesButton } from "./delete-series-button";
 
@@ -216,14 +216,21 @@ interface SeriesListingProps {
   series: Series[];
 }
 
+const PAGE_SIZE = 30;
+
 export default function SeriesListing({ series }: SeriesListingProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   const filteredSeries = series.filter((s) =>
     s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.vj.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.genre.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredSeries.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageSeries = filteredSeries.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const totalSeries = series.length;
   const trendingCount = series.filter((s) => s.isTrending).length;
@@ -289,7 +296,7 @@ export default function SeriesListing({ series }: SeriesListingProps) {
               <Input
                 placeholder="Search series, VJs, or genres..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                 className="pl-8"
               />
             </div>
@@ -345,7 +352,7 @@ export default function SeriesListing({ series }: SeriesListingProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSeries.map((s) => (
+                  {pageSeries.map((s) => (
                     <SeriesRow key={s.id} series={s} />
                   ))}
                 </tbody>
@@ -354,6 +361,45 @@ export default function SeriesListing({ series }: SeriesListingProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-sm text-muted-foreground">
+            Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filteredSeries.length)} of {filteredSeries.length}
+          </p>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage === 1} onClick={() => setPage(safePage - 1)}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
+              .reduce<(number | "…")[]>((acc, p, i, arr) => {
+                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("…");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, i) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground text-sm">…</span>
+                ) : (
+                  <Button
+                    key={p}
+                    variant={p === safePage ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8 text-xs"
+                    onClick={() => setPage(p as number)}
+                  >
+                    {p}
+                  </Button>
+                )
+              )}
+            <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage === totalPages} onClick={() => setPage(safePage + 1)}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -99,6 +99,7 @@ export interface MovieListParams {
   isTrending?: boolean;
   isComingSoon?: boolean;
   search?: string;
+  sortBy?: "year" | "rating" | "views" | "newest";
 }
 
 /* ------------------------------- server actions ---------------------------- */

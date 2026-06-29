@@ -27,52 +27,62 @@ export default async function MoviesPage({
   const params  = await searchParams;
   const currentPage = parseInt(params.page || "1");
 
+  /* ── Fetch VJs first (cached) so we can detect the "Translated" special case ── */
+  const vjsData = await getCachedListVJs();
+  const vjs = vjsData.data || [];
+
+  /* ── "Translated" VJ pill = show everything that is NOT "Non Translated" ── */
+  const selectedVJ = vjs.find((v) => v.id === params.vj);
+  const isTranslatedFilter = selectedVJ?.name?.toLowerCase() === "translated";
+
   /* ── Build API filter params ── */
+  const apiSortBy =
+    params.sort === "rating" ? "rating" :
+    params.sort === "views"  ? "views"  :
+    params.sort === "newest" ? "newest" :
+    "year"; // default: release year desc
+
   const apiParams: Parameters<typeof listMovies>[0] = {
     page:  currentPage,
     limit: 24,
-    genreId:     params.genre       && params.genre       !== "all" ? params.genre       : undefined,
-    vjId:        params.vj          && params.vj          !== "all" ? params.vj          : undefined,
-    yearId:      params.year        && params.year        !== "all" ? params.year        : undefined,
-    search:      params.search      || undefined,
-    isTrending:  params.trending    === "1"   ? true  : undefined,
+    genreId:      params.genre       && params.genre       !== "all" ? params.genre       : undefined,
+    vjId:         params.vj          && params.vj          !== "all" && !isTranslatedFilter
+                    ? params.vj : undefined,
+    yearId:       params.year        && params.year        !== "all" ? params.year        : undefined,
+    search:       params.search      || undefined,
+    isTrending:   params.trending    === "1"  ? true  : undefined,
     isComingSoon: params.coming_soon === "1"  ? true  : undefined,
+    sortBy:       apiSortBy,
   };
 
-  /* ── Fetch in parallel — use allSettled so a failing call never blocks the page ── */
-  const [moviesResult, genresResult, vjsResult, yearsResult] = await Promise.allSettled([
+  /* ── Fetch remaining data in parallel ── */
+  const [moviesResult, genresResult, yearsResult] = await Promise.allSettled([
     listMovies(apiParams),
     getCachedListGenres(),
-    getCachedListVJs(),
     getCachedListReleaseYears(),
   ]);
 
   const moviesData = moviesResult.status === "fulfilled" ? moviesResult.value : { data: [], pagination: undefined };
   const genresData = genresResult.status === "fulfilled" ? genresResult.value : { data: [] };
-  const vjsData    = vjsResult.status    === "fulfilled" ? vjsResult.value    : { data: [] };
   const yearsData  = yearsResult.status  === "fulfilled" ? yearsResult.value  : { data: [] };
 
   let movies   = moviesData.data || [];
   const genres = genresData.data || [];
-  const vjs    = vjsData.data    || [];
   const years  = yearsData.data  || [];
   const pagination = moviesData.pagination;
 
-  /* ── Client-side dubbed filter (VJ presence) ── */
+  /* ── "Translated" VJ: exclude "Non Translated" movies ── */
+  if (isTranslatedFilter) {
+    movies = movies.filter((m) => m.vj?.name?.toLowerCase() !== "non translated");
+  }
+
+  /* ── "VJ Dubbed" quick pill: has any VJ, excluding "Non Translated" ── */
   if (params.dubbed === "yes") {
-    movies = movies.filter((m) => !!m.vjId && !!m.vj?.name);
+    movies = movies.filter((m) => !!m.vjId && !!m.vj?.name && m.vj.name.toLowerCase() !== "non translated");
   } else if (params.dubbed === "no") {
     movies = movies.filter((m) => !m.vjId || !m.vj?.name);
   }
 
-  /* ── Client-side sort ── */
-  if (params.sort === "rating") {
-    movies = [...movies].sort((a, b) => b.rating - a.rating);
-  } else if (params.sort === "views") {
-    movies = [...movies].sort((a, b) => Number(b.viewsCount ?? 0) - Number(a.viewsCount ?? 0));
-  } else if (params.sort === "newest") {
-    movies = [...movies].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }
 
   const totalPages = pagination?.totalPages ?? 1;
   const total      = pagination?.total ?? movies.length;

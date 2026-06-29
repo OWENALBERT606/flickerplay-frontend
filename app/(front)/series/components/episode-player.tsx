@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { incrementEpisodeViews } from "@/actions/series";
@@ -26,18 +26,21 @@ export function EpisodePlayer({
   showAds = false,
 }: EpisodePlayerProps) {
   const router = useRouter();
-  const [hasTrackedView, setHasTrackedView] = useState(false);
-
-  /* ── View tracking after 30 s ── */
+  /* ── View tracking: first ping at 30 s, then every 5 min ── */
   useEffect(() => {
-    const t = setTimeout(() => {
-      if (!hasTrackedView) {
-        incrementEpisodeViews(episode.id).catch(console.error);
-        setHasTrackedView(true);
-      }
+    const first = setTimeout(() => {
+      incrementEpisodeViews(episode.id).catch(console.error);
     }, 30_000);
-    return () => clearTimeout(t);
-  }, [episode.id, hasTrackedView]);
+
+    const interval = setInterval(() => {
+      incrementEpisodeViews(episode.id).catch(console.error);
+    }, 5 * 60_000);
+
+    return () => {
+      clearTimeout(first);
+      clearInterval(interval);
+    };
+  }, [episode.id]);
 
   /* ── Navigation helpers ── */
   const hasPrevious = episode.episodeNumber > 1 || season.seasonNumber > 1;

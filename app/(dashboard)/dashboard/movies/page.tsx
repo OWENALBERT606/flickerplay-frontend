@@ -5,8 +5,9 @@ import { listMovies } from "@/actions/movies";
 import MovieListing from "./components/movie-listing";
 
 export default async function MoviesPage() {
-  const moviesData = await listMovies();
+  const moviesData = await listMovies({ limit: 5000 });
   const movies = moviesData.data || [];
+  const totalMoviesCount = moviesData.pagination?.total ?? movies.length;
 
   
   return (
@@ -26,7 +27,7 @@ export default async function MoviesPage() {
         </Button>
       </div>
 
-      <MovieListing movies={movies} />
+      <MovieListing movies={movies} totalCount={totalMoviesCount} />
     </div>
   );
 }

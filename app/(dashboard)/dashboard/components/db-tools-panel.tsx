@@ -9,9 +9,6 @@ import {
   Loader2, Film, Clock, Zap, Database, Layers,
 } from "lucide-react";
 import {
-  syncLabaFilmMoviesToWaitlist,
-  syncAllLabaFilmMoviesAction,
-  debugLabaFilmMoviesApiAction,
   syncLabaFilmSeriesAction,
   syncLabaFilmSeriesFullAction,
   syncLabaFilmEpisodesAction,
@@ -451,61 +448,7 @@ export function DbToolsPanel() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="justify-start gap-2 h-auto py-2.5 px-3"
-            disabled={isPending}
-            onClick={() => runAction("Sync Recent", syncLabaFilmMoviesToWaitlist)}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 flex-shrink-0 ${activeAction === "Sync Recent" ? "animate-spin" : ""}`} />
-            <div className="text-left">
-              <p className="text-xs font-medium">Sync Recent → R2</p>
-              <p className="text-[10px] text-muted-foreground">Last 4 pages + upload to R2</p>
-            </div>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="justify-start gap-2 h-auto py-2.5 px-3 border-orange-500/30 hover:bg-orange-500/10"
-            disabled={isPending}
-            onClick={() => runAction("Sync All Movies", syncAllLabaFilmMoviesAction)}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 flex-shrink-0 text-orange-400 ${activeAction === "Sync All Movies" ? "animate-spin" : ""}`} />
-            <div className="text-left">
-              <p className="text-xs font-medium">Sync All Movies → R2</p>
-              <p className="text-[10px] text-muted-foreground">Fetch every page + upload to R2</p>
-            </div>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="justify-start gap-2 h-auto py-2.5 px-3"
-            disabled={isPending}
-            onClick={() => {
-              startTransition(async () => {
-                const res = await debugLabaFilmMoviesApiAction();
-                if (res.success) {
-                  setDebugInfo(JSON.stringify(res.data, null, 2));
-                  console.log("[Movies API Debug]", res.data);
-                  toast.info("Movies API debug — check panel below");
-                } else {
-                  setDebugInfo(res.error ?? "Error");
-                  toast.error(res.error ?? "Debug failed");
-                }
-              });
-            }}
-          >
-            <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" />
-            <div className="text-left">
-              <p className="text-xs font-medium">Debug Movies API</p>
-              <p className="text-[10px] text-muted-foreground">Inspect pagination</p>
-            </div>
-          </Button>
-
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Button
             variant="outline"
             size="sm"

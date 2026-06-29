@@ -15,16 +15,20 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Pencil, Plus, Star, Search } from "lucide-react";
+import { Eye, Pencil, Plus, Star, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Movie } from "@/actions/movies";
 import { DeleteMovieButton } from "./delete-movie-button";
 
 interface MovieListingProps {
   movies: Movie[];
+  totalCount?: number;
 }
 
-export default function MovieListing({ movies }: MovieListingProps) {
+const PAGE_SIZE = 30;
+
+export default function MovieListing({ movies, totalCount }: MovieListingProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   const filteredMovies = movies.filter((movie) =>
     movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -32,7 +36,11 @@ export default function MovieListing({ movies }: MovieListingProps) {
     movie.genre.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const totalMovies = movies.length;
+  const totalPages = Math.max(1, Math.ceil(filteredMovies.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageMovies = filteredMovies.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const totalMovies = totalCount ?? movies.length;
   const trendingCount = movies.filter((m) => m.isTrending).length;
   const comingSoonCount = movies.filter((m) => m.isComingSoon).length;
   const totalViews = movies.reduce((sum, m) => sum + Number(m.viewsCount || 0), 0);
@@ -96,7 +104,7 @@ export default function MovieListing({ movies }: MovieListingProps) {
               <Input
                 placeholder="Search movies, VJs, or genres..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                 className="pl-8"
               />
             </div>
@@ -125,7 +133,7 @@ export default function MovieListing({ movies }: MovieListingProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMovies.length === 0 ? (
+              {pageMovies.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-12">
                     <div className="flex flex-col items-center gap-2">
@@ -149,7 +157,7 @@ export default function MovieListing({ movies }: MovieListingProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredMovies.map((movie) => (
+                pageMovies.map((movie) => (
                   <TableRow key={movie.id}>
                     <TableCell>
                       <div className="relative w-16 h-24 rounded overflow-hidden">
@@ -242,6 +250,45 @@ export default function MovieListing({ movies }: MovieListingProps) {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-sm text-muted-foreground">
+            Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filteredMovies.length)} of {filteredMovies.length}
+          </p>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage === 1} onClick={() => setPage(safePage - 1)}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
+              .reduce<(number | "…")[]>((acc, p, i, arr) => {
+                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("…");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, i) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground text-sm">…</span>
+                ) : (
+                  <Button
+                    key={p}
+                    variant={p === safePage ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8 text-xs"
+                    onClick={() => setPage(p as number)}
+                  >
+                    {p}
+                  </Button>
+                )
+              )}
+            <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage === totalPages} onClick={() => setPage(safePage + 1)}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

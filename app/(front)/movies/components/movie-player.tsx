@@ -1,8 +1,8 @@
 "use client";
 
 import type { Movie } from "@/actions/movies";
+import { incrementMovieViews } from "@/actions/movies";
 import { NetflixPlayer } from "@/components/front-end/netflix-player";
-import { FreeTierBanner } from "@/components/front-end/free-tier-banner";
 import { useEffect, useState } from "react";
 import { GuestWatchManager } from "@/lib/guest-watch-manager";
 import { Loader2 } from "lucide-react";
@@ -35,6 +35,22 @@ export function MoviePlayer({
     if (isGuest) GuestWatchManager.addWatchedMovie(movie.id);
   }, [isGuest, movie.id]);
 
+  /* ── View tracking: first ping at 30 s, then every 5 min ── */
+  useEffect(() => {
+    const first = setTimeout(() => {
+      incrementMovieViews(movie.id).catch(console.error);
+    }, 30_000);
+
+    const interval = setInterval(() => {
+      incrementMovieViews(movie.id).catch(console.error);
+    }, 5 * 60_000);
+
+    return () => {
+      clearTimeout(first);
+      clearInterval(interval);
+    };
+  }, [movie.id]);
+
   useEffect(() => {
     if (!needsToken || !movie.externalId) return;
     fetch(`/api/stream-token?id=${encodeURIComponent(movie.externalId)}`)
@@ -64,7 +80,6 @@ export function MoviePlayer({
 
   return (
     <div className="w-full bg-black">
-      {showAds && <FreeTierBanner moviesWatched={moviesWatchedThisMonth} />}
       <NetflixPlayer
         src={streamUrl}
         poster={movie.poster || movie.image}

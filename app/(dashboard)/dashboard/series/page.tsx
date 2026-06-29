@@ -5,7 +5,7 @@ import { listSeries } from "@/actions/series";
 import SeriesListing from "./components/series-listing";
 
 export default async function SeriesPage() {
-  const seriesData = await listSeries();
+  const seriesData = await listSeries({ limit: 1000 });
   const series = seriesData.data || [];
 
   return (

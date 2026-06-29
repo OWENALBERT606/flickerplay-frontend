@@ -70,11 +70,15 @@ export default async function SeriesPage({
     series = series.filter((s) => !s.vjId || !s.vj?.name);
   }
 
-  /* ── Sort — default ascending by title, override if explicit sort param ── */
+  /* ── Sort — default ascending by updatedAt, override if explicit sort param ── */
   if (params.sort === "rating") {
     series = [...series].sort((a, b) => b.rating - a.rating);
-  } else {
+  } else if (params.sort === "title") {
     series = [...series].sort((a, b) => a.title.localeCompare(b.title));
+  } else {
+    series = [...series].sort(
+      (a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+    );
   }
 
   /* ── Heading ── */

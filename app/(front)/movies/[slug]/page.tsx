@@ -1,4 +1,3 @@
-import { incrementMovieViews } from "@/actions/movies";
 import { getCachedMovieBySlug, getCachedListMovies } from "@/lib/cache";
 import { notFound } from "next/navigation";
 import { MovieDetails } from "../components/movie-details";
@@ -70,9 +69,6 @@ export default async function MovieDetailPage({
   const isSubscribed = subscriptionStatus.isSubscribed;
   const initialProgress = progressData?.data?.progressPercent ?? 0;
   const showAds = !isSubscribed;
-
-  // Increment view count (fire and forget)
-  incrementMovieViews(movie.id).catch(console.error);
 
   const relatedMovies = (relatedMoviesData.data || []).filter((m) => m.id !== movie.id);
 
