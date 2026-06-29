@@ -326,6 +326,7 @@ export default async function HomePage({
               title="👁 Popular Movies"
               movies={popularMovies}
               viewAllHref="/?type=popular"
+              rows={2}
             />
           )}
           {newMovies.length > 0 && (

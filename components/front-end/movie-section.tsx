@@ -13,9 +13,10 @@ interface MovieSectionProps {
   movies: Movie[]
   userId?: string | null;
   viewAllHref?: string
+  rows?: 1 | 2
 }
 
-export function MovieSection({ title, movies, viewAllHref = "/movies" }: MovieSectionProps) {
+export function MovieSection({ title, movies, viewAllHref = "/movies", rows = 1 }: MovieSectionProps) {
   const [scrollPosition, setScrollPosition] = useState(0)
   const [hoveredMovie, setHoveredMovie] = useState<string | null>(null)
 
@@ -65,14 +66,18 @@ export function MovieSection({ title, movies, viewAllHref = "/movies" }: MovieSe
 
       <div
         id={`scroll-${title.replace(/\s+/g, "-")}`}
-        className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3 overflow-x-auto scrollbar-hide pb-4"
+        className={
+          rows === 2
+            ? "grid grid-flow-col grid-rows-2 gap-3 overflow-x-auto scrollbar-hide pb-4"
+            : "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3 overflow-x-auto scrollbar-hide pb-4"
+        }
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {movies.map((movie) => (
           <Link
             key={movie.id}
             href={`/movies/${movie.slug}`}
-            className="group cursor-pointer min-w-0 block focus-visible:outline-none"
+            className={`group cursor-pointer min-w-0 block focus-visible:outline-none${rows === 2 ? " w-28 sm:w-32 md:w-36" : ""}`}
             tabIndex={0}
             onMouseEnter={() => setHoveredMovie(movie.id)}
             onMouseLeave={() => setHoveredMovie(null)}
