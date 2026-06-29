@@ -167,6 +167,22 @@ export async function getComingSoonMovies(limit?: number) {
   }
 }
 
+/** GET /movies/check-title?title=... */
+export async function checkMovieTitle(title: string) {
+  try {
+    const res = await api.get("/movies/check-title", { params: { title } });
+    const movies = (res.data?.data ?? []) as Array<{
+      id: string;
+      title: string;
+      vj: { id: string; name: string };
+    }>;
+    return { success: true, exists: movies.length > 0, movies };
+  } catch (e: any) {
+    console.error("checkMovieTitle error:", e?.response?.data || e?.message);
+    return { success: false, exists: false, movies: [], error: msg(e, "Failed to check title") };
+  }
+}
+
 /** POST /movies */
 export async function createMovie(input: MovieCreateInput) {
   try {

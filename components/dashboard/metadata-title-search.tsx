@@ -13,6 +13,7 @@ interface MetadataTitleSearchProps {
   onChange: (value: string) => void;
   onSearch: (title: string) => Promise<MetadataCandidate[]>;
   onSelect: (candidate: MetadataCandidate) => Promise<void>;
+  onBlur?: () => void;
   disabled?: boolean;
   label?: string;
   placeholder?: string;
@@ -23,6 +24,7 @@ export function MetadataTitleSearch({
   onChange,
   onSearch,
   onSelect,
+  onBlur,
   disabled,
   label = "Title",
   placeholder = "e.g., Inception",
@@ -119,6 +121,7 @@ export function MetadataTitleSearch({
           value={value}
           onChange={handleChange}
           onFocus={() => candidates.length > 0 && setOpen(true)}
+          onBlur={onBlur}
           disabled={disabled || enriching}
           className="pl-9 pr-9"
           autoComplete="off"

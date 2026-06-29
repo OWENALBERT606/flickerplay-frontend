@@ -19,7 +19,18 @@ import { Loader2, Sparkles, ChevronsUpDown, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { toast } from "sonner";
-import { createMovie, updateMovie, type Movie } from "@/actions/movies";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { createMovie, updateMovie, checkMovieTitle, type Movie } from "@/actions/movies";
+import { deleteR2File } from "@/lib/r2-delete";
 import { listVJs } from "@/actions/vjs";
 import { listGenres } from "@/actions/genres";
 import { listReleaseYears } from "@/actions/releaseYear";
@@ -41,6 +52,9 @@ interface MovieFormProps {
 export function MovieForm({ movie }: MovieFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionVideoUrl, setSessionVideoUrl] = useState<string | null>(null);
+  const [duplicateMovies, setDuplicateMovies] = useState<Array<{ id: string; title: string; vj: { name: string } }>>([]);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [formData, setFormData] = useState({
     title:         movie?.title         || "",
     image:         movie?.image         || "",
@@ -100,6 +114,30 @@ export function MovieForm({ movie }: MovieFormProps) {
   useEffect(() => { if (trailerPosterFiles[0]?.publicUrl) setFormData(p => ({ ...p, trailerPoster: trailerPosterFiles[0].publicUrl! })); }, [trailerPosterFiles]);
   useEffect(() => { if (trailerFiles[0]?.publicUrl)       setFormData(p => ({ ...p, trailerUrl:    trailerFiles[0].publicUrl! })); }, [trailerFiles]);
 
+  /* ── Duplicate title check ── */
+  const checkTitleForDuplicates = async (title: string) => {
+    if (!title.trim() || isEditing) return;
+    const result = await checkMovieTitle(title.trim());
+    if (result.success && result.exists && result.movies.length > 0) {
+      setDuplicateMovies(result.movies);
+      setShowDuplicateDialog(true);
+    }
+  };
+
+  const handleCancelUpload = async () => {
+    setShowDuplicateDialog(false);
+    if (sessionVideoUrl) {
+      await deleteR2File(sessionVideoUrl);
+      setSessionVideoUrl(null);
+      setFormData(p => ({ ...p, videoUrl: "" }));
+    }
+    router.back();
+  };
+
+  const handleContinueUpload = () => {
+    setShowDuplicateDialog(false);
+  };
+
   /* ── Auto-fill from metadata ── */
   const handleMetadataSelect = async (candidate: MetadataCandidate) => {
     const data: EnrichedMovie | null =
@@ -141,6 +179,8 @@ export function MovieForm({ movie }: MovieFormProps) {
     }
     setMetaSource(data._meta?.ratingSource || null);
     setMetaFilled(true);
+
+    await checkTitleForDuplicates(data.title || formData.title);
   };
 
   /* ── Submit ── */
@@ -219,6 +259,7 @@ export function MovieForm({ movie }: MovieFormProps) {
         onChange={(v) => setFormData(p => ({ ...p, title: v }))}
         onSearch={searchMovieMetadata}
         onSelect={handleMetadataSelect}
+        onBlur={() => checkTitleForDuplicates(formData.title)}
         disabled={isLoading}
         label="Movie Title"
         placeholder="e.g., Inception — type to search TMDB"
@@ -422,7 +463,10 @@ export function MovieForm({ movie }: MovieFormProps) {
         <Label>Full Movie Video <span className="text-destructive">*</span></Label>
         <VideoDropzone
           onFilesChange={(files) => {
-            if (files[0]?.publicUrl) setFormData(p => ({ ...p, videoUrl: files[0].publicUrl! }));
+            if (files[0]?.publicUrl) {
+              setFormData(p => ({ ...p, videoUrl: files[0].publicUrl! }));
+              setSessionVideoUrl(files[0].publicUrl!);
+            }
           }}
           disabled={isLoading}
         />
@@ -452,6 +496,47 @@ export function MovieForm({ movie }: MovieFormProps) {
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>Cancel</Button>
       </div>
+
+      {/* ── Duplicate title warning dialog ── */}
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Movie Already Exists</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <div className="rounded-md border border-border bg-muted/40 px-3 py-2.5 text-sm space-y-2">
+                  <p className="font-medium">{duplicateMovies[0]?.title}</p>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">
+                      Found under {duplicateMovies.length} VJ{duplicateMovies.length !== 1 ? "s" : ""}:
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {duplicateMovies.map(m => (
+                        <Badge key={m.id} variant="secondary" className="text-xs">{m.vj.name}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  This movie already exists under VJ{duplicateMovies.length !== 1 ? "s" : ""}{" "}
+                  <span className="font-medium text-foreground">
+                    {duplicateMovies.map(m => m.vj.name).join(", ")}
+                  </span>. Cancel upload or continue?
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleContinueUpload}>Continue Uploading</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelUpload}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Cancel Upload{sessionVideoUrl ? " & Delete Video" : ""}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }
