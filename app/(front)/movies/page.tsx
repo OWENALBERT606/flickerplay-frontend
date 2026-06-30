@@ -12,6 +12,7 @@ import { SectionSkeleton } from "./components/section-skeleton";
 import { MoviesSidebar } from "./components/movies-sidebar";
 import { InfiniteMovieGrid } from "./components/infinite-movie-grid";
 import { Film } from "lucide-react";
+import type { Movie } from "@/actions/movies";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +80,7 @@ export default async function MoviesPage({
   const years  = yearsData.data  || [];
 
   /* ── Filtered view ── */
-  let filteredMovies = [];
+  let filteredMovies: Movie[] = [];
   let totalPages = 1;
   let total = 0;
   let heading = "All Movies";
@@ -131,13 +132,14 @@ export default async function MoviesPage({
   }
 
   /* ── Discovery sections (only when no filters) ── */
-  let newlyData   = { data: [], total: 0, page: 1, totalPages: 1, success: false as const };
-  let trendData   = { data: [], total: 0, page: 1, totalPages: 1, success: false as const };
-  let topData     = { data: [], total: 0, page: 1, totalPages: 1, success: false as const };
-  let recentData  = { data: [], total: 0, page: 1, totalPages: 1, success: false as const };
-  let actionData  = { data: [], total: 0, page: 1, totalPages: 1, success: false as const };
-  let comedyData  = { data: [], total: 0, page: 1, totalPages: 1, success: false as const };
-  let dramaData   = { data: [], total: 0, page: 1, totalPages: 1, success: false as const };
+  const emptyDisc = { data: [] as Movie[], total: 0, page: 1, totalPages: 1, success: false as const };
+  let newlyData   = emptyDisc;
+  let trendData   = emptyDisc;
+  let topData     = emptyDisc;
+  let recentData  = emptyDisc;
+  let actionData  = emptyDisc;
+  let comedyData  = emptyDisc;
+  let dramaData   = emptyDisc;
 
   if (!hasFilters) {
     const [newly, trending, topRated, recent, action, comedy, drama] = await Promise.allSettled([
@@ -151,14 +153,13 @@ export default async function MoviesPage({
     ]);
 
     const s = <T,>(r: PromiseSettledResult<T>, fb: T) => r.status === "fulfilled" ? r.value : fb;
-    const fb = { data: [], total: 0, page: 1, totalPages: 1, success: false as const };
-    newlyData  = s(newly,   fb) as any;
-    trendData  = s(trending, fb) as any;
-    topData    = s(topRated, fb) as any;
-    recentData = s(recent,   fb) as any;
-    actionData = s(action,   fb) as any;
-    comedyData = s(comedy,   fb) as any;
-    dramaData  = s(drama,    fb) as any;
+    newlyData  = s(newly,    emptyDisc);
+    trendData  = s(trending, emptyDisc);
+    topData    = s(topRated, emptyDisc);
+    recentData = s(recent,   emptyDisc);
+    actionData = s(action,   emptyDisc);
+    comedyData = s(comedy,   emptyDisc);
+    dramaData  = s(drama,    emptyDisc);
   }
 
   return (
@@ -186,7 +187,7 @@ export default async function MoviesPage({
                 </div>
               </div>
               <InfiniteMovieGrid
-                initialMovies={filteredMovies as any}
+                initialMovies={filteredMovies}
                 initialPage={currentPage}
                 totalPages={totalPages}
                 userId={userId}
@@ -207,13 +208,13 @@ export default async function MoviesPage({
                 </>
               )}
 
-              <MovieSection title="Newly Added"       icon="🆕" movies={newlyData.data  as any} viewAllHref="/movies/new"             cols={9} />
-              <MovieSection title="Trending Now"      icon="🔥" movies={trendData.data  as any} viewAllHref="/movies/trending"        cols={9} />
-              <MovieSection title="Top Rated"         icon="⭐" movies={topData.data    as any} viewAllHref="/movies/top-rated"       cols={9} />
-              <MovieSection title="Recently Released" icon="🎬" movies={recentData.data as any} viewAllHref="/movies/recent-releases" cols={9} />
-              <MovieSection title="Action"            icon="💥" movies={actionData.data as any} viewAllHref="/movies/action"          cols={9} />
-              <MovieSection title="Comedy"            icon="😂" movies={comedyData.data as any} viewAllHref="/movies/comedy"          cols={9} />
-              <MovieSection title="Drama"             icon="🎭" movies={dramaData.data  as any} viewAllHref="/movies/drama"           cols={9} />
+              <MovieSection title="Newly Added"       icon="🆕" movies={newlyData.data}  viewAllHref="/movies/new"             cols={9} />
+              <MovieSection title="Trending Now"      icon="🔥" movies={trendData.data}  viewAllHref="/movies/trending"        cols={9} />
+              <MovieSection title="Top Rated"         icon="⭐" movies={topData.data}    viewAllHref="/movies/top-rated"       cols={9} />
+              <MovieSection title="Recently Released" icon="🎬" movies={recentData.data} viewAllHref="/movies/recent-releases" cols={9} />
+              <MovieSection title="Action"            icon="💥" movies={actionData.data} viewAllHref="/movies/action"          cols={9} />
+              <MovieSection title="Comedy"            icon="😂" movies={comedyData.data} viewAllHref="/movies/comedy"          cols={9} />
+              <MovieSection title="Drama"             icon="🎭" movies={dramaData.data}  viewAllHref="/movies/drama"           cols={9} />
             </div>
           )}
         </div>
