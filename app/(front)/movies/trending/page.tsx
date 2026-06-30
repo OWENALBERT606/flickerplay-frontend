@@ -16,7 +16,7 @@ export default async function TrendingPage() {
         initialPage={1}
         totalPages={result.totalPages}
         limit={18}
-        cols={6}
+        cols={9}
         emptyMessage="No trending movies found"
       />
     </div>

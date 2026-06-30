@@ -17,7 +17,7 @@ export default async function DramaPage() {
         initialPage={1}
         totalPages={result.totalPages}
         limit={18}
-        cols={6}
+        cols={9}
         emptyMessage="No drama movies found"
       />
     </div>

@@ -15,17 +15,18 @@ const COLS_CLASS: Record<number, string> = {
   5: "grid-cols-3 sm:grid-cols-5 md:grid-cols-5",
   6: "grid-cols-3 sm:grid-cols-5 md:grid-cols-6",
   7: "grid-cols-3 sm:grid-cols-5 md:grid-cols-7",
+  9: "grid-cols-3 sm:grid-cols-6 md:grid-cols-9",
 };
 
 interface MovieGridProps {
   movies: Movie[]
   userId?: string
   /** Number of columns for layout (default 7) */
-  cols?: 2 | 3 | 4 | 5 | 6 | 7
+  cols?: 2 | 3 | 4 | 5 | 6 | 7 | 9
   emptyMessage?: string
 }
 
-export function MovieGrid({ movies, cols = 7, emptyMessage }: MovieGridProps) {
+export function MovieGrid({ movies, cols = 9, emptyMessage }: MovieGridProps) {
   if (movies.length === 0) {
     return (
       <div className="text-center py-12">

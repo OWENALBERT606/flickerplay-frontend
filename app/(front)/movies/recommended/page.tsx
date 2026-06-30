@@ -23,7 +23,7 @@ export default async function RecommendedPage() {
         initialPage={1}
         totalPages={result.totalPages}
         limit={18}
-        cols={6}
+        cols={9}
         emptyMessage="Watch more movies to get personalized recommendations!"
       />
     </div>

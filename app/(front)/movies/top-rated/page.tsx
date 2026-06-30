@@ -16,7 +16,7 @@ export default async function TopRatedPage() {
         initialPage={1}
         totalPages={result.totalPages}
         limit={18}
-        cols={6}
+        cols={9}
         emptyMessage="No top rated movies found"
       />
     </div>

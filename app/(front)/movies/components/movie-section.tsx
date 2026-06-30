@@ -8,7 +8,7 @@ interface MovieSectionProps {
   icon?: string
   movies: Movie[]
   viewAllHref: string
-  cols?: 2 | 3 | 4 | 5 | 6 | 7
+  cols?: 2 | 3 | 4 | 5 | 6 | 7 | 9
   emptyMessage?: string
 }
 
@@ -17,7 +17,7 @@ export function MovieSection({
   icon,
   movies,
   viewAllHref,
-  cols = 6,
+  cols = 9,
   emptyMessage,
 }: MovieSectionProps) {
   if (movies.length === 0) return null

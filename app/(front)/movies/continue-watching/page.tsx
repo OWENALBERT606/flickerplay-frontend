@@ -23,7 +23,7 @@ export default async function ContinueWatchingPage() {
         initialPage={1}
         totalPages={result.totalPages}
         limit={18}
-        cols={6}
+        cols={9}
         emptyMessage="Nothing in progress yet — start watching a movie!"
       />
     </div>

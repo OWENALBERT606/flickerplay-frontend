@@ -13,7 +13,7 @@ export function SectionSkeleton({ count = 6 }: SectionSkeletonProps) {
         <Skeleton className="h-5 w-16" />
       </div>
       {/* Movie card grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 gap-3">
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="aspect-[2/3] w-full rounded-lg" />

@@ -16,7 +16,7 @@ export default async function NewlyAddedPage() {
         initialPage={1}
         totalPages={result.totalPages}
         limit={18}
-        cols={6}
+        cols={9}
         emptyMessage="No new movies found"
       />
     </div>

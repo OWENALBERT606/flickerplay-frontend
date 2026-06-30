@@ -17,7 +17,7 @@ interface DiscoverInfiniteGridProps {
   totalPages: number;
   /** Items per page (must match server initial fetch) */
   limit?: number;
-  cols?: 2 | 3 | 4 | 5 | 6 | 7;
+  cols?: 2 | 3 | 4 | 5 | 6 | 7 | 9;
   emptyMessage?: string;
 }
 
