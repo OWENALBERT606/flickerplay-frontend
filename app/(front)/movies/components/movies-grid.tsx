@@ -8,23 +8,35 @@ import { Star, Clock } from "lucide-react"
 import { cleanTitle } from "@/lib/utils"
 import type { Movie } from "@/actions/movies"
 
+const COLS_CLASS: Record<number, string> = {
+  2: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4",
+  3: "grid-cols-3 sm:grid-cols-4 md:grid-cols-6",
+  4: "grid-cols-2 sm:grid-cols-4 md:grid-cols-4",
+  5: "grid-cols-3 sm:grid-cols-5 md:grid-cols-5",
+  6: "grid-cols-3 sm:grid-cols-5 md:grid-cols-6",
+  7: "grid-cols-3 sm:grid-cols-5 md:grid-cols-7",
+};
+
 interface MovieGridProps {
   movies: Movie[]
   userId?: string
+  /** Number of columns for layout (default 7) */
+  cols?: 2 | 3 | 4 | 5 | 6 | 7
+  emptyMessage?: string
 }
 
-export function MovieGrid({ movies }: MovieGridProps) {
+export function MovieGrid({ movies, cols = 7, emptyMessage }: MovieGridProps) {
   if (movies.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-xl text-muted-foreground">No movies found</p>
+        <p className="text-xl text-muted-foreground">{emptyMessage ?? "No movies found"}</p>
         <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters</p>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
+    <div className={`grid ${COLS_CLASS[cols] ?? COLS_CLASS[7]} gap-3`}>
       {movies.map((movie) => (
         <Card
           key={movie.id}

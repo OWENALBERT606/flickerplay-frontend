@@ -17,6 +17,12 @@ export async function GET(req: NextRequest) {
   const dubbed     = searchParams.get("dubbed");
   const sort       = searchParams.get("sort");
 
+  const sortBy =
+    sort === "rating" ? "rating" :
+    sort === "views"  ? "views"  :
+    sort === "newest" ? "newest" :
+    sort === "year"   ? "year"   : undefined;
+
   try {
     const result = await listMovies({
       page,
@@ -27,6 +33,7 @@ export async function GET(req: NextRequest) {
       search:       search     || undefined,
       isTrending:   trending   === "1" ? true : undefined,
       isComingSoon: comingSoon === "1" ? true : undefined,
+      sortBy,
     });
 
     let movies: Movie[] = result.data || [];
@@ -34,10 +41,6 @@ export async function GET(req: NextRequest) {
 
     if (dubbed === "yes") movies = movies.filter((m) => !!m.vjId && !!m.vj?.name);
     else if (dubbed === "no") movies = movies.filter((m) => !m.vjId || !m.vj?.name);
-
-    if (sort === "rating") movies = [...movies].sort((a, b) => b.rating - a.rating);
-    else if (sort === "views")  movies = [...movies].sort((a, b) => Number(b.viewsCount ?? 0) - Number(a.viewsCount ?? 0));
-    else if (sort === "newest") movies = [...movies].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({
       movies,
