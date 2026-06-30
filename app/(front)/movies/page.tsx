@@ -6,6 +6,7 @@ import {
   getDiscoverySection,
   getContinueWatchingSection,
   getRecommendedSection,
+  type DiscoveryResult,
 } from "@/actions/movies-discovery";
 import { MovieSection } from "./components/movie-section";
 import { SectionSkeleton } from "./components/section-skeleton";
@@ -132,7 +133,7 @@ export default async function MoviesPage({
   }
 
   /* ── Discovery sections (only when no filters) ── */
-  const emptyDisc = { data: [] as Movie[], total: 0, page: 1, totalPages: 1, success: false as const };
+  const emptyDisc: DiscoveryResult = { data: [], total: 0, page: 1, totalPages: 1, success: false };
   let newlyData   = emptyDisc;
   let trendData   = emptyDisc;
   let topData     = emptyDisc;
@@ -142,7 +143,7 @@ export default async function MoviesPage({
   let dramaData   = emptyDisc;
 
   if (!hasFilters) {
-    const [newly, trending, topRated, recent, action, comedy, drama] = await Promise.allSettled([
+    const settled = await Promise.allSettled([
       getDiscoverySection("new",       { limit: 18 }),
       getDiscoverySection("trending",  { limit: 18 }),
       getDiscoverySection("top-rated", { limit: 18 }),
@@ -152,14 +153,11 @@ export default async function MoviesPage({
       getDiscoverySection("genre",     { limit: 18, genre: "Drama" }),
     ]);
 
-    const s = <T,>(r: PromiseSettledResult<T>, fb: T) => r.status === "fulfilled" ? r.value : fb;
-    newlyData  = s(newly,    emptyDisc);
-    trendData  = s(trending, emptyDisc);
-    topData    = s(topRated, emptyDisc);
-    recentData = s(recent,   emptyDisc);
-    actionData = s(action,   emptyDisc);
-    comedyData = s(comedy,   emptyDisc);
-    dramaData  = s(drama,    emptyDisc);
+    const pick = (r: PromiseSettledResult<DiscoveryResult>): DiscoveryResult =>
+      r.status === "fulfilled" ? r.value : emptyDisc;
+
+    [newlyData, trendData, topData, recentData, actionData, comedyData, dramaData] =
+      settled.map(pick) as [DiscoveryResult, DiscoveryResult, DiscoveryResult, DiscoveryResult, DiscoveryResult, DiscoveryResult, DiscoveryResult];
   }
 
   return (
